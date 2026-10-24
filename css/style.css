@@ -2625,7 +2625,431 @@ body.rumble-shake {
 }
 
 /* ==========================================================================
-   16. ACESSIBILIDADE & PREFERS-REDUCED-MOTION
+   16. RESPONSIVIDADE TOTAL PARA DISPOSITIVOS MÓVEIS (MOBILE-FIRST FOCUS) 📱
+   ========================================================================== */
+@media (max-width: 640px) {
+  /* Barra Superior Fixa */
+  .top-action-bar {
+    padding: 6px 8px;
+    gap: 4px;
+  }
+  .sound-toggle-btn {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+  }
+  .sound-toggle-btn .sound-label-text {
+    display: none;
+  }
+  .alien-hud-pill {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    gap: 4px;
+  }
+  .btn-quick-rsvp-top {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+  .admin-quick-btn {
+    padding: 5px 8px;
+    font-size: 0.75rem;
+  }
+
+  /* Estrutura da Página */
+  .page-wrapper {
+    padding: 10px 10px 70px 10px;
+    gap: 20px;
+  }
+
+  /* 1. Caixa de Brinquedos 3D na Abertura */
+  .intro-content {
+    padding: 0 10px;
+  }
+  .intro-badge-top {
+    font-size: 0.95rem;
+    padding: 6px 14px;
+    margin-bottom: 10px;
+  }
+  .intro-title {
+    font-size: 1.55rem;
+    margin-bottom: 16px;
+  }
+  .toy-chest-stage {
+    width: 240px;
+    height: 170px;
+    margin: 8px auto 18px auto;
+  }
+  .chest-base {
+    height: 120px;
+  }
+  .chest-name-chalk {
+    font-size: 1.7rem;
+    padding: 3px 12px;
+  }
+  .btn-open-chest {
+    font-size: 1.05rem;
+    padding: 12px 22px;
+  }
+  .intro-subtitle-hero {
+    font-size: 1.35rem;
+  }
+  .intro-desc-hero {
+    font-size: 0.92rem;
+  }
+
+  /* 4. Hero Card */
+  .hero-card {
+    padding: 22px 12px 18px 12px;
+    border-width: 5px;
+    border-radius: 22px;
+  }
+  .hero-pretitle {
+    font-size: 0.92rem;
+    letter-spacing: 1px;
+  }
+  .official-logo-img {
+    max-width: 270px;
+    width: 85%;
+  }
+  .baby-noah-portrait-wrapper {
+    width: 140px;
+    height: 140px;
+    border-width: 4px;
+    margin: 10px auto;
+  }
+  .baby-portrait-tag {
+    font-size: 0.85rem;
+    padding: 5px 14px;
+    margin-top: -10px;
+  }
+  .event-date-highlight-bar {
+    font-size: 0.95rem;
+    padding: 8px 12px;
+    width: 100%;
+    justify-content: center;
+    border-radius: 12px;
+  }
+  .toy-blocks-shelf {
+    gap: 6px;
+    margin: 14px 0 6px 0;
+  }
+  .interactive-block {
+    width: 44px;
+    height: 44px;
+    font-size: 1.45rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25) !important;
+  }
+  .shelf-hint {
+    font-size: 0.78rem;
+  }
+
+  /* 5. Velho Oeste */
+  .western-section {
+    padding: 20px 12px;
+    border-width: 5px;
+    border-radius: 22px;
+  }
+  .western-title {
+    font-size: 1.4rem;
+  }
+  .western-subtitle {
+    font-size: 0.88rem;
+  }
+  .wanted-poster-container {
+    padding: 14px 10px;
+    max-width: 250px;
+    margin: 16px auto 20px auto;
+  }
+  .wanted-header-text {
+    font-size: 1.6rem;
+  }
+  .wanted-photo-frame {
+    width: 160px;
+    height: 160px;
+  }
+  .wanted-name {
+    font-size: 1.3rem;
+  }
+  .wanted-reward {
+    font-size: 0.85rem;
+  }
+  .family-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .family-card {
+    padding: 14px 10px;
+  }
+  .family-photo-wrapper {
+    width: 120px;
+    height: 120px;
+  }
+  .bbq-special-card {
+    padding: 16px 12px;
+    border-width: 3px;
+    border-radius: 18px;
+  }
+  .bbq-title {
+    font-size: 1.25rem;
+  }
+  .bbq-rule {
+    font-size: 0.92rem;
+  }
+  .bbq-desc {
+    font-size: 0.85rem;
+  }
+
+  /* 6. Missão Espacial Buzz */
+  .space-section {
+    padding: 22px 12px;
+    border-width: 5px;
+    border-radius: 22px;
+  }
+  .space-title {
+    font-size: 1.35rem;
+  }
+  .buzz-rocket-stage {
+    padding: 8px 0;
+  }
+  .rocket-ship-container {
+    width: 110px;
+    height: 130px;
+  }
+  .mission-grid-2col {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .mission-info-box {
+    padding: 14px 10px;
+  }
+  .mission-box-main {
+    font-size: 1.15rem;
+  }
+  .mission-box-sub {
+    font-size: 0.85rem;
+  }
+  .space-actions-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .btn-pill {
+    padding: 9px 10px;
+    font-size: 0.82rem;
+  }
+  .space-countdown-container {
+    padding: 14px 8px;
+    border-radius: 18px;
+  }
+  .countdown-grid {
+    gap: 6px;
+  }
+  .countdown-box {
+    min-width: 54px;
+    padding: 8px 4px;
+    border-radius: 10px;
+  }
+  .countdown-num {
+    font-size: 1.45rem;
+  }
+  .countdown-label {
+    font-size: 0.65rem;
+  }
+
+  /* 7. Caça aos Aliens */
+  .aliens-mission-card {
+    padding: 20px 12px;
+    border-width: 5px;
+    border-radius: 22px;
+  }
+  .aliens-hud-box {
+    padding: 10px;
+    font-size: 0.85rem;
+  }
+
+  /* 8. Toy Story Quiz */
+  .quiz-section {
+    padding: 20px 12px;
+    border-width: 5px;
+    border-radius: 22px;
+  }
+  .quiz-title {
+    font-size: 1.35rem;
+  }
+  .quiz-options-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .quiz-option-btn {
+    padding: 12px;
+    font-size: 0.92rem;
+    min-height: 48px;
+  }
+
+  /* 9. Botão Proibido */
+  .forbidden-section {
+    padding: 20px 12px;
+    border-width: 5px;
+    border-radius: 22px;
+  }
+  .btn-forbidden-3d {
+    width: 140px;
+    height: 140px;
+    font-size: 1.1rem;
+  }
+
+  /* 10. Turma Convocada */
+  .characters-section {
+    padding: 20px 12px;
+    border-width: 5px;
+    border-radius: 22px;
+  }
+  .characters-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px;
+  }
+  .character-card {
+    padding: 10px 6px;
+  }
+  .character-avatar-wrapper {
+    width: 62px;
+    height: 62px;
+  }
+  .character-name {
+    font-size: 0.85rem;
+  }
+
+  /* 11. Linha do Tempo Polaroid */
+  .polaroid-section {
+    padding: 20px 12px;
+    border-width: 5px;
+    border-radius: 22px;
+  }
+  .polaroid-card {
+    flex: 0 0 210px;
+    padding: 10px 10px 14px 10px;
+  }
+  .polaroid-photo-frame {
+    height: 170px;
+  }
+
+  /* 12. RSVP */
+  .rsvp-section {
+    padding: 22px 12px;
+    border-width: 5px;
+    border-radius: 22px;
+  }
+  .rsvp-title {
+    font-size: 1.35rem;
+  }
+  .attendance-toggle-group {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+  .btn-attendance {
+    width: 100%;
+    padding: 12px;
+    justify-content: center;
+    font-size: 0.95rem;
+  }
+  .rsvp-form-container {
+    padding: 16px 12px;
+    border-radius: 18px;
+  }
+  .form-input, .form-select, .form-textarea {
+    font-size: 16px !important; /* Evita zoom automático no iOS Safari */
+    padding: 11px 12px;
+  }
+  .child-row-item {
+    flex-wrap: wrap;
+    gap: 6px;
+    background: #f8fafc;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+  }
+  .child-name-input {
+    flex: 1 1 100%;
+  }
+  .child-age-select {
+    flex: 1;
+  }
+  .btn-submit-rsvp {
+    font-size: 1.15rem;
+    padding: 14px 10px;
+  }
+
+  /* 13. Cápsula do Tempo */
+  .time-capsule-section {
+    padding: 22px 12px;
+    border-width: 5px;
+    border-radius: 22px;
+  }
+  .capsule-title {
+    font-size: 1.35rem;
+  }
+  .capsule-form-box {
+    padding: 14px 10px;
+  }
+  .btn-send-capsule {
+    font-size: 1rem;
+    padding: 12px 18px;
+    width: 100%;
+  }
+  .capsule-messages-board {
+    grid-template-columns: 1fr;
+  }
+
+  /* 14. Modais Responsivos */
+  .modal-backdrop {
+    padding: 8px;
+  }
+  .modal-card {
+    padding: 20px 12px;
+    border-radius: 20px;
+    max-height: 94vh;
+  }
+  .ticket-wrapper {
+    padding: 14px 10px;
+    border-radius: 16px;
+    margin: 10px 0;
+  }
+  .ticket-body-grid {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 12px;
+  }
+  .ticket-qrcode-box {
+    margin: 0 auto;
+    width: 95px;
+    height: 95px;
+  }
+  .ticket-brand-logo {
+    max-width: 110px;
+  }
+  .ticket-code-badge {
+    font-size: 0.8rem;
+    padding: 3px 8px;
+  }
+}
+
+@media (max-width: 380px) {
+  .space-actions-group {
+    grid-template-columns: 1fr;
+  }
+  .official-logo-img {
+    max-width: 230px;
+  }
+  .interactive-block {
+    width: 38px;
+    height: 38px;
+    font-size: 1.25rem;
+  }
+}
+
+/* ==========================================================================
+   17. ACESSIBILIDADE & PREFERS-REDUCED-MOTION
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
