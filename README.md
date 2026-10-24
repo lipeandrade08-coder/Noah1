@@ -21,7 +21,7 @@ Site de convite digital cinematográfico, animado e interativo, inspirado no uni
      - 🐶 **Cãozinho Slinky — Mascote da Família**
      - 👨‍👩‍👦 **Família Toy Story Reunida**
    - Card especial rústico do **Churrasco Americano do Xerife Noah! 🥩🤠**:
-     *"Cada família leva 500g de carne por pessoa + 1 bebida da sua preferência! A família cuidará dos acompanhamentos, saladas, bolo e docinhos!"*
+     *"Cada família leva apenas 500g de carne por pessoa! As bebidas, acompanhamentos, saladas, bolo e docinhos ficam por nossa conta!"*
 
 3. **🚀 Missão Intergaláctica do Buzz (Star Command):**
    - Espaço cósmico com estrelas cintilantes, nebulosas e planetas.
