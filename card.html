@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1200, height=1600">
+  <title>Convite Oficial: Noah Story 1 - Família Toy Story & Churrasco Americano</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@700;800;900&display=swap"
+    rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 1200px;
+      height: 1600px;
+      overflow: hidden;
+      font-family: 'Fredoka', 'Nunito', sans-serif;
+      background: linear-gradient(180deg, #38bdf8 0%, #60a5fa 35%, #93c5fd 65%, #bae6fd 100%);
+      position: relative;
+      color: #1e293b;
+    }
+
+    /* Fundo com Nuvens Suaves do Quarto do Andy */
+    .bg-clouds {
+      position: absolute;
+      inset: 0;
+      background-image: url('assets/images/clouds-bg.jpg');
+      background-size: cover;
+      background-position: center;
+      opacity: 0.35;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+    }
+
+    /* Moldura Externa de Brinquedo */
+    .card-border {
+      position: absolute;
+      inset: 20px;
+      border: 12px solid #facc15;
+      border-radius: 40px;
+      box-shadow: 0 0 0 8px #ef4444, 0 25px 60px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(0, 0, 0, 0.15);
+      pointer-events: none;
+      z-index: 50;
+    }
+
+    /* Bandeirolas Festivas no Topo */
+    .bunting-bar {
+      position: absolute;
+      top: 32px;
+      left: 32px;
+      right: 32px;
+      display: flex;
+      justify-content: space-around;
+      z-index: 40;
+    }
+
+    .flag {
+      width: 55px;
+      height: 70px;
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
+    }
+
+    .f-red {
+      background: #ef4444;
+    }
+
+    .f-yellow {
+      background: #facc15;
+    }
+
+    .f-green {
+      background: #22c55e;
+    }
+
+    .f-blue {
+      background: #3b82f6;
+    }
+
+    .f-purple {
+      background: #a855f7;
+    }
+
+    /* Faixa de Cabeçalho */
+    .header-ribbon {
+      position: absolute;
+      top: 65px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+      color: #ffffff;
+      padding: 10px 42px;
+      border-radius: 30px;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      box-shadow: 0 8px 25px rgba(185, 28, 28, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+      border: 3px solid #ffffff;
+      z-index: 30;
+      white-space: nowrap;
+    }
+
+    /* Container do Logotipo Oficial NOAH STORY 1 */
+    .logo-box {
+      position: absolute;
+      top: 115px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 580px;
+      height: 220px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 30;
+    }
+
+    .logo-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.35));
+    }
+
+    /* Subtítulo Dourado */
+    .sub-banner {
+      position: absolute;
+      top: 335px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+      color: #78350f;
+      padding: 8px 36px;
+      border-radius: 25px;
+      font-size: 24px;
+      font-weight: 800;
+      border: 3px solid #ffffff;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+      z-index: 30;
+      white-space: nowrap;
+    }
+
+    /* =================================================== */
+    /* PALCO CENTRAL COM A FOTO DA FAMÍLIA TOY STORY       */
+    /* =================================================== */
+    .stage-wrapper {
+      position: absolute;
+      top: 375px;
+      left: 50px;
+      right: 50px;
+      height: 720px;
+      z-index: 20;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Chão / Pedestal de Nuvem Iluminada */
+    .stage-floor {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 960px;
+      height: 140px;
+      background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.7) 60%, rgba(255, 255, 255, 0) 100%);
+      border-radius: 50%;
+      filter: blur(8px);
+      z-index: 1;
+    }
+
+    /* FOTO DA FAMÍLIA EM DESTAQUE TOTAL */
+    .family-image-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 760px;
+      height: 700px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      filter: drop-shadow(0 25px 35px rgba(0, 0, 0, 0.45));
+    }
+
+    .family-image-wrapper img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    /* Etiqueta Festiva com os Nomes */
+    .family-badge-tag {
+      position: absolute;
+      bottom: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #fef08a 0%, #fde047 100%);
+      border: 3px solid #f59e0b;
+      border-radius: 24px;
+      padding: 8px 28px;
+      font-size: 20px;
+      font-weight: 800;
+      color: #78350f;
+      white-space: nowrap;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+      z-index: 20;
+    }
+
+    /* =================================================== */
+    /* PAINEL INFERIOR DE INFORMAÇÕES (DATA, HORA E CHURRASCO) */
+    /* =================================================== */
+    .info-plaque {
+      position: absolute;
+      bottom: 50px;
+      left: 60px;
+      right: 60px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 6px solid #2563eb;
+      border-radius: 35px;
+      padding: 24px 36px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), inset 0 2px 5px rgba(255, 255, 255, 0.9);
+      z-index: 35;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .info-badge-icon {
+      width: 65px;
+      height: 65px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      flex-shrink: 0;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .badge-cal {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: #ffffff;
+      border: 3px solid #fee2e2;
+    }
+
+    .badge-loc {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      color: #ffffff;
+      border: 3px solid #dcfce7;
+    }
+
+    .info-title {
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #64748b;
+      font-weight: 800;
+    }
+
+    .info-value-big {
+      font-size: 26px;
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1.15;
+    }
+
+    .info-value-sub {
+      font-size: 18px;
+      color: #334155;
+      font-weight: 700;
+    }
+
+    /* FAIXA ESPECIAL: CHURRASCO AMERICANO */
+    .bbq-highlight-bar {
+      background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+      border: 3px solid #f97316;
+      border-radius: 20px;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 4px 10px rgba(249, 115, 22, 0.15);
+    }
+
+    .bbq-icon-circle {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #ea580c;
+      color: #ffffff;
+      font-size: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 8px rgba(234, 88, 12, 0.3);
+    }
+
+    .bbq-text-group {
+      flex: 1;
+    }
+
+    .bbq-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: #9a3412;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bbq-rules {
+      font-size: 17px;
+      font-weight: 700;
+      color: #7c2d12;
+      margin-top: 2px;
+    }
+
+    .bbq-rules span {
+      background: #fed7aa;
+      padding: 2px 8px;
+      border-radius: 8px;
+      margin-right: 6px;
+    }
+
+    /* Rodapé do Convite */
+    .card-footer-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #eff6ff;
+      border-radius: 18px;
+      padding: 10px 22px;
+      border: 2px dashed #93c5fd;
+    }
+
+    .footer-phrase {
+      font-size: 18px;
+      font-weight: 800;
+      color: #1e40af;
+    }
+
+    .footer-rsvp-btn {
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+      color: #ffffff;
+      padding: 8px 20px;
+      border-radius: 14px;
+      font-size: 17px;
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Nuvens do Quarto do Andy -->
+  <div class="bg-clouds"></div>
+
+  <!-- Moldura Festiva 3D -->
+  <div class="card-border"></div>
+
+  <!-- Bandeirolas Festivas -->
+  <div class="bunting-bar">
+    <div class="flag f-red"></div>
+    <div class="flag f-yellow"></div>
+    <div class="flag f-green"></div>
+    <div class="flag f-blue"></div>
+    <div class="flag f-purple"></div>
+    <div class="flag f-red"></div>
+    <div class="flag f-yellow"></div>
+    <div class="flag f-green"></div>
+    <div class="flag f-blue"></div>
+    <div class="flag f-purple"></div>
+    <div class="flag f-red"></div>
+    <div class="flag f-yellow"></div>
+  </div>
+
+  <!-- Faixa de Boas-Vindas -->
+  <div class="header-ribbon">
+    ⭐ VOCÊ ESTÁ CONVIDADO PARA O 1º ANINHO! ⭐
+  </div>
+
+  <!-- Logotipo Oficial NOAH STORY 1 -->
+  <div class="logo-box">
+    <img src="assets/images/logo-noah-story-1.png" alt="Logotipo Oficial Noah Story 1" class="logo-img">
+  </div>
+
+  <!-- Subtítulo de Aniversário -->
+  <div class="sub-banner">
+    🤠 O Pequeno Xerife Noah Convoca Você para Essa Aventura! 🚀
+  </div>
+
+  <!-- ============================================== -->
+  <!-- PALCO PRINCIPAL: FOTO DA FAMÍLIA TOY STORY     -->
+  <!-- ============================================== -->
+  <div class="stage-wrapper">
+    <!-- Pedestal de Nuvem Iluminada -->
+    <div class="stage-floor"></div>
+
+    <!-- FOTO DA FAMÍLIA (YASMIN, FILIPE, NOAH E PET) -->
+    <div class="family-image-wrapper">
+      <img src="assets/images/familia-toy-story.png"
+        alt="Família Toy Story: Yasmin (Jessie), Filipe (Buzz), Pequeno Xerife Noah (Woody) e Pet (Slinky)">
+      <div class="family-badge-tag">
+        ⭐ Mamãe Yasmin (Jessie) • Papai Filipe (Buzz) • Pequeno Xerife Noah (Woody) • Pet (Slinky) ⭐
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- PLACA INFERIOR DE INFORMAÇÕES DA FESTA         -->
+  <!-- ============================================== -->
+  <div class="info-plaque">
+
+    <!-- Linha com Data e Local lado a lado -->
+    <div class="info-grid">
+      <!-- Data e Horário (11:30h) -->
+      <div class="info-item">
+        <div class="info-badge-icon badge-cal">📅</div>
+        <div>
+          <div class="info-title">Quando Será?</div>
+          <div class="info-value-big">16 de Janeiro de 2027</div>
+          <div class="info-value-sub">Sábado, às 11:30 horas (Almoço)</div>
+        </div>
+      </div>
+
+      <!-- Local -->
+      <div class="info-item">
+        <div class="info-badge-icon badge-loc">📍</div>
+        <div>
+          <div class="info-title">Onde Será?</div>
+          <div class="info-value-big">Espaço DiverKids</div>
+          <div class="info-value-sub">Rua das Nuvens Felizes, 123 - SP</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESTAQUE DO CHURRASCO AMERICANO -->
+    <div class="bbq-highlight-bar">
+      <div class="bbq-icon-circle">🥩</div>
+      <div class="bbq-text-group">
+        <div class="bbq-title">🔥 CHURRASCO AMERICANO DO PEQUENO XERIFE NOAH!</div>
+        <div class="bbq-rules">
+          <span>🥩 500g de carne por pessoa</span>
+          <span>🥤 1 Bebida da sua escolha</span>
+          • Saladas, bolo e docinhos por nossa conta!
+        </div>
+      </div>
+    </div>
+
+    <!-- Rodapé com Chamada para Confirmação -->
+    <div class="card-footer-bar">
+      <div class="footer-phrase">🤠 Mensagem do Pequeno Xerife: "Amigo, estou aqui!" — Ao infinito e além! 🚀</div>
+      <div class="footer-rsvp-btn">CONFIRME SUA PRESENÇA ONLINE! ✨</div>
+    </div>
+  </div>
+
+</body>
+
+</html>

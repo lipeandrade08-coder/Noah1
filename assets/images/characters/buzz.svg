@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" width="100%" height="100%">
+  <defs>
+    <!-- Gradiente Verde Buzz -->
+    <linearGradient id="buzzGreen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#99e236"/>
+      <stop offset="50%" stop-color="#76c828"/>
+      <stop offset="100%" stop-color="#559918"/>
+    </linearGradient>
+    <!-- Gradiente Roxo Buzz -->
+    <linearGradient id="buzzPurple" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#9c27b0"/>
+      <stop offset="50%" stop-color="#7b1fa2"/>
+      <stop offset="100%" stop-color="#4a148c"/>
+    </linearGradient>
+    <!-- Gradiente do Traje Branco -->
+    <linearGradient id="suitWhite" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e0e0e0"/>
+    </linearGradient>
+    <!-- Pele do Buzz -->
+    <linearGradient id="buzzSkin" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fed7aa"/>
+      <stop offset="100%" stop-color="#fba872"/>
+    </linearGradient>
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Asas Retráteis do Buzz Atrás -->
+  <path d="M 25,160 L 5,140 L 15,190 L 40,180 Z" fill="#d32f2f" stroke="#ffffff" stroke-width="2"/>
+  <path d="M 175,160 L 195,140 L 185,190 L 160,180 Z" fill="#22c55e" stroke="#ffffff" stroke-width="2"/>
+
+  <!-- Peitoral Branco Espacial -->
+  <path d="M 40,150 L 160,150 L 170,220 L 30,220 Z" fill="url(#suitWhite)" stroke="#9e9e9e" stroke-width="2" filter="url(#dropShadow)"/>
+
+  <!-- Placa Verde Fluo do Peito -->
+  <path d="M 50,152 L 150,152 L 145,195 L 55,195 Z" fill="url(#buzzGreen)" stroke="#33691e" stroke-width="2"/>
+
+  <!-- Botões de Comando do Buzz -->
+  <rect x="115" y="160" width="8" height="18" rx="3" fill="#2196f3"/>
+  <rect x="127" y="160" width="8" height="18" rx="3" fill="#4caf50"/>
+  <rect x="139" y="160" width="8" height="18" rx="3" fill="#f44336"/>
+
+  <!-- Botão Vermelho Redondo do Laser -->
+  <circle cx="68" cy="172" r="9" fill="#e53935" stroke="#b71c1c" stroke-width="2"/>
+  <circle cx="66" cy="170" r="3" fill="#ffcdd2"/>
+
+  <!-- Detalhe da Faixa Roxa do Abdômen -->
+  <rect x="52" y="200" width="96" height="12" rx="4" fill="url(#buzzPurple)"/>
+
+  <!-- Cúpula do Capacete Transparente -->
+  <ellipse cx="100" cy="95" rx="58" ry="60" fill="rgba(224, 247, 250, 0.45)" stroke="#b2ebf2" stroke-width="3" filter="url(#dropShadow)"/>
+  <ellipse cx="100" cy="95" rx="55" ry="57" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2"/>
+
+  <!-- Capuz Roxo do Buzz -->
+  <ellipse cx="100" cy="100" rx="36" ry="42" fill="url(#buzzPurple)"/>
+
+  <!-- Rosto do Buzz -->
+  <ellipse cx="100" cy="104" rx="28" ry="32" fill="url(#buzzSkin)"/>
+
+  <!-- Olhos Azuis Confiantes -->
+  <ellipse cx="90" cy="100" rx="5" ry="7" fill="#ffffff"/>
+  <circle cx="91" cy="100" r="3" fill="#1e88e5"/>
+  <circle cx="92" cy="98" r="1.2" fill="#ffffff"/>
+
+  <ellipse cx="110" cy="100" rx="5" ry="7" fill="#ffffff"/>
+  <circle cx="109" cy="100" r="3" fill="#1e88e5"/>
+  <circle cx="110" cy="98" r="1.2" fill="#ffffff"/>
+
+  <!-- Sobrancelhas Arrojadas -->
+  <path d="M 85,90 Q 92,86 96,91" stroke="#4a148c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M 104,91 Q 108,86 115,90" stroke="#4a148c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Nariz e Queixo Marcante do Buzz -->
+  <path d="M 100,101 Q 102,110 98,111" stroke="#e08a55" stroke-width="1.8" fill="none"/>
+  <!-- Sorriso Heroico -->
+  <path d="M 90,119 Q 100,129 110,119" stroke="#b71c1c" stroke-width="2.5" fill="#ffffff" stroke-linecap="round"/>
+  <!-- Espiral Icônica no Queixo -->
+  <path d="M 98,127 A 2,2 0 1,1 102,127 A 2,2 0 1,1 98,127" fill="none" stroke="#d97706" stroke-width="1.2"/>
+</svg>

@@ -1,0 +1,18 @@
+{
+  "name": "convite-toy-story-noah",
+  "version": "1.0.0",
+  "description": "Convite Online de 1º Aninho do Noah - Tema Toy Story com integração direta ao Google Planilhas",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "convite",
+    "toy-story",
+    "aniversario",
+    "rsvp",
+    "google-sheets"
+  ],
+  "author": "",
+  "license": "MIT"
+}

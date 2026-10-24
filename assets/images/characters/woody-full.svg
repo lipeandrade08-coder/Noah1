@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="wfHat" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#8d5b4c"/>
+      <stop offset="50%" stop-color="#6d3e31"/>
+      <stop offset="100%" stop-color="#4a261c"/>
+    </linearGradient>
+    <linearGradient id="wfSkin" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffdfba"/>
+      <stop offset="100%" stop-color="#f5c192"/>
+    </linearGradient>
+    <linearGradient id="wfJean" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e88e5"/>
+      <stop offset="100%" stop-color="#0d47a1"/>
+    </linearGradient>
+    <linearGradient id="wfBoot" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#6d4c41"/>
+      <stop offset="100%" stop-color="#3e2723"/>
+    </linearGradient>
+    <filter id="wfShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Sombra no Chão -->
+  <ellipse cx="120" cy="385" rx="55" ry="10" fill="rgba(0,0,0,0.25)"/>
+
+  <!-- Pernas com Calça Jeans Azul -->
+  <!-- Perna Esquerda -->
+  <path d="M 85,200 L 80,310 L 105,310 L 110,200 Z" fill="url(#wfJean)"/>
+  <line x1="82" y1="200" x2="80" y2="310" stroke="#ffb300" stroke-width="2"/>
+  <!-- Perna Direita -->
+  <path d="M 130,200 L 135,310 L 160,310 L 155,200 Z" fill="url(#wfJean)"/>
+  <line x1="158" y1="200" x2="160" y2="310" stroke="#ffb300" stroke-width="2"/>
+
+  <!-- Botas de Cowboy com Esporas -->
+  <!-- Bota Esquerda -->
+  <g filter="url(#wfShadow)">
+    <path d="M 76,305 L 105,305 L 102,360 L 65,360 L 65,345 Q 74,335 76,305 Z" fill="url(#wfBoot)"/>
+    <polygon points="102,345 112,348 102,351" fill="#fbc02d"/>
+  </g>
+  <!-- Bota Direita -->
+  <g filter="url(#wfShadow)">
+    <path d="M 135,305 L 164,305 Q 166,335 175,345 L 175,360 L 138,360 Z" fill="url(#wfBoot)"/>
+    <polygon points="138,345 128,348 138,351" fill="#fbc02d"/>
+  </g>
+
+  <!-- Cinto Marrom com Fivela de Ouro do Woody -->
+  <rect x="75" y="190" width="90" height="15" fill="#4e342e"/>
+  <ellipse cx="120" cy="197" rx="16" ry="12" fill="#fbc02d" stroke="#f57f17" stroke-width="2"/>
+  <circle cx="120" cy="197" r="5" fill="#b71c1c"/>
+  <!-- Coldre Lateral -->
+  <path d="M 152,195 L 170,225 L 155,235 L 148,198 Z" fill="#4e342e"/>
+
+  <!-- Camisa Xadrez Amarela -->
+  <path d="M 70,120 L 170,120 L 165,195 L 75,195 Z" fill="#ffeb3b" filter="url(#wfShadow)"/>
+  <!-- Linhas Vermelhas do Xadrez -->
+  <line x1="100" y1="120" x2="100" y2="195" stroke="#d32f2f" stroke-width="3"/>
+  <line x1="140" y1="120" x2="140" y2="195" stroke="#d32f2f" stroke-width="3"/>
+  <line x1="72" y1="145" x2="168" y2="145" stroke="#d32f2f" stroke-width="3"/>
+  <line x1="74" y1="170" x2="166" y2="170" stroke="#d32f2f" stroke-width="3"/>
+
+  <!-- Braço Esquerdo Acenando -->
+  <path d="M 75,125 Q 35,100 45,65" stroke="#ffeb3b" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <circle cx="45" cy="62" r="10" fill="url(#wfSkin)"/>
+
+  <!-- Braço Direito na Cintura -->
+  <path d="M 165,125 Q 195,160 168,185" stroke="#ffeb3b" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <circle cx="166" cy="186" r="10" fill="url(#wfSkin)"/>
+
+  <!-- Colete de Vaquinha com Manchas Pretas -->
+  <path d="M 70,122 Q 70,185 95,190 L 90,122 Z" fill="#ffffff" stroke="#212121" stroke-width="2"/>
+  <circle cx="80" cy="145" r="5" fill="#212121"/>
+  <circle cx="85" cy="170" r="6" fill="#212121"/>
+
+  <path d="M 170,122 Q 170,185 145,190 L 150,122 Z" fill="#ffffff" stroke="#212121" stroke-width="2"/>
+  <circle cx="160" cy="140" r="5" fill="#212121"/>
+  <circle cx="155" cy="168" r="7" fill="#212121"/>
+
+  <!-- Estrela de Xerife Dourada -->
+  <polygon points="85,138 88,144 95,145 90,150 92,156 85,152 78,156 80,150 75,145 82,144" fill="#fbc02d" stroke="#d97706" stroke-width="1.5"/>
+
+  <!-- Lenço Vermelho no Pescoço -->
+  <path d="M 95,110 Q 120,130 145,110 Q 120,140 95,110 Z" fill="#d32f2f" stroke="#b71c1c" stroke-width="2"/>
+  <circle cx="120" cy="126" r="3" fill="#ffffff"/>
+
+  <!-- Cabeça e Rosto do Woody -->
+  <ellipse cx="88" cy="88" rx="6" ry="10" fill="url(#wfSkin)"/>
+  <ellipse cx="152" cy="88" rx="6" ry="10" fill="url(#wfSkin)"/>
+  <path d="M 92,85 C 92,45 148,45 148,85 C 148,115 92,115 92,85 Z" fill="url(#wfSkin)" filter="url(#wfShadow)"/>
+
+  <!-- Cabelo Castanho -->
+  <path d="M 90,72 Q 120,55 150,72 Q 148,50 120,48 Q 92,50 90,72 Z" fill="#4e2716"/>
+
+  <!-- Olhos Castanhos -->
+  <ellipse cx="108" cy="80" rx="5" ry="7" fill="#ffffff"/>
+  <circle cx="109" cy="80" r="3" fill="#5d4037"/>
+  <circle cx="110" cy="78" r="1.2" fill="#ffffff"/>
+
+  <ellipse cx="132" cy="80" rx="5" ry="7" fill="#ffffff"/>
+  <circle cx="131" cy="80" r="3" fill="#5d4037"/>
+  <circle cx="132" cy="78" r="1.2" fill="#ffffff"/>
+
+  <!-- Sobrancelhas, Nariz e Sorriso Aberto -->
+  <path d="M 103,72 Q 109,68 114,72" stroke="#4e2716" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M 126,72 Q 131,68 137,72" stroke="#4e2716" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M 120,80 Q 122,88 118,89" stroke="#d79a6d" stroke-width="1.8" fill="none"/>
+  <path d="M 106,96 Q 120,110 134,96" stroke="#8d2626" stroke-width="2.5" fill="#ffffff" stroke-linecap="round"/>
+
+  <!-- Chapéu de Cowboy do Woody -->
+  <g filter="url(#wfShadow)">
+    <ellipse cx="120" cy="52" rx="72" ry="22" fill="url(#wfHat)"/>
+    <ellipse cx="120" cy="52" rx="68" ry="19" fill="none" stroke="#3e1d13" stroke-width="2" stroke-dasharray="4,3"/>
+    <path d="M 94,50 C 92,15 110,6 120,10 C 130,6 148,15 146,50 Z" fill="url(#wfHat)"/>
+    <path d="M 94,46 Q 120,54 146,46 Q 146,50 120,57 Q 94,50 94,46 Z" fill="#2d130a"/>
+  </g>
+</svg>

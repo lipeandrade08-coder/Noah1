@@ -1,0 +1,26 @@
+[
+  {
+    "id": "msg_sample_1",
+    "author": "Vovó Maria e Vovô João",
+    "message": "Querido Xerife Noah, nosso pequeno raio de sol! Que sua vida seja repleta de alegrias, saúde e grandes aventuras. Te amamos ao infinito e além!",
+    "theme": "woody",
+    "status": "approved",
+    "createdAt": "2026-10-21T10:15:00.000Z"
+  },
+  {
+    "id": "msg_sample_2",
+    "author": "Tia Camila e Tio Rafael",
+    "message": "Ao nosso Pequeno Xerife Noah: parabéns pelo seu 1º aninho! Que você continue iluminando o mundo com essa coragem e fofura de brinquedo!",
+    "theme": "buzz",
+    "status": "approved",
+    "createdAt": "2026-10-22T15:40:00.000Z"
+  },
+  {
+    "id": "msg_sample_3",
+    "author": "Padrinho Lucas",
+    "message": "Querido Pequeno Xerife, amigo estou aqui para tudo o que você precisar ao longo de toda a sua vida! Um abraço bem apertado no nosso xerife favorito!",
+    "theme": "jessie",
+    "status": "approved",
+    "createdAt": "2026-10-23T11:20:00.000Z"
+  }
+]

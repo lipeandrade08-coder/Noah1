@@ -1,0 +1,274 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" width="100%" height="100%">
+  <defs>
+    <!-- Gradientes Vibrantes do Céu do Toy Story -->
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#29b6f6"/>
+      <stop offset="45%" stop-color="#0288d1"/>
+      <stop offset="100%" stop-color="#01579b"/>
+    </linearGradient>
+
+    <!-- Gradiente Madeira do Quarto do Andy -->
+    <linearGradient id="floorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#d97706"/>
+      <stop offset="40%" stop-color="#b45309"/>
+      <stop offset="100%" stop-color="#78350f"/>
+    </linearGradient>
+
+    <!-- Gradiente Ouro do Toy Story -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff176"/>
+      <stop offset="35%" stop-color="#fbc02d"/>
+      <stop offset="70%" stop-color="#f57f17"/>
+      <stop offset="100%" stop-color="#e65100"/>
+    </linearGradient>
+
+    <!-- Gradiente Vermelho Toy Story -->
+    <linearGradient id="redGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ef5350"/>
+      <stop offset="50%" stop-color="#d32f2f"/>
+      <stop offset="100%" stop-color="#b71c1c"/>
+    </linearGradient>
+
+    <!-- Gradiente Verde Buzz Lightyear -->
+    <linearGradient id="buzzGreen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#aeea00"/>
+      <stop offset="50%" stop-color="#76ff03"/>
+      <stop offset="100%" stop-color="#64dd17"/>
+    </linearGradient>
+
+    <!-- Gradiente Roxo Buzz -->
+    <linearGradient id="buzzPurple" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ba68c8"/>
+      <stop offset="50%" stop-color="#8e24aa"/>
+      <stop offset="100%" stop-color="#4a148c"/>
+    </linearGradient>
+
+    <!-- Filtros de Sombra 3D -->
+    <filter id="shadow3D" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+
+    <filter id="toyBevel" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="3" dy="5" stdDeviation="2" flood-color="#0d47a1" flood-opacity="0.8"/>
+    </filter>
+
+    <!-- Símbolo de Nuvem do Quarto do Andy -->
+    <g id="andyCloud">
+      <path d="M 30,50 
+               A 20,20 0 0,1 60,35 
+               A 28,28 0 0,1 110,25 
+               A 25,25 0 0,1 145,45 
+               A 18,18 0 0,1 160,65 
+               A 15,15 0 0,1 145,80 
+               L 30,80 
+               A 15,15 0 0,1 30,50 Z" 
+            fill="#ffffff" opacity="0.95" filter="url(#shadow3D)"/>
+    </g>
+
+    <!-- Bloco de Letra de Brinquedo 3D -->
+    <g id="toyBlock">
+      <rect x="0" y="0" width="70" height="70" rx="14" fill="#d32f2f" stroke="#ffffff" stroke-width="3"/>
+      <rect x="6" y="6" width="58" height="58" rx="10" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+    </g>
+  </defs>
+
+  <!-- Fundo: Quarto do Andy -->
+  <rect width="1000" height="460" fill="url(#skyGrad)"/>
+  
+  <!-- Chão de Madeira de Brinquedo -->
+  <rect y="460" width="1000" height="140" fill="url(#floorGrad)"/>
+  <line x1="0" y1="460" x2="1000" y2="460" stroke="#fef08a" stroke-width="4"/>
+  <line x1="0" y1="500" x2="1000" y2="500" stroke="#78350f" stroke-width="2" opacity="0.4"/>
+  <line x1="0" y1="540" x2="1000" y2="540" stroke="#78350f" stroke-width="2" opacity="0.4"/>
+
+  <!-- Nuvens Icônicas no Céu -->
+  <use href="#andyCloud" x="40" y="20" transform="scale(0.85)"/>
+  <use href="#andyCloud" x="380" y="5" transform="scale(0.7)"/>
+  <use href="#andyCloud" x="780" y="30" transform="scale(0.85)"/>
+  <use href="#andyCloud" x="20" y="220" transform="scale(0.65)"/>
+  <use href="#andyCloud" x="850" y="190" transform="scale(0.7)"/>
+
+  <!-- Bandeirolas Festivas de Festa -->
+  <g id="bunting">
+    <path d="M 0,20 Q 250,55 500,20 Q 750,55 1000,20" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="8,4"/>
+    <polygon points="60,26 95,28 78,75" fill="#facc15"/>
+    <polygon points="140,32 175,34 158,82" fill="#ef4444"/>
+    <polygon points="220,36 255,37 238,85" fill="#22c55e"/>
+    <polygon points="300,36 335,36 318,85" fill="#3b82f6"/>
+    <polygon points="380,33 415,31 398,80" fill="#a855f7"/>
+    <polygon points="460,25 495,23 478,72" fill="#facc15"/>
+    <polygon points="540,24 575,25 558,73" fill="#ef4444"/>
+    <polygon points="620,31 655,33 638,80" fill="#22c55e"/>
+    <polygon points="700,36 735,37 718,85" fill="#3b82f6"/>
+    <polygon points="780,36 815,35 798,84" fill="#a855f7"/>
+    <polygon points="860,31 895,28 878,78" fill="#facc15"/>
+    <polygon points="940,24 975,20 958,70" fill="#ef4444"/>
+  </g>
+
+  <!-- Balões Flutuantes com Cordões -->
+  <!-- Balão Vermelho Esquerdo -->
+  <g transform="translate(110, 160)">
+    <path d="M 0,90 Q -10,130 5,170 T -5,220" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+    <ellipse cx="0" cy="0" rx="42" ry="54" fill="url(#redGrad)" filter="url(#shadow3D)"/>
+    <ellipse cx="-14" cy="-18" rx="10" ry="16" fill="#ffffff" opacity="0.4" transform="rotate(-20 -14 -18)"/>
+    <polygon points="-6,53 6,53 0,60" fill="#b71c1c"/>
+  </g>
+
+  <!-- Balão Amarelo Esquerdo -->
+  <g transform="translate(170, 240)">
+    <path d="M 0,80 Q 15,120 -5,160 T 10,210" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+    <ellipse cx="0" cy="0" rx="36" ry="48" fill="url(#goldGrad)" filter="url(#shadow3D)"/>
+    <ellipse cx="-12" cy="-15" rx="8" ry="14" fill="#ffffff" opacity="0.5" transform="rotate(-20 -12 -15)"/>
+    <polygon points="-5,47 5,47 0,54" fill="#e65100"/>
+  </g>
+
+  <!-- Balão Verde Buzz Direito -->
+  <g transform="translate(890, 160)">
+    <path d="M 0,90 Q 12,130 -8,170 T 5,220" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+    <ellipse cx="0" cy="0" rx="42" ry="54" fill="url(#buzzGreen)" filter="url(#shadow3D)"/>
+    <ellipse cx="-14" cy="-18" rx="10" ry="16" fill="#ffffff" opacity="0.4" transform="rotate(-20 -14 -18)"/>
+    <polygon points="-6,53 6,53 0,60" fill="#33691e"/>
+  </g>
+
+  <!-- Balão Roxo Buzz Direito -->
+  <g transform="translate(830, 240)">
+    <path d="M 0,80 Q -12,120 8,160 T -5,210" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+    <ellipse cx="0" cy="0" rx="36" ry="48" fill="url(#buzzPurple)" filter="url(#shadow3D)"/>
+    <ellipse cx="-12" cy="-15" rx="8" ry="14" fill="#ffffff" opacity="0.4" transform="rotate(-20 -12 -15)"/>
+    <polygon points="-5,47 5,47 0,54" fill="#4a148c"/>
+  </g>
+
+  <!-- Faixa de Boas-Vindas no Topo (100% Português BR) -->
+  <g transform="translate(500, 95)" filter="url(#shadow3D)">
+    <rect x="-260" y="-22" width="520" height="44" rx="22" fill="#7b1fa2" stroke="#ffffff" stroke-width="3"/>
+    <text x="0" y="7" font-family="'Lilita One', 'Fredoka', cursive, Impact, sans-serif" font-size="20" font-weight="bold" fill="#ffffff" text-anchor="middle" letter-spacing="3">
+      ⭐ VOCÊ FOI CONVOCADO PARA A MISSÃO! ⭐
+    </text>
+  </g>
+
+  <!-- ============================================== -->
+  <!-- LOGO 3D TOY STORY: "NOAH STORY"                 -->
+  <!-- ============================================== -->
+  <g id="noahLogo" transform="translate(500, 215)" filter="url(#shadow3D)">
+    
+    <!-- Camada de Relevo / Sombra 3D Inferior (Azul Marinho) -->
+    <text x="0" y="16" font-family="'Lilita One', 'Fredoka', cursive, Impact, sans-serif" font-size="118" font-weight="900" fill="#0d47a1" text-anchor="middle" letter-spacing="5">
+      NOAH
+    </text>
+    <text x="0" y="12" font-family="'Lilita One', 'Fredoka', cursive, Impact, sans-serif" font-size="118" font-weight="900" fill="#1565c0" text-anchor="middle" letter-spacing="5">
+      NOAH
+    </text>
+    <text x="0" y="8" font-family="'Lilita One', 'Fredoka', cursive, Impact, sans-serif" font-size="118" font-weight="900" fill="#b71c1c" text-anchor="middle" letter-spacing="5">
+      NOAH
+    </text>
+    
+    <!-- Borda Grossa Vermelha Clássica do Toy Story -->
+    <text x="0" y="0" font-family="'Lilita One', 'Fredoka', cursive, Impact, sans-serif" font-size="118" font-weight="900" fill="#d32f2f" stroke="#b71c1c" stroke-width="18" stroke-linejoin="round" text-anchor="middle" letter-spacing="5">
+      NOAH
+    </text>
+
+    <!-- Preenchimento Amarelo Vibrante com Brilho Superior -->
+    <text x="0" y="0" font-family="'Lilita One', 'Fredoka', cursive, Impact, sans-serif" font-size="118" font-weight="900" fill="url(#goldGrad)" stroke="#ffffff" stroke-width="3" text-anchor="middle" letter-spacing="5">
+      NOAH
+    </text>
+  </g>
+
+  <!-- Banner "STORY" em Estilo Toy Story com Estrelas -->
+  <g id="storyBanner" transform="translate(500, 275)" filter="url(#shadow3D)">
+    <!-- Fita Vermelha Curvada -->
+    <path d="M -180,-5 L 180,-5 L 160,42 L -160,42 Z" fill="#d32f2f" stroke="#ffffff" stroke-width="4"/>
+    <path d="M -175,0 L 175,0 L 157,37 L -157,37 Z" fill="#b71c1c"/>
+    
+    <!-- Estrelas nas Pontas -->
+    <text x="-135" y="27" font-size="22" fill="#ffeb3b">★</text>
+    <text x="120" y="27" font-size="22" fill="#ffeb3b">★</text>
+
+    <!-- Texto STORY -->
+    <text x="0" y="29" font-family="'Lilita One', 'Fredoka', cursive, Impact, sans-serif" font-size="38" font-weight="900" fill="#ffffff" stroke="#000000" stroke-width="1.5" text-anchor="middle" letter-spacing="6">
+      STORY
+    </text>
+  </g>
+
+  <!-- Placa / Faixa de Idade: "MEU 1º ANINHO" -->
+  <g transform="translate(500, 355)" filter="url(#shadow3D)">
+    <rect x="-170" y="-22" width="340" height="48" rx="24" fill="#fbc02d" stroke="#ffffff" stroke-width="4"/>
+    <rect x="-162" y="-15" width="324" height="34" rx="17" fill="#f57f17"/>
+    <text x="0" y="9" font-family="'Lilita One', 'Fredoka', cursive, sans-serif" font-size="25" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">
+      🚀 MEU 1º ANINHO! 🤠
+    </text>
+  </g>
+
+  <!-- ============================================== -->
+  <!-- PLACA DE MADEIRA COM A DATA EM PORTUGUÊS BR     -->
+  <!-- "SÁBADO, 16 DE JANEIRO DE 2027"                -->
+  <!-- ============================================== -->
+  <g id="dateSign" transform="translate(500, 435)" filter="url(#shadow3D)">
+    <!-- Suporte de Madeira com Nós e Pregos -->
+    <rect x="-310" y="-30" width="620" height="60" rx="16" fill="#fef3c7" stroke="#b45309" stroke-width="5"/>
+    <rect x="-302" y="-22" width="604" height="44" rx="10" fill="#fde68a"/>
+    
+    <!-- Rebites / Pregos dourados nos cantos -->
+    <circle cx="-290" cy="0" r="5" fill="#78350f"/>
+    <circle cx="290" cy="0" r="5" fill="#78350f"/>
+
+    <text x="0" y="8" font-family="'Lilita One', 'Fredoka', cursive, Impact, sans-serif" font-size="26" font-weight="bold" fill="#78350f" text-anchor="middle" letter-spacing="2">
+      📅 SÁBADO, 16 DE JANEIRO DE 2027
+    </text>
+  </g>
+
+  <!-- ============================================== -->
+  <!-- BLOCOS DE BRINQUEDO 3D NO CHÃO (N - O - A - H) -->
+  <!-- ============================================== -->
+  <!-- Bloco N (Vermelho) -->
+  <g transform="translate(325, 495)" filter="url(#shadow3D)">
+    <rect x="0" y="0" width="65" height="65" rx="12" fill="#ef4444" stroke="#ffffff" stroke-width="3"/>
+    <rect x="6" y="6" width="53" height="53" rx="8" fill="#dc2626"/>
+    <text x="32" y="44" font-family="'Lilita One', cursive, sans-serif" font-size="38" font-weight="bold" fill="#ffffff" text-anchor="middle">N</text>
+  </g>
+
+  <!-- Bloco O (Verde) -->
+  <g transform="translate(405, 495)" filter="url(#shadow3D)">
+    <rect x="0" y="0" width="65" height="65" rx="12" fill="#22c55e" stroke="#ffffff" stroke-width="3"/>
+    <rect x="6" y="6" width="53" height="53" rx="8" fill="#16a34a"/>
+    <text x="32" y="44" font-family="'Lilita One', cursive, sans-serif" font-size="38" font-weight="bold" fill="#ffffff" text-anchor="middle">O</text>
+  </g>
+
+  <!-- Bloco A (Amarelo) -->
+  <g transform="translate(485, 495)" filter="url(#shadow3D)">
+    <rect x="0" y="0" width="65" height="65" rx="12" fill="#facc15" stroke="#ffffff" stroke-width="3"/>
+    <rect x="6" y="6" width="53" height="53" rx="8" fill="#eab308"/>
+    <text x="32" y="44" font-family="'Lilita One', cursive, sans-serif" font-size="38" font-weight="bold" fill="#78350f" text-anchor="middle">A</text>
+  </g>
+
+  <!-- Bloco H (Azul) -->
+  <g transform="translate(565, 495)" filter="url(#shadow3D)">
+    <rect x="0" y="0" width="65" height="65" rx="12" fill="#3b82f6" stroke="#ffffff" stroke-width="3"/>
+    <rect x="6" y="6" width="53" height="53" rx="8" fill="#2563eb"/>
+    <text x="32" y="44" font-family="'Lilita One', cursive, sans-serif" font-size="38" font-weight="bold" fill="#ffffff" text-anchor="middle">H</text>
+  </g>
+
+  <!-- Bloco com o Número 1 Dourado -->
+  <g transform="translate(645, 495)" filter="url(#shadow3D)">
+    <rect x="0" y="0" width="65" height="65" rx="12" fill="#8b5cf6" stroke="#ffffff" stroke-width="3"/>
+    <rect x="6" y="6" width="53" height="53" rx="8" fill="#7c3aed"/>
+    <text x="32" y="44" font-family="'Lilita One', cursive, sans-serif" font-size="38" font-weight="bold" fill="#fef08a" text-anchor="middle">1</text>
+  </g>
+
+  <!-- Confetes e Estrelinhas Espalhadas pelo Ar -->
+  <g id="confettiParticles">
+    <circle cx="180" cy="120" r="6" fill="#facc15"/>
+    <polygon points="260,110 264,122 276,122 266,130 270,142 260,134 250,142 254,130 244,122 256,122" fill="#ffffff" opacity="0.9"/>
+    <rect x="230" y="270" width="12" height="12" rx="3" fill="#ec4899" transform="rotate(25 230 270)"/>
+    <rect x="760" y="110" width="14" height="8" rx="2" fill="#38bdf8" transform="rotate(-30 760 110)"/>
+    <polygon points="730,220 734,230 745,230 736,237 739,247 730,240 721,247 724,237 715,230 726,230" fill="#facc15"/>
+    <circle cx="820" cy="360" r="5" fill="#ef4444"/>
+    <rect x="180" y="410" width="14" height="10" rx="3" fill="#22c55e" transform="rotate(40 180 410)"/>
+    <circle cx="280" cy="460" r="6" fill="#a855f7"/>
+    <polygon points="700,440 703,450 714,450 705,456 708,466 700,460 692,466 695,456 686,450 697,450" fill="#ffffff" opacity="0.9"/>
+  </g>
+
+  <!-- Frase Icônica em Português BR no Rodapé da Imagem -->
+  <text x="500" y="582" font-family="'Fredoka', sans-serif" font-size="16" font-weight="700" fill="#fef3c7" text-anchor="middle" letter-spacing="1">
+    "Ao infinito... e além! Comemore o 1º aninho do Noah conosco!"
+  </text>
+</svg>

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "rsvp_sample_1",
+    "ticketCode": "NOAH-1-4821",
+    "name": "Lucas e Júlia Teste",
+    "phone": "(11) 98888-7777",
+    "presence": "Confirmado",
+    "adults": 2,
+    "children": 2,
+    "childrenDetails": [
+      {
+        "name": "Bernardo",
+        "age": 4
+      },
+      {
+        "name": "Clara",
+        "age": 14
+      }
+    ],
+    "companions": "Júlia",
+    "message": "Grande festa!",
+    "createdAt": "2026-10-24T00:47:52.623Z",
+    "vouchers": [
+      {
+        "code": "VOUCH-RED-4821-1",
+        "type": "red",
+        "label": "Voucher Vermelho (Kids 0-12)",
+        "childName": "Bernardo (4 anos)",
+        "qty": 2,
+        "redeemed": true,
+        "redeemedAt": "2026-10-24T00:47:52.645Z"
+      },
+      {
+        "code": "VOUCH-GOLD-4821-2",
+        "type": "gold",
+        "label": "Voucher Dourado (Teens 13-16)",
+        "childName": "Clara (14 anos)",
+        "qty": 1,
+        "redeemed": false,
+        "redeemedAt": null
+      }
+    ]
+  }
+]
