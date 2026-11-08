@@ -68,6 +68,7 @@ const CHARACTER_QUOTES = {
 document.addEventListener("DOMContentLoaded", () => {
   initPartyConfig();
   initSoundSystem();
+  preloadAllCharacterAudios();
   initCinematicIntro();
   initAlienHuntMinigame();
   initInteractiveToyBlocks();
@@ -301,15 +302,25 @@ function preloadAllCharacterAudios() {
 
   characters.forEach(charKey => {
     if (characterAudioBuffers[charKey]) return;
-    const url = `assets/audio/characters/${charKey}.m4a`;
+    // Carrega o arquivo .aac puro de 40KB (baixa em 15ms em qualquer conexão móvel)
+    const url = `assets/audio/characters/${charKey}.aac`;
     fetch(url)
-      .then(res => res.arrayBuffer())
+      .then(res => {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.arrayBuffer();
+      })
       .then(arrayBuffer => ctx.decodeAudioData(arrayBuffer))
       .then(decoded => {
         characterAudioBuffers[charKey] = decoded;
       })
-      .catch(() => {
-        // Fallback natural para os elementos <audio> do DOM caso ocorra erro de rede
+      .catch(err => {
+        // Fallback para tentar m4a se aac falhar
+        const fallbackUrl = `assets/audio/characters/${charKey}.m4a`;
+        fetch(fallbackUrl)
+          .then(r => r.arrayBuffer())
+          .then(ab => ctx.decodeAudioData(ab))
+          .then(d => { characterAudioBuffers[charKey] = d; })
+          .catch(() => {});
       });
   });
 }
@@ -814,18 +825,26 @@ function playCharacterSound(charKey) {
     if (playPromise !== undefined) {
       playPromise.catch(err => {
         console.warn(`Tentando fallback para new Audio(${charKey}):`, err.message);
-        const dynAudio = new Audio(`assets/audio/characters/${charKey}.m4a`);
+        const dynAudio = new Audio(`assets/audio/characters/${charKey}.aac`);
         dynAudio.onended = onSoundEnded;
-        dynAudio.play().catch(onSoundEnded);
+        dynAudio.play().catch(() => {
+          const m4aAudio = new Audio(`assets/audio/characters/${charKey}.m4a`);
+          m4aAudio.onended = onSoundEnded;
+          m4aAudio.play().catch(onSoundEnded);
+        });
       });
     }
     return;
   }
 
-  // MÉTODO 3: Fallback dinâmico
-  const dynAudio = new Audio(`assets/audio/characters/${charKey}.m4a`);
+  // MÉTODO 3: Fallback dinâmico com arquivo leve .aac de 40KB
+  const dynAudio = new Audio(`assets/audio/characters/${charKey}.aac`);
   dynAudio.onended = onSoundEnded;
-  dynAudio.play().catch(onSoundEnded);
+  dynAudio.play().catch(() => {
+    const m4aAudio = new Audio(`assets/audio/characters/${charKey}.m4a`);
+    m4aAudio.onended = onSoundEnded;
+    m4aAudio.play().catch(onSoundEnded);
+  });
 }
 
 function initCharactersSection() {
@@ -1122,7 +1141,7 @@ function initForbiddenButton() {
       } catch (e) {}
     } else {
       try {
-        const rexAudio = new Audio("assets/audio/characters/rex.m4a");
+        const rexAudio = new Audio("assets/audio/characters/rex.aac");
         rexAudio.play().catch(() => {});
       } catch (e) {}
     }

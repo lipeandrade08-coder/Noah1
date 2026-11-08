@@ -39,7 +39,8 @@ const MIME_TYPES = {
   '.wav': 'audio/wav',
   '.ogg': 'audio/ogg',
   '.m4a': 'audio/mp4',
-  '.mp4': 'video/mp4'
+  '.mp4': 'video/mp4',
+  '.aac': 'audio/aac'
 };
 
 function readJsonFile(filePath) {
@@ -597,7 +598,7 @@ const server = http.createServer(async (req, res) => {
 
     // Suporte a Range Requests para arquivos de áudio e vídeo
     const range = req.headers.range;
-    if (range && (ext === '.mp3' || ext === '.wav' || ext === '.ogg' || ext === '.m4a' || ext === '.mp4')) {
+    if (range && (ext === '.mp3' || ext === '.wav' || ext === '.ogg' || ext === '.m4a' || ext === '.mp4' || ext === '.aac')) {
       const parts = range.replace(/bytes=/, '').split('-');
       const start = parseInt(parts[0], 10);
       const end = parts[1] ? parseInt(parts[1], 10) : stats.size - 1;
