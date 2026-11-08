@@ -2523,6 +2523,7 @@ body.emergency-screen-shake {
 @media (max-width: 540px) {
   .characters-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
 }
 
@@ -2530,12 +2531,15 @@ body.emergency-screen-shake {
   background: #f8fafc;
   border: 3px solid #e2e8f0;
   border-radius: 18px;
-  padding: 12px 8px;
+  padding: 14px 8px 12px 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .character-card:hover {
@@ -2546,6 +2550,39 @@ body.emergency-screen-shake {
 
 .character-card:active {
   transform: scale(0.95);
+  background: #f1f5f9;
+}
+
+.character-touch-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #15803d;
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  border-radius: 999px;
+  padding: 3px 10px;
+  margin-top: 6px;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.character-card:hover .character-touch-pill,
+.character-card:active .character-touch-pill {
+  background: #15803d;
+  color: #ffffff;
+  border-color: #15803d;
+}
+
+.character-card.is-speaking .character-touch-pill {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  border-color: #ef4444 !important;
+  animation: pulseTag 0.6s infinite alternate;
 }
 
 .character-avatar-wrapper {

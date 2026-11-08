@@ -240,14 +240,78 @@ function initSoundSystem() {
     }
   });
 
-  // Desbloqueio do áudio e contexto sonoro no primeiro toque
-  const unlockAudio = () => {
-    getAudioContext();
-    document.removeEventListener("touchstart", unlockAudio);
-    document.removeEventListener("click", unlockAudio);
+  // Desbloqueio Global do Áudio Mobile (iOS Safari & Android Chrome)
+  const onFirstInteraction = () => {
+    unlockMobileAudio();
+    document.removeEventListener("touchstart", onFirstInteraction);
+    document.removeEventListener("touchend", onFirstInteraction);
+    document.removeEventListener("click", onFirstInteraction);
   };
-  document.addEventListener("touchstart", unlockAudio, { passive: true });
-  document.addEventListener("click", unlockAudio, { passive: true });
+  document.addEventListener("touchstart", onFirstInteraction, { passive: true });
+  document.addEventListener("touchend", onFirstInteraction, { passive: true });
+  document.addEventListener("click", onFirstInteraction, { passive: true });
+}
+
+// Desbloqueador e pré-aquecedor do hardware de áudio para dispositivos móveis
+let mobileAudioUnlocked = false;
+const characterAudioBuffers = {};
+
+function unlockMobileAudio() {
+  if (mobileAudioUnlocked) return;
+  mobileAudioUnlocked = true;
+
+  // 1. Acorda o AudioContext no iOS / Safari / Chrome Mobile
+  const ctx = getAudioContext();
+  if (ctx) {
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+    try {
+      const buffer = ctx.createBuffer(1, 1, 22050);
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(ctx.destination);
+      source.start(0);
+    } catch (e) {}
+  }
+
+  // 2. Pré-desbloqueia os elementos <audio> no DOM
+  document.querySelectorAll("audio").forEach(audioEl => {
+    try {
+      if (audioEl.id === "theme-audio") return;
+      audioEl.load();
+      const p = audioEl.play();
+      if (p !== undefined) {
+        p.then(() => {
+          audioEl.pause();
+          audioEl.currentTime = 0;
+        }).catch(() => {});
+      }
+    } catch (e) {}
+  });
+
+  // 3. Pré-carrega buffers em Web Audio para latência 0 e funcionamento no modo silencioso do iPhone
+  preloadAllCharacterAudios();
+}
+
+function preloadAllCharacterAudios() {
+  const characters = ["woody", "buzz", "jessie", "rex", "alien", "potato", "hamm", "slinky"];
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  characters.forEach(charKey => {
+    if (characterAudioBuffers[charKey]) return;
+    const url = `assets/audio/characters/${charKey}.m4a`;
+    fetch(url)
+      .then(res => res.arrayBuffer())
+      .then(arrayBuffer => ctx.decodeAudioData(arrayBuffer))
+      .then(decoded => {
+        characterAudioBuffers[charKey] = decoded;
+      })
+      .catch(() => {
+        // Fallback natural para os elementos <audio> do DOM caso ocorra erro de rede
+      });
+  });
 }
 
 function playTone(freq, duration = 0.2, type = "sine", gainVal = 0.15) {
@@ -473,6 +537,7 @@ function initCinematicIntro() {
   // Botão Pular Abertura
   if (skipBtn) {
     skipBtn.addEventListener("click", () => {
+      unlockMobileAudio();
       introEl.classList.add("hide");
       startThemeMusic();
       playFanfare();
@@ -482,6 +547,7 @@ function initCinematicIntro() {
 
   // Clicar para Abrir a Caixa de Brinquedos
   openChestBtn.addEventListener("click", () => {
+    unlockMobileAudio();
     startThemeMusic();
 
     // 1. A caixa treme
@@ -669,12 +735,16 @@ function initNoahBalloons() {
 }
 
 // ==========================================
-// 7. TURMA DO TOY STORY & SONS ORIGINAIS DOS PERSONAGENS
+// 7. TURMA DO TOY STORY & SONS ORIGINAIS DOS PERSONAGENS (RESPONSIVO NO MOBILE)
 // ==========================================
+let currentBufferSource = null;
 let currentCharacterAudio = null;
 
-function playCharacterSound(charKey) {
-  // Para áudio de personagem tocando atualmente
+function stopAllCharacterSounds() {
+  if (currentBufferSource) {
+    try { currentBufferSource.stop(); } catch (e) {}
+    currentBufferSource = null;
+  }
   if (currentCharacterAudio) {
     try {
       currentCharacterAudio.pause();
@@ -682,6 +752,11 @@ function playCharacterSound(charKey) {
     } catch (e) {}
     currentCharacterAudio = null;
   }
+}
+
+function playCharacterSound(charKey) {
+  unlockMobileAudio();
+  stopAllCharacterSounds();
 
   // Remove animação de todos os cards
   document.querySelectorAll(".character-card").forEach(c => c.classList.remove("is-speaking"));
@@ -690,10 +765,6 @@ function playCharacterSound(charKey) {
   if (targetCard) {
     targetCard.classList.add("is-speaking");
   }
-
-  const audioPath = `assets/audio/characters/${charKey}.mp4`;
-  const charAudio = new Audio(audioPath);
-  currentCharacterAudio = charAudio;
 
   // Ducking na trilha sonora de fundo enquanto o personagem fala
   const bgAudio = getThemeAudio();
@@ -708,31 +779,77 @@ function playCharacterSound(charKey) {
     if (bgAudio && !bgAudio.paused) {
       bgAudio.volume = prevVolume;
     }
-    if (currentCharacterAudio === charAudio) {
-      currentCharacterAudio = null;
-    }
+    currentBufferSource = null;
+    currentCharacterAudio = null;
   };
 
-  charAudio.onended = onSoundEnded;
-  charAudio.onerror = onSoundEnded;
+  const ctx = getAudioContext();
+  if (ctx && ctx.state === "suspended") {
+    ctx.resume().catch(() => {});
+  }
 
-  charAudio.play().catch(err => {
-    console.log("Nota: áudio do personagem aguardando interação:", err.message);
-    onSoundEnded();
-  });
+  // MÉTODO 1 (Melhor para iOS/Android): Web Audio Buffer decodificado (0ms latência e funciona mesmo em modo silencioso)
+  if (ctx && characterAudioBuffers[charKey]) {
+    try {
+      const source = ctx.createBufferSource();
+      source.buffer = characterAudioBuffers[charKey];
+      source.connect(ctx.destination);
+      source.onended = onSoundEnded;
+      source.start(0);
+      currentBufferSource = source;
+      return;
+    } catch (e) {
+      console.warn("Buffer play fallback:", e);
+    }
+  }
+
+  // MÉTODO 2: Elemento <audio> pré-carregado no DOM com suporte a .m4a e .mp4
+  const audioEl = document.getElementById(`audio-char-${charKey}`);
+  if (audioEl) {
+    currentCharacterAudio = audioEl;
+    audioEl.currentTime = 0;
+    audioEl.onended = onSoundEnded;
+    audioEl.onerror = onSoundEnded;
+    const playPromise = audioEl.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(err => {
+        console.warn(`Tentando fallback para new Audio(${charKey}):`, err.message);
+        const dynAudio = new Audio(`assets/audio/characters/${charKey}.m4a`);
+        dynAudio.onended = onSoundEnded;
+        dynAudio.play().catch(onSoundEnded);
+      });
+    }
+    return;
+  }
+
+  // MÉTODO 3: Fallback dinâmico
+  const dynAudio = new Audio(`assets/audio/characters/${charKey}.m4a`);
+  dynAudio.onended = onSoundEnded;
+  dynAudio.play().catch(onSoundEnded);
 }
 
 function initCharactersSection() {
   const cards = document.querySelectorAll(".character-card");
   const quoteToast = document.getElementById("character-quote-toast");
 
+  let lastTouchTime = 0;
+
   cards.forEach(card => {
-    card.addEventListener("click", () => {
+    const triggerCharacter = (e) => {
+      const now = Date.now();
+      // Previne duplo disparo caso touchend e click ocorram em sequência rápida no mobile
+      if (e.type === "click" && now - lastTouchTime < 450) {
+        return;
+      }
+      if (e.type === "touchend") {
+        lastTouchTime = now;
+      }
+
       const charKey = card.getAttribute("data-character");
       const charData = CHARACTER_QUOTES[charKey];
       if (!charData) return;
 
-      // Reproduz o áudio ORIGINAL do personagem enviado na pasta de sons
+      // Reproduz o áudio do personagem com suporte total a Mobile
       playCharacterSound(charKey);
 
       // Exibe o balão de fala do personagem com animação
@@ -742,7 +859,10 @@ function initCharactersSection() {
         quoteToast.offsetHeight; // reflow
         quoteToast.style.animation = "fadeInZoom 0.35s ease";
       }
-    });
+    };
+
+    card.addEventListener("click", triggerCharacter);
+    card.addEventListener("touchend", triggerCharacter, { passive: true });
   });
 }
 
@@ -963,7 +1083,9 @@ function initForbiddenButton() {
   };
 
   const startEmergencyAlert = () => {
+    unlockMobileAudio();
     isEmergencyActive = true;
+    AppState.soundEnabled = true;
 
     // 1. Pausa momentaneamente a música de fundo suave para a sirene de emergência dominar
     const bgAudio = getThemeAudio();
@@ -991,11 +1113,19 @@ function initForbiddenButton() {
     // 5. Inicia a sirene de emergência contínua que toca sem parar
     startEmergencySirenAudio();
 
-    // Grito assustado do Rex
-    try {
-      const rexAudio = new Audio("assets/audio/characters/rex.mp4");
-      rexAudio.play().catch(() => {});
-    } catch (e) {}
+    // Grito assustado do Rex (compatível com Mobile)
+    const rexDom = document.getElementById("audio-emergency-rex") || document.getElementById("audio-char-rex");
+    if (rexDom) {
+      try {
+        rexDom.currentTime = 0;
+        rexDom.play().catch(() => {});
+      } catch (e) {}
+    } else {
+      try {
+        const rexAudio = new Audio("assets/audio/characters/rex.m4a");
+        rexAudio.play().catch(() => {});
+      } catch (e) {}
+    }
 
     // 6. Contagem regressiva de auto-estabilização (7 segundos)
     remainingSeconds = 7;
@@ -1011,20 +1141,33 @@ function initForbiddenButton() {
     }, 1000);
   };
 
-  // Clicar no botão vermelho inicia ou desativa a emergência
-  btn.addEventListener("click", () => {
+  let lastBtnTouchTime = 0;
+  const handleBtnToggle = (e) => {
+    const now = Date.now();
+    if (e.type === "click" && now - lastBtnTouchTime < 450) return;
+    if (e.type === "touchend") lastBtnTouchTime = now;
+
     if (isEmergencyActive) {
       stopEmergencyAlert(true);
     } else {
       startEmergencyAlert();
     }
-  });
+  };
+
+  // Clicar ou tocar no botão vermelho inicia ou desativa a emergência
+  btn.addEventListener("click", handleBtnToggle);
+  btn.addEventListener("touchend", handleBtnToggle, { passive: true });
 
   // Botão manual de desativação na tela de emergência
   if (cancelBtn) {
-    cancelBtn.addEventListener("click", () => {
+    const handleCancel = (e) => {
+      const now = Date.now();
+      if (e.type === "click" && now - lastBtnTouchTime < 450) return;
+      if (e.type === "touchend") lastBtnTouchTime = now;
       stopEmergencyAlert(true);
-    });
+    };
+    cancelBtn.addEventListener("click", handleCancel);
+    cancelBtn.addEventListener("touchend", handleCancel, { passive: true });
   }
 }
 

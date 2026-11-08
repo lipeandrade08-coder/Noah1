@@ -21,7 +21,20 @@
 <body>
 
   <!-- Trilha Sonora Oficial do Toy Story: "Amigo Estou Aqui" -->
-  <audio id="theme-audio" src="assets/audio/amigo-estou-aqui.mp3" preload="auto" loop></audio>
+  <audio id="theme-audio" src="assets/audio/amigo-estou-aqui.mp3" preload="auto" playsinline webkit-playsinline loop></audio>
+
+  <!-- Banco de Áudios dos Personagens Pré-Carregados para Mobile (iOS Safari & Android) -->
+  <div id="character-audio-bank" style="display: none;" aria-hidden="true">
+    <audio id="audio-char-woody" preload="auto" playsinline webkit-playsinline src="assets/audio/characters/woody.m4a"></audio>
+    <audio id="audio-char-buzz" preload="auto" playsinline webkit-playsinline src="assets/audio/characters/buzz.m4a"></audio>
+    <audio id="audio-char-jessie" preload="auto" playsinline webkit-playsinline src="assets/audio/characters/jessie.m4a"></audio>
+    <audio id="audio-char-rex" preload="auto" playsinline webkit-playsinline src="assets/audio/characters/rex.m4a"></audio>
+    <audio id="audio-char-alien" preload="auto" playsinline webkit-playsinline src="assets/audio/characters/alien.m4a"></audio>
+    <audio id="audio-char-potato" preload="auto" playsinline webkit-playsinline src="assets/audio/characters/potato.m4a"></audio>
+    <audio id="audio-char-hamm" preload="auto" playsinline webkit-playsinline src="assets/audio/characters/hamm.m4a"></audio>
+    <audio id="audio-char-slinky" preload="auto" playsinline webkit-playsinline src="assets/audio/characters/slinky.m4a"></audio>
+    <audio id="audio-emergency-rex" preload="auto" playsinline webkit-playsinline src="assets/audio/characters/rex.m4a"></audio>
+  </div>
 
   <!-- ========================================== -->
   <!-- 1. ABERTURA CINEMATOGRÁFICA (QUARTO DO ANDY) -->
@@ -786,68 +799,76 @@
 
         <div class="characters-grid">
           
-          <div class="character-card" data-character="woody" title="Toque no Woody!">
+          <div class="character-card" data-character="woody" role="button" tabindex="0" title="Toque para ouvir a voz do Woody!">
             <div class="character-avatar-wrapper" style="border-color: #ffcf00;">
               <img src="assets/images/woody-1.jpg" alt="Woody" class="character-img">
             </div>
             <span class="character-name">Woody</span>
             <span class="character-role">Xerife</span>
+            <span class="character-touch-pill">🔊 Ouvir Som</span>
           </div>
 
-          <div class="character-card" data-character="buzz" title="Toque no Buzz!">
+          <div class="character-card" data-character="buzz" role="button" tabindex="0" title="Toque para ouvir a voz do Buzz!">
             <div class="character-avatar-wrapper" style="border-color: #68b82e;">
               <img src="assets/images/buzz-toy-story.jpg" alt="Buzz" class="character-img">
             </div>
             <span class="character-name">Buzz</span>
             <span class="character-role">Patrulheiro</span>
+            <span class="character-touch-pill">🔊 Ouvir Som</span>
           </div>
 
-          <div class="character-card" data-character="jessie" title="Toque na Jessie!">
+          <div class="character-card" data-character="jessie" role="button" tabindex="0" title="Toque para ouvir a voz da Jessie!">
             <div class="character-avatar-wrapper" style="border-color: #ef4444;">
               <img src="assets/images/jessie-toy-story.jpg" alt="Jessie" class="character-img">
             </div>
             <span class="character-name">Jessie</span>
             <span class="character-role">Vaqueira</span>
+            <span class="character-touch-pill">🔊 Ouvir Som</span>
           </div>
 
-          <div class="character-card" data-character="rex" title="Toque no Rex!">
+          <div class="character-card" data-character="rex" role="button" tabindex="0" title="Toque para ouvir a voz do Rex!">
             <div class="character-avatar-wrapper" style="border-color: #22c55e;">
               <img src="assets/images/rex-toy-story.jpg" alt="Rex" class="character-img">
             </div>
             <span class="character-name">Rex</span>
             <span class="character-role">Dinossauro</span>
+            <span class="character-touch-pill">🔊 Ouvir Som</span>
           </div>
 
-          <div class="character-card" data-character="alien" title="Toque no Alien!">
+          <div class="character-card" data-character="alien" role="button" tabindex="0" title="Toque para ouvir a voz do Alien!">
             <div class="character-avatar-wrapper" style="border-color: #3b82f6;">
               <img src="assets/images/aliens-toy-story.jpg" alt="Alien" class="character-img">
             </div>
             <span class="character-name">Alien</span>
             <span class="character-role">Pizza Planet</span>
+            <span class="character-touch-pill">🔊 Ouvir Som</span>
           </div>
 
-          <div class="character-card" data-character="potato" title="Toque no Sr. Batata!">
+          <div class="character-card" data-character="potato" role="button" tabindex="0" title="Toque para ouvir a voz do Sr. Batata!">
             <div class="character-avatar-wrapper" style="border-color: #854d0e;">
               <img src="assets/images/Cabeca-de-Batata-toy-story.jpg" alt="Sr. Batata" class="character-img">
             </div>
             <span class="character-name">Sr. Batata</span>
             <span class="character-role">Clássico</span>
+            <span class="character-touch-pill">🔊 Ouvir Som</span>
           </div>
 
-          <div class="character-card" data-character="hamm" title="Toque no Hamm!">
+          <div class="character-card" data-character="hamm" role="button" tabindex="0" title="Toque para ouvir a voz do Hamm!">
             <div class="character-avatar-wrapper" style="border-color: #ec4899;">
               <img src="assets/images/porquinho-toy-story.jpg" alt="Hamm" class="character-img">
             </div>
             <span class="character-name">Hamm</span>
             <span class="character-role">Dr. Costela</span>
+            <span class="character-touch-pill">🔊 Ouvir Som</span>
           </div>
 
-          <div class="character-card" data-character="slinky" title="Toque no Slinky!">
+          <div class="character-card" data-character="slinky" role="button" tabindex="0" title="Toque para ouvir a voz do Slinky!">
             <div class="character-avatar-wrapper" style="border-color: #a16207;">
               <img src="assets/images/slinky-toy-story.jpg" alt="Slinky" class="character-img">
             </div>
             <span class="character-name">Slinky</span>
             <span class="character-role">Cão de Mola</span>
+            <span class="character-touch-pill">🔊 Ouvir Som</span>
           </div>
 
         </div>
