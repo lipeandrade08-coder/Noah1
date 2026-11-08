@@ -337,91 +337,111 @@ function playAlienOoooh() {
   });
 }
 
-// Sirene de Emergência do Botão Proibido (Loop Contínuo e Realista)
-let emergencySirenOsc = null;
-let emergencySirenGain = null;
-let emergencyRumbleOsc = null;
-let emergencyRumbleGain = null;
-let emergencySirenInterval = null;
-let emergencyIsActive = false;
+// ==========================================
+// SIRENE DE EMERGÊNCIA CONTÍNUA DO BOTÃO PROIBIDO 🚨
+// Toca ininterruptamente até o botão ser pressionado ou o tempo acabar
+// ==========================================
+let emergencySirenNodes = null;
 
 function startEmergencySirenAudio() {
   stopEmergencySirenAudio();
-  if (!AppState.soundEnabled) return;
+
   const ctx = getAudioContext();
   if (!ctx) return;
-
-  emergencyIsActive = true;
+  if (ctx.state === "suspended") {
+    ctx.resume();
+  }
 
   try {
-    // Ganho principal da sirene
-    emergencySirenGain = ctx.createGain();
-    emergencySirenGain.gain.setValueAtTime(0.28, ctx.currentTime);
-    emergencySirenGain.connect(ctx.destination);
+    const now = ctx.currentTime;
 
-    // Oscilador de alta frequência estilo alarme/sirene europeia/americana
-    emergencySirenOsc = ctx.createOscillator();
-    emergencySirenOsc.type = "sawtooth";
-    emergencySirenOsc.frequency.setValueAtTime(480, ctx.currentTime);
-    emergencySirenOsc.connect(emergencySirenGain);
-    emergencySirenOsc.start();
+    // Master Gain com ataque suave para não dar estalo
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(0.001, now);
+    masterGain.gain.exponentialRampToValueAtTime(0.35, now + 0.12);
+    masterGain.connect(ctx.destination);
+
+    // LFO (Oscilador de Baixa Frequência) para modular o pitch continuamente (sobe e desce)
+    // 0.85 Hz = 1 ciclo completo de subida e descida a cada 1.18 segundos
+    const lfo = ctx.createOscillator();
+    lfo.type = "sine";
+    lfo.frequency.setValueAtTime(0.85, now);
+
+    // Ganho do LFO determina a profundidade do wail da sirene (+/- 280 Hz)
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.setValueAtTime(280, now);
+    lfo.connect(lfoGain);
+
+    // Oscilador 1 (Sawtooth) - Som de sirene mecânica / alarme aéreo (650Hz base)
+    const osc1 = ctx.createOscillator();
+    osc1.type = "sawtooth";
+    osc1.frequency.setValueAtTime(650, now);
+    lfoGain.connect(osc1.frequency); // Varia suavemente de 370Hz a 930Hz continuamente
+
+    // Oscilador 2 (Square) - Dá o timbre cortante de alarme industrial
+    const osc2 = ctx.createOscillator();
+    osc2.type = "square";
+    osc2.frequency.setValueAtTime(656, now);
+    lfoGain.connect(osc2.frequency);
+
+    const osc2Gain = ctx.createGain();
+    osc2Gain.gain.setValueAtTime(0.22, now);
+    osc2.connect(osc2Gain);
+
+    osc1.connect(masterGain);
+    osc2Gain.connect(masterGain);
 
     // Oscilador grave de sub-rumble para sensação física de tremor
-    emergencyRumbleGain = ctx.createGain();
-    emergencyRumbleGain.gain.setValueAtTime(0.25, ctx.currentTime);
-    emergencyRumbleGain.connect(ctx.destination);
+    const rumbleOsc = ctx.createOscillator();
+    rumbleOsc.type = "triangle";
+    rumbleOsc.frequency.setValueAtTime(55, now);
+    const rumbleGain = ctx.createGain();
+    rumbleGain.gain.setValueAtTime(0.35, now);
+    rumbleOsc.connect(rumbleGain);
+    rumbleGain.connect(masterGain);
 
-    emergencyRumbleOsc = ctx.createOscillator();
-    emergencyRumbleOsc.type = "sine";
-    emergencyRumbleOsc.frequency.setValueAtTime(55, ctx.currentTime);
-    emergencyRumbleOsc.connect(emergencyRumbleGain);
-    emergencyRumbleOsc.start();
+    // Inicia todos os osciladores em sincronia no hardware de áudio
+    lfo.start(now);
+    osc1.start(now);
+    osc2.start(now);
+    rumbleOsc.start(now);
 
-    const scheduleSweep = () => {
-      if (!emergencyIsActive || !emergencySirenOsc) return;
-      const now = ctx.currentTime;
-      emergencySirenOsc.frequency.cancelScheduledValues(now);
-      emergencySirenOsc.frequency.setValueAtTime(450, now);
-      emergencySirenOsc.frequency.linearRampToValueAtTime(920, now + 0.55);
-      emergencySirenOsc.frequency.linearRampToValueAtTime(450, now + 1.1);
+    emergencySirenNodes = {
+      masterGain,
+      lfo,
+      osc1,
+      osc2,
+      rumbleOsc
     };
-
-    scheduleSweep();
-    emergencySirenInterval = setInterval(scheduleSweep, 1100);
   } catch (err) {
-    console.warn("Erro ao iniciar sirene:", err);
+    console.warn("Erro ao iniciar sirene contínua:", err);
   }
 }
 
 function stopEmergencySirenAudio() {
-  emergencyIsActive = false;
-  if (emergencySirenInterval) {
-    clearInterval(emergencySirenInterval);
-    emergencySirenInterval = null;
-  }
+  if (!emergencySirenNodes) return;
+  const nodes = emergencySirenNodes;
+  emergencySirenNodes = null;
+
   const ctx = getAudioContext();
-  if (ctx && emergencySirenGain) {
+  if (ctx && nodes.masterGain) {
     try {
-      emergencySirenGain.gain.setValueAtTime(emergencySirenGain.gain.value, ctx.currentTime);
-      emergencySirenGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      const now = ctx.currentTime;
+      nodes.masterGain.gain.cancelScheduledValues(now);
+      nodes.masterGain.gain.setValueAtTime(nodes.masterGain.gain.value, now);
+      nodes.masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
     } catch (e) {}
   }
-  if (ctx && emergencyRumbleGain) {
-    try {
-      emergencyRumbleGain.gain.setValueAtTime(emergencyRumbleGain.gain.value, ctx.currentTime);
-      emergencyRumbleGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-    } catch (e) {}
-  }
+
   setTimeout(() => {
-    if (emergencySirenOsc) {
-      try { emergencySirenOsc.stop(); } catch (e) {}
-      emergencySirenOsc = null;
-    }
-    if (emergencyRumbleOsc) {
-      try { emergencyRumbleOsc.stop(); } catch (e) {}
-      emergencyRumbleOsc = null;
-    }
-  }, 400);
+    try {
+      nodes.lfo.stop();
+      nodes.osc1.stop();
+      nodes.osc2.stop();
+      nodes.rumbleOsc.stop();
+      nodes.masterGain.disconnect();
+    } catch (e) {}
+  }, 280);
 }
 
 // Trilha sonora leve em arpeggio de fundo
@@ -901,10 +921,14 @@ function initForbiddenButton() {
 
   if (!btn) return;
 
+  let isEmergencyActive = false;
   let timerInterval = null;
   let remainingSeconds = 7;
 
   const stopEmergencyAlert = (wasManual = false) => {
+    if (!isEmergencyActive) return;
+    isEmergencyActive = false;
+
     if (timerInterval) {
       clearInterval(timerInterval);
       timerInterval = null;
@@ -915,10 +939,10 @@ function initForbiddenButton() {
     if (overlay) overlay.classList.remove("active");
     if (rexRunner) rexRunner.classList.remove("running");
 
-    // 2. Para sirene de alarme
+    // 2. Para sirene de alarme imediatamente
     stopEmergencySirenAudio();
 
-    // 3. Restaura música de fundo do Andy
+    // 3. Restaura música de fundo do Andy se estava ligada
     const bgAudio = getThemeAudio();
     if (bgAudio && AppState.soundEnabled && bgAudio.paused) {
       bgAudio.play().catch(() => {});
@@ -927,7 +951,7 @@ function initForbiddenButton() {
     // 4. Feedback no balão de mensagem
     if (toast) {
       toast.textContent = wasManual
-        ? "✅ UFA! Alarme desativado a tempo! O Andy desistiu de subir... Todos os brinquedos continuam seguros! 🤠"
+        ? "✅ UFA! Alarme desativado! O Andy desistiu de subir... Todos os brinquedos continuam seguros! 🤠"
         : "🎉 PROTOCOLO ESTABILIZADO! Falso alarme: o Andy foi brincar lá fora! Você tem a coragem de um verdadeiro patrulheiro espacial! 🚀";
       toast.style.animation = "none";
       toast.offsetHeight;
@@ -938,19 +962,21 @@ function initForbiddenButton() {
     triggerConfetti(100, 80);
   };
 
-  btn.addEventListener("click", () => {
-    // 1. Pausa momentaneamente a música suave para dar lugar à emergência
+  const startEmergencyAlert = () => {
+    isEmergencyActive = true;
+
+    // 1. Pausa momentaneamente a música de fundo suave para a sirene de emergência dominar
     const bgAudio = getThemeAudio();
     if (bgAudio && !bgAudio.paused) {
       bgAudio.pause();
     }
 
-    // 2. Tela começa a tremer violentamente (efeito terremoto de alarme)
+    // 2. Tela começa a tremer violentamente (efeito terremoto de alarme contínuo)
     document.body.classList.remove("emergency-screen-shake");
     void document.body.offsetWidth;
     document.body.classList.add("emergency-screen-shake");
 
-    // 3. Ativa o overlay de tela cheia com luzes vermelhas passando
+    // 3. Ativa o overlay de tela cheia com luzes vermelhas varrendo
     if (overlay) {
       overlay.classList.add("active");
     }
@@ -962,14 +988,16 @@ function initForbiddenButton() {
       rexRunner.classList.add("running");
     }
 
-    // 5. Alarme sonoro contínuo e grito do Rex
+    // 5. Inicia a sirene de emergência contínua que toca sem parar
     startEmergencySirenAudio();
+
+    // Grito assustado do Rex
     try {
       const rexAudio = new Audio("assets/audio/characters/rex.mp4");
       rexAudio.play().catch(() => {});
     } catch (e) {}
 
-    // 6. Contagem regressiva de auto-estabilização
+    // 6. Contagem regressiva de auto-estabilização (7 segundos)
     remainingSeconds = 7;
     if (countdownEl) countdownEl.textContent = `${remainingSeconds}s`;
 
@@ -981,8 +1009,18 @@ function initForbiddenButton() {
         stopEmergencyAlert(false);
       }
     }, 1000);
+  };
+
+  // Clicar no botão vermelho inicia ou desativa a emergência
+  btn.addEventListener("click", () => {
+    if (isEmergencyActive) {
+      stopEmergencyAlert(true);
+    } else {
+      startEmergencyAlert();
+    }
   });
 
+  // Botão manual de desativação na tela de emergência
   if (cancelBtn) {
     cancelBtn.addEventListener("click", () => {
       stopEmergencyAlert(true);
