@@ -6,6 +6,7 @@ const PORT = 3000;
 const DATA_DIR = path.join(__dirname, 'data');
 const RSVPS_FILE = path.join(DATA_DIR, 'rsvps.json');
 const MESSAGES_FILE = path.join(DATA_DIR, 'messages.json');
+const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 
 // Ensure data folder and files exist
 if (!fs.existsSync(DATA_DIR)) {
@@ -16,6 +17,9 @@ if (!fs.existsSync(RSVPS_FILE)) {
 }
 if (!fs.existsSync(MESSAGES_FILE)) {
   fs.writeFileSync(MESSAGES_FILE, JSON.stringify([], null, 2), 'utf-8');
+}
+if (!fs.existsSync(SETTINGS_FILE)) {
+  fs.writeFileSync(SETTINGS_FILE, JSON.stringify({ googleScriptUrl: '' }, null, 2), 'utf-8');
 }
 
 const MIME_TYPES = {
@@ -34,7 +38,8 @@ const MIME_TYPES = {
   '.mp3': 'audio/mpeg',
   '.wav': 'audio/wav',
   '.ogg': 'audio/ogg',
-  '.m4a': 'audio/mp4'
+  '.m4a': 'audio/mp4',
+  '.mp4': 'video/mp4'
 };
 
 function readJsonFile(filePath) {
@@ -120,6 +125,106 @@ function generateVouchers(ticketCode, childrenDetails = []) {
   return vouchers;
 }
 
+// Sincroniza em segundo plano com o Google Sheets via Web App
+async function syncToGoogleSheets(rsvpRecord) {
+  try {
+    let settings = {};
+    try {
+      settings = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8') || '{}');
+    } catch(e) {}
+
+    const scriptUrl = settings.googleScriptUrl || '';
+    if (!scriptUrl || !scriptUrl.startsWith('http')) return;
+
+    const kidsStr = (rsvpRecord.childrenDetails || []).map(k => `${k.name} (${k.age}a)`).join(', ');
+    const payload = {
+      nome: rsvpRecord.name,
+      telefone: rsvpRecord.phone || '',
+      presenca: rsvpRecord.presence || 'Confirmado',
+      adultos: rsvpRecord.adults || 1,
+      criancas: rsvpRecord.children || 0,
+      acompanhantes: `${kidsStr ? 'Crianças: ' + kidsStr + '. ' : ''}${rsvpRecord.companions || ''}`,
+      mensagem: rsvpRecord.message || '',
+      codigoIngresso: rsvpRecord.ticketCode || ''
+    };
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+
+    await fetch(scriptUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    console.log(`[Google Sheets] ✅ Linha enviada com sucesso para ${rsvpRecord.name}`);
+  } catch (err) {
+    console.warn(`[Google Sheets] Aviso de envio:`, err.message);
+  }
+}
+
+// Salva recadinho do convidado na Cápsula do Tempo / Mural
+function saveRsvpMessageToCapsule(rsvpRecord) {
+  if (!rsvpRecord.message || !rsvpRecord.message.trim()) return;
+  try {
+    const messages = readJsonFile(MESSAGES_FILE);
+    const exists = messages.some(m => m.rsvpId === rsvpRecord.id || (m.author === rsvpRecord.name && m.message === rsvpRecord.message.trim()));
+    if (!exists) {
+      messages.unshift({
+        id: `msg_rsvp_${Date.now()}`,
+        rsvpId: rsvpRecord.id,
+        author: rsvpRecord.name,
+        message: rsvpRecord.message.trim(),
+        theme: 'woody',
+        status: 'approved',
+        createdAt: new Date().toISOString()
+      });
+      writeJsonFile(MESSAGES_FILE, messages);
+    }
+  } catch (e) {
+    console.warn('[Mural] Erro ao salvar recado:', e.message);
+  }
+}
+
+// Sincroniza todas as mensagens já existentes em RSVPs para a lista de recados dos pais
+function syncAllExistingRsvpMessages() {
+  try {
+    const rsvps = readJsonFile(RSVPS_FILE);
+    const messages = readJsonFile(MESSAGES_FILE);
+    let changed = false;
+
+    rsvps.forEach(r => {
+      if (r.message && r.message.trim()) {
+        const cleanMsg = r.message.trim();
+        const exists = messages.some(m => m.rsvpId === r.id || (m.author === r.name && m.message === cleanMsg));
+        if (!exists) {
+          messages.unshift({
+            id: `msg_rsvp_${r.id || Date.now()}`,
+            rsvpId: r.id,
+            author: r.name,
+            message: cleanMsg,
+            theme: 'woody',
+            status: 'approved',
+            createdAt: r.createdAt || new Date().toISOString()
+          });
+          changed = true;
+        }
+      }
+    });
+
+    if (changed) {
+      writeJsonFile(MESSAGES_FILE, messages);
+      console.log('[Mural] 💌 Recados de confirmações anteriores sincronizados com o Painel dos Pais com sucesso!');
+    }
+  } catch (e) {
+    console.warn('[Mural] Erro ao sincronizar recadinhos:', e.message);
+  }
+}
+
+// Executa sincronização inicial no carregamento
+syncAllExistingRsvpMessages();
+
 const server = http.createServer(async (req, res) => {
   const urlParts = req.url.split('?');
   const pathname = urlParts[0];
@@ -191,11 +296,15 @@ const server = http.createServer(async (req, res) => {
 
         rsvps[existingIndex] = rsvpRecord;
         writeJsonFile(RSVPS_FILE, rsvps);
+        saveRsvpMessageToCapsule(rsvpRecord);
+        syncToGoogleSheets(rsvpRecord);
         return sendJson(res, 200, { success: true, updated: true, rsvp: rsvpRecord, message: 'Confirmação atualizada com sucesso!' });
       }
 
       rsvps.unshift(rsvpRecord);
       writeJsonFile(RSVPS_FILE, rsvps);
+      saveRsvpMessageToCapsule(rsvpRecord);
+      syncToGoogleSheets(rsvpRecord);
       return sendJson(res, 201, { success: true, created: true, rsvp: rsvpRecord, message: 'Presença confirmada com sucesso!' });
     } catch (err) {
       console.error('Erro em POST /api/rsvp:', err);
@@ -397,6 +506,64 @@ const server = http.createServer(async (req, res) => {
     return res.end(csv);
   }
 
+  // 11. GET /api/settings (Obter configurações salvas do sistema)
+  if (pathname === '/api/settings' && req.method === 'GET') {
+    let settings = { googleScriptUrl: '' };
+    try {
+      settings = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8') || '{}');
+    } catch(e) {}
+    return sendJson(res, 200, { success: true, settings });
+  }
+
+  // 12. POST /api/settings (Salvar configurações do sistema, ex: Google Apps Script URL)
+  if (pathname === '/api/settings' && req.method === 'POST') {
+    const data = await parseBody(req);
+    let settings = {};
+    try {
+      settings = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8') || '{}');
+    } catch(e) {}
+    if (data.googleScriptUrl !== undefined) {
+      settings.googleScriptUrl = (data.googleScriptUrl || '').trim();
+    }
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8');
+    return sendJson(res, 200, { success: true, settings, message: 'Configurações salvas com sucesso!' });
+  }
+
+  // 13. POST /api/test-sheets (Testar envio imediato para a planilha)
+  if (pathname === '/api/test-sheets' && req.method === 'POST') {
+    const data = await parseBody(req);
+    const testUrl = (data.googleScriptUrl || '').trim();
+    if (!testUrl || !testUrl.startsWith('http')) {
+      return sendJson(res, 400, { success: false, message: 'URL do Google Apps Script inválida ou não fornecida.' });
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      const testPayload = {
+        nome: 'Teste de Conexão - Painel dos Pais',
+        telefone: '(00) 00000-0000',
+        presenca: 'Confirmado',
+        adultos: 1,
+        criancas: 0,
+        acompanhantes: 'Teste de sincronização',
+        mensagem: 'Testando integração em tempo real com Google Sheets! 🤠🚀',
+        codigoIngresso: 'TESTE-OK'
+      };
+
+      await fetch(testUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(testPayload),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+      return sendJson(res, 200, { success: true, message: 'Linha de teste enviada para o Google Sheets com sucesso!' });
+    } catch (e) {
+      return sendJson(res, 500, { success: false, message: 'Erro ao testar envio para a planilha: ' + e.message });
+    }
+  }
+
   // ==========================================
   // STATIC FILES SERVING (WITH AUDIO RANGE STREAMING)
   // ==========================================
@@ -428,9 +595,9 @@ const server = http.createServer(async (req, res) => {
     const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
-    // Suporte a Range Requests para arquivos de áudio
+    // Suporte a Range Requests para arquivos de áudio e vídeo
     const range = req.headers.range;
-    if (range && (ext === '.mp3' || ext === '.wav' || ext === '.ogg' || ext === '.m4a')) {
+    if (range && (ext === '.mp3' || ext === '.wav' || ext === '.ogg' || ext === '.m4a' || ext === '.mp4')) {
       const parts = range.replace(/bytes=/, '').split('-');
       const start = parseInt(parts[0], 10);
       const end = parts[1] ? parseInt(parts[1], 10) : stats.size - 1;

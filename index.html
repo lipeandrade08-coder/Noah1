@@ -495,7 +495,58 @@
       </section>
 
       <!-- Rex que corre em pânico pela tela quando o botão proibido é acionado -->
-      <img src="assets/images/characters/rex.svg" alt="Rex Assustado" class="rex-panic-runner" id="rex-panic-runner" aria-hidden="true">
+      <div class="rex-panic-runner-wrapper" id="rex-panic-runner-wrapper" aria-hidden="true">
+        <div class="rex-speech-bubble" id="rex-speech-bubble">AAAAAAH! O ANDY TÁ VINDO! 🦖</div>
+        <img src="assets/images/characters/rex.svg" alt="Rex Assustado" class="rex-panic-runner" id="rex-panic-runner">
+      </div>
+
+      <!-- OVERLAY CINEMATOGRÁFICO DE ALERTA MÁXIMO E EMERGÊNCIA 🚨 -->
+      <div class="emergency-overlay" id="emergency-overlay" aria-hidden="true">
+        <!-- Luz Vermelha Estroboscópica e Feixe Varrendo a Tela -->
+        <div class="emergency-backdrop-fx"></div>
+        <div class="emergency-sweeper-beam"></div>
+        <div class="emergency-rotating-beacon"></div>
+
+        <!-- Faixas de Perigo / Fita de Isolamento Superior e Inferior -->
+        <div class="emergency-hazard-tape emergency-tape-top">
+          <div class="hazard-tape-marquee">
+            <span>🚨 ALERTA MÁXIMO • PROTOCOLO TOY STORY • O ANDY ESTÁ VINDO! • TODOS OS BRINQUEDOS EM SEUS LUGARES! • ALERTA MÁXIMO • 🚨</span>
+            <span>🚨 ALERTA MÁXIMO • PROTOCOLO TOY STORY • O ANDY ESTÁ VINDO! • TODOS OS BRINQUEDOS EM SEUS LUGARES! • ALERTA MÁXIMO • 🚨</span>
+          </div>
+        </div>
+
+        <div class="emergency-hazard-tape emergency-tape-bottom">
+          <div class="hazard-tape-marquee marquee-reverse">
+            <span>⚠️ ZONA DE EMERGÊNCIA • CÓDIGO VERMELHO ATIVADO • PARALISAR IMEDIATAMENTE • MISSÃO NOAH 1 ANINHO • ⚠️</span>
+            <span>⚠️ ZONA DE EMERGÊNCIA • CÓDIGO VERMELHO ATIVADO • PARALISAR IMEDIATAMENTE • MISSÃO NOAH 1 ANINHO • ⚠️</span>
+          </div>
+        </div>
+
+        <!-- Sirenes Giratórias nos Cantos -->
+        <div class="emergency-beacon-light beacon-top-left"></div>
+        <div class="emergency-beacon-light beacon-top-right"></div>
+        <div class="emergency-beacon-light beacon-bottom-left"></div>
+        <div class="emergency-beacon-light beacon-bottom-right"></div>
+
+        <!-- Painel Central de Alerta -->
+        <div class="emergency-modal-card">
+          <div class="emergency-icon-pulse">🚨</div>
+          <h2 class="emergency-headline">ALERTA VERMELHO DE EMERGÊNCIA!</h2>
+          <div class="emergency-subheadline">O ANDY ESTÁ SUBINDO AS ESCADAS!</div>
+          <p class="emergency-body-text">
+            Você apertou o botão proibido da caixa de brinquedos! Todos os brinquedos devem congelar e ficar em suas posições agora mesmo!
+          </p>
+
+          <div class="emergency-timer-wrapper">
+            <span class="timer-label">Auto-estabilização em:</span>
+            <span class="timer-countdown" id="emergency-countdown-num">7s</span>
+          </div>
+
+          <button type="button" class="btn-cancel-emergency" id="btn-cancel-emergency">
+            🛑 DESATIVAR EMERGÊNCIA / TUDO LIMPO!
+          </button>
+        </div>
+      </div>
 
       <!-- ========================================== -->
       <!-- 9. LINHA DO TEMPO: 365 DIAS DE AVENTURA 📸 -->
@@ -513,55 +564,214 @@
           <p class="timeline-subtitle">Deslize para ver os momentos mais especiais do primeiro aninho do Noah!</p>
         </div>
 
+        <!-- Barra de Navegação e Dica do Álbum -->
+        <div class="album-navigation-bar">
+          <button type="button" class="album-nav-arrow album-arrow-prev" id="album-prev-btn" aria-label="Foto anterior">
+            <span>❮</span>
+          </button>
+          <div class="album-hint-badge">
+            <span>👆</span> Deslize ou use as setas para ver os 14 momentos • Toque na foto para ampliar!
+          </div>
+          <button type="button" class="album-nav-arrow album-arrow-next" id="album-next-btn" aria-label="Próxima foto">
+            <span>❯</span>
+          </button>
+        </div>
+
         <!-- Carrossel Touch-Friendly de Polaroids -->
-        <div class="polaroid-carousel-wrapper" id="polaroid-carousel">
+        <div class="polaroid-carousel-wrapper" id="polaroid-carousel" tabindex="0" role="region" aria-label="Carrossel de Fotos do Álbum">
           
-          <!-- Polaroid 1 -->
-          <article class="polaroid-card">
+          <!-- Foto 1 -->
+          <article class="polaroid-card" data-index="0" data-tag="✨ O INÍCIO DE TUDO" data-title="Dia que te Descobrimos" data-desc="O teste de gravidez e o momento em que nossas vidas ganharam o maior e mais lindo propósito do mundo!" data-full="assets/images/album/01-descoberta.jpg">
             <div class="polaroid-tape"></div>
             <div class="polaroid-photo-frame">
-              <img src="assets/images/Avatar do bebê xerife Woody-1.png" alt="A Chegada do Pequeno Xerife" class="polaroid-photo-img" loading="lazy">
+              <img src="assets/images/album/01-descoberta.jpg" alt="Dia que te Descobrimos" class="polaroid-photo-img" loading="lazy">
+              <div class="polaroid-zoom-hint" title="Toque para ampliar">🔍</div>
             </div>
-            <span class="polaroid-caption-tag">⭐ 1º MÊS</span>
-            <h3 class="polaroid-title">A Chegada do Xerife</h3>
-            <p class="polaroid-desc">O início da maior expedição das nossas vidas! Um amor que transcende galáxias.</p>
+            <span class="polaroid-caption-tag">✨ O INÍCIO</span>
+            <h3 class="polaroid-title">Dia que te Descobrimos</h3>
+            <p class="polaroid-desc">O teste positivo e a certeza de que a maior aventura da nossa vida estava apenas começando!</p>
           </article>
 
-          <!-- Polaroid 2 -->
-          <article class="polaroid-card">
+          <!-- Foto 2 -->
+          <article class="polaroid-card" data-index="1" data-tag="👑 CHÁ REVELAÇÃO" data-title="Nosso Pequeno Príncipe" data-desc="A revelação mais emocionante: vem aí o nosso menino, o pequeno xerife Noah para liderar essa grande aventura!" data-full="assets/images/album/02-principe.jpg">
             <div class="polaroid-tape"></div>
             <div class="polaroid-photo-frame">
-              <img src="assets/images/noah-bebe-sorridente.png" alt="Primeiras Risadas do Noah" class="polaroid-photo-img" loading="lazy">
+              <img src="assets/images/album/02-principe.jpg" alt="Quando descobrimos que você era o nosso príncipe" class="polaroid-photo-img" loading="lazy">
+              <div class="polaroid-zoom-hint" title="Toque para ampliar">🔍</div>
             </div>
-            <span class="polaroid-caption-tag">⭐ 4º MÊS</span>
-            <h3 class="polaroid-title">Primeiros Sorrisos</h3>
-            <p class="polaroid-desc">Iluminando cada cantinho do quarto com gargalhadas doces e muito carinho.</p>
+            <span class="polaroid-caption-tag">👑 CHÁ REVELAÇÃO</span>
+            <h3 class="polaroid-title">Nosso Pequeno Príncipe</h3>
+            <p class="polaroid-desc">O coração bateu mais forte: vem aí o nosso menino, o pequeno xerife da família!</p>
           </article>
 
-          <!-- Polaroid 3 -->
-          <article class="polaroid-card">
+          <!-- Foto 3 -->
+          <article class="polaroid-card" data-index="2" data-tag="🍼 DOCE ESPERA" data-title="Na Barriga da Mamãe" data-desc="Sentindo cada chutinho de amor, o carinho do papai e contando os segundos para segurar você no colo." data-full="assets/images/album/03-barriga.jpg">
             <div class="polaroid-tape"></div>
             <div class="polaroid-photo-frame">
-              <img src="assets/images/Bebê Sorridente com Chapéu de Cowboy.png" alt="Engatinhando pelo Velho Oeste" class="polaroid-photo-img" loading="lazy">
+              <img src="assets/images/album/03-barriga.jpg" alt="Na barriga da mamãe" class="polaroid-photo-img" loading="lazy">
+              <div class="polaroid-zoom-hint" title="Toque para ampliar">🔍</div>
             </div>
-            <span class="polaroid-caption-tag">⭐ 8º MÊS</span>
-            <h3 class="polaroid-title">Explorando o Velho Oeste</h3>
-            <p class="polaroid-desc">Curioso e destemido, descobrindo cada brinquedo e engatinhando a mil por hora!</p>
+            <span class="polaroid-caption-tag">🍼 DOCE ESPERA</span>
+            <h3 class="polaroid-title">Na Barriga da Mamãe</h3>
+            <p class="polaroid-desc">Cada chute de amor e a contagem regressiva para abraçar o nosso pequeno parceiro!</p>
           </article>
 
-          <!-- Polaroid 4 -->
-          <article class="polaroid-card">
+          <!-- Foto 4 -->
+          <article class="polaroid-card" data-index="3" data-tag="⭐ O GRANDE DIA" data-title="O Nascimento do Noah" data-desc="O primeiro abraço, o primeiro olhar e a bênção mais grandiosa chegando em nossos braços!" data-full="assets/images/album/04-nascimento.jpg">
             <div class="polaroid-tape"></div>
             <div class="polaroid-photo-frame">
-              <img src="assets/images/Retrato Cowboy do Bebê Noah.png" alt="Noah Completa 1 Ano" class="polaroid-photo-img" loading="lazy">
+              <img src="assets/images/album/04-nascimento.jpg" alt="Dia que você nasceu" class="polaroid-photo-img" loading="lazy">
+              <div class="polaroid-zoom-hint" title="Toque para ampliar">🔍</div>
             </div>
-            <span class="polaroid-caption-tag">⭐ 12º MÊS</span>
-            <h3 class="polaroid-title">1 Ano de Amor Infinito</h3>
-            <p class="polaroid-desc">Pronto para vestir o chapéu e celebrar seu primeiro aninho com todos os parceiros!</p>
+            <span class="polaroid-caption-tag">⭐ O NASCIMENTO</span>
+            <h3 class="polaroid-title">Dia que Você Nasceu</h3>
+            <p class="polaroid-desc">O dia mais mágico e inesquecível! Bem-vindo ao mundo, nosso pequeno tesouro!</p>
+          </article>
+
+          <!-- Foto 5 -->
+          <article class="polaroid-card" data-index="4" data-tag="👶 15 DIAS" data-title="Primeiros 15 Dias" data-desc="Pequenininho, dorminhoco e dono de um cheirinho de paz que preencheu todo o nosso lar de amor." data-full="assets/images/album/05-15dias.jpg">
+            <div class="polaroid-tape"></div>
+            <div class="polaroid-photo-frame">
+              <img src="assets/images/album/05-15dias.jpg" alt="15 dias do Noah" class="polaroid-photo-img" loading="lazy">
+              <div class="polaroid-zoom-hint" title="Toque para ampliar">🔍</div>
+            </div>
+            <span class="polaroid-caption-tag">👶 15 DIAS</span>
+            <h3 class="polaroid-title">15 Dias de Vida</h3>
+            <p class="polaroid-desc">Tão pequenino, tão perfeito e com um soninho sereno que derreteu toda a casa.</p>
+          </article>
+
+          <!-- Foto 6 -->
+          <article class="polaroid-card" data-index="5" data-tag="🎈 1º MÊS" data-title="1º Mês de Amor Infinito" data-desc="Primeiro mesversário do pequeno xerife! Cada dia mais amado, saudável e protegido." data-full="assets/images/album/06-1mes.jpg">
+            <div class="polaroid-tape"></div>
+            <div class="polaroid-photo-frame">
+              <img src="assets/images/album/06-1mes.jpg" alt="1 mês do Noah" class="polaroid-photo-img" loading="lazy">
+              <div class="polaroid-zoom-hint" title="Toque para ampliar">🔍</div>
+            </div>
+            <span class="polaroid-caption-tag">🎈 1º MÊS</span>
+            <h3 class="polaroid-title">1 Mês do Noah</h3>
+            <p class="polaroid-desc">O primeiro mesversário do nosso pequeno Woody! Uma bênção diária em nossas vidas.</p>
+          </article>
+
+          <!-- Foto 7 -->
+          <article class="polaroid-card" data-index="6" data-tag="🎈 2º MÊS" data-title="2 Meses de Sorrisos" data-desc="Olhares atentos, bochechinhas gordinhas e as primeiras expressões que encantam todo mundo." data-full="assets/images/album/07-2meses.jpg">
+            <div class="polaroid-tape"></div>
+            <div class="polaroid-photo-frame">
+              <img src="assets/images/album/07-2meses.jpg" alt="2 meses do Noah" class="polaroid-photo-img" loading="lazy">
+              <div class="polaroid-zoom-hint" title="Toque para ampliar">🔍</div>
+            </div>
+            <span class="polaroid-caption-tag">🎈 2º MÊS</span>
+            <h3 class="polaroid-title">2 Meses de Sorrisos</h3>
+            <p class="polaroid-desc">Olhares curiosos, bochechinhas fofas e os primeiros sorrisinhos de bom dia!</p>
+          </article>
+
+          <!-- Foto 8 -->
+          <article class="polaroid-card" data-index="7" data-tag="🎈 3º MÊS" data-title="3 Meses de Gargalhadas" data-desc="Já balbuciando suas primeiras historinhas e iluminando a casa inteira com sorrisos doces." data-full="assets/images/album/08-3meses.jpg">
+            <div class="polaroid-tape"></div>
+            <div class="polaroid-photo-frame">
+              <img src="assets/images/album/08-3meses.jpg" alt="3 meses do Noah" class="polaroid-photo-img" loading="lazy">
+              <div class="polaroid-zoom-hint" title="Toque para ampliar">🔍</div>
+            </div>
+            <span class="polaroid-caption-tag">🎈 3º MÊS</span>
+            <h3 class="polaroid-title">3 Meses de Descobertas</h3>
+            <p class="polaroid-desc">Já conversando com seus próprios sons e distribuindo os sorrisos mais radiantes do mundo!</p>
+          </article>
+
+          <!-- Foto 9 -->
+          <article class="polaroid-card" data-index="8" data-tag="🎈 4º MÊS" data-title="4 Meses de Alegria" data-desc="Segurando brinquedos com as mãozinhas e encantando todo mundo com suas gargalhadas gostosas." data-full="assets/images/album/09-4meses.jpg">
+            <div class="polaroid-tape"></div>
+            <div class="polaroid-photo-frame">
+              <img src="assets/images/album/09-4meses.jpg" alt="4 meses do Noah" class="polaroid-photo-img" loading="lazy">
+              <div class="polaroid-zoom-hint" title="Toque para ampliar">🔍</div>
+            </div>
+            <span class="polaroid-caption-tag">🎈 4º MÊS</span>
+            <h3 class="polaroid-title">4 Meses de Fofura</h3>
+            <p class="polaroid-desc">Descobrindo as mãozinhas e os pezinhos, e encantando todos os parceiros.</p>
+          </article>
+
+          <!-- Foto 10 -->
+          <article class="polaroid-card" data-index="9" data-tag="🎈 5º MÊS" data-title="5 Meses de Aventura" data-desc="Cada dia mais esperto, expressivo e interagindo com todas as cores do quarto do Andy!" data-full="assets/images/album/10-5meses.jpg">
+            <div class="polaroid-tape"></div>
+            <div class="polaroid-photo-frame">
+              <img src="assets/images/album/10-5meses.jpg" alt="5 meses do Noah" class="polaroid-photo-img" loading="lazy">
+              <div class="polaroid-zoom-hint" title="Toque para ampliar">🔍</div>
+            </div>
+            <span class="polaroid-caption-tag">🎈 5º MÊS</span>
+            <h3 class="polaroid-title">5 Meses de Travessuras</h3>
+            <p class="polaroid-desc">Cada dia mais esperto, descobrindo o quarto e pronto para novas travessuras!</p>
+          </article>
+
+          <!-- Foto 11 -->
+          <article class="polaroid-card" data-index="10" data-tag="🎈 6º MÊS" data-title="Meio Aninho de Noah!" data-desc="6 meses de pura gostosura, introdução alimentar e muita diversão com os brinquedos favoritos!" data-full="assets/images/album/11-6meses.jpg">
+            <div class="polaroid-tape"></div>
+            <div class="polaroid-photo-frame">
+              <img src="assets/images/album/11-6meses.jpg" alt="6 meses do Noah" class="polaroid-photo-img" loading="lazy">
+              <div class="polaroid-zoom-hint" title="Toque para ampliar">🔍</div>
+            </div>
+            <span class="polaroid-caption-tag">🎈 6º MÊS</span>
+            <h3 class="polaroid-title">Meio Aninho do Noah!</h3>
+            <p class="polaroid-desc">6 meses de bênçãos, primeiras frutinhas e muita diversão no comando do quarto!</p>
+          </article>
+
+          <!-- Foto 12 -->
+          <article class="polaroid-card" data-index="11" data-tag="🎈 7º MÊS" data-title="7 Meses de Muita Graça" data-desc="Sentando firme feito um homenzinho, batendo palminhas e brilhando os olhinhos com cada novidade." data-full="assets/images/album/12-7meses.jpg">
+            <div class="polaroid-tape"></div>
+            <div class="polaroid-photo-frame">
+              <img src="assets/images/album/12-7meses.jpg" alt="7 meses do Noah" class="polaroid-photo-img" loading="lazy">
+              <div class="polaroid-zoom-hint" title="Toque para ampliar">🔍</div>
+            </div>
+            <span class="polaroid-caption-tag">🎈 7º MÊS</span>
+            <h3 class="polaroid-title">7 Meses de Charme</h3>
+            <p class="polaroid-desc">Sentando sozinho feito um rapazinho e batendo palminhas com entusiasmo!</p>
+          </article>
+
+          <!-- Foto 13 -->
+          <article class="polaroid-card" data-index="12" data-tag="🎈 8º MÊS" data-title="8 Meses a Mil por Hora" data-desc="Explorador veloz! Engatinhando por todos os cômodos e comandando as maiores travessuras." data-full="assets/images/album/13-8meses.jpg">
+            <div class="polaroid-tape"></div>
+            <div class="polaroid-photo-frame">
+              <img src="assets/images/album/13-8meses.jpg" alt="8 meses do Noah" class="polaroid-photo-img" loading="lazy">
+              <div class="polaroid-zoom-hint" title="Toque para ampliar">🔍</div>
+            </div>
+            <span class="polaroid-caption-tag">🎈 8º MÊS</span>
+            <h3 class="polaroid-title">8 Meses no Comando</h3>
+            <p class="polaroid-desc">Explorador nato, engatinhando e espalhando brinquedos como um verdadeiro vaqueiro veloz!</p>
+          </article>
+
+          <!-- Foto 14 -->
+          <article class="polaroid-card" data-index="13" data-tag="🎈 9º MÊS" data-title="9 Meses de Valentia" data-desc="Ficando de pé, com um sorrisão orgulhoso e prontinho para celebrar o 1º aninho com todos os parceiros!" data-full="assets/images/album/14-9meses.jpg">
+            <div class="polaroid-tape"></div>
+            <div class="polaroid-photo-frame">
+              <img src="assets/images/album/14-9meses.jpg" alt="9 meses do Noah" class="polaroid-photo-img" loading="lazy">
+              <div class="polaroid-zoom-hint" title="Toque para ampliar">🔍</div>
+            </div>
+            <span class="polaroid-caption-tag">🎈 9º MÊS</span>
+            <h3 class="polaroid-title">9 Meses de Valentia</h3>
+            <p class="polaroid-desc">Ficando de pé, comemorando cada conquista e pronto para o primeiro aninho que se aproxima!</p>
           </article>
 
         </div>
       </section>
+
+      <!-- MODAL LIGHTBOX DE FOTOS EM ALTA RESOLUÇÃO -->
+      <div class="album-lightbox-modal" id="album-lightbox" aria-hidden="true">
+        <div class="lightbox-overlay-bg" id="lightbox-bg-close"></div>
+        <div class="lightbox-content-box" role="dialog" aria-modal="true" aria-label="Visualizador de Fotos do Álbum">
+          <button type="button" class="lightbox-btn-close" id="lightbox-btn-close" aria-label="Fechar visualizador">✕</button>
+          
+          <button type="button" class="lightbox-arrow-btn lightbox-prev" id="lightbox-arrow-prev" aria-label="Foto anterior">‹</button>
+          <button type="button" class="lightbox-arrow-btn lightbox-next" id="lightbox-arrow-next" aria-label="Próxima foto">›</button>
+
+          <div class="lightbox-img-container">
+            <img src="" alt="" class="lightbox-active-img" id="lightbox-active-img">
+          </div>
+
+          <div class="lightbox-info-bar">
+            <span class="lightbox-tag-pill" id="lightbox-tag-pill"></span>
+            <h3 class="lightbox-title-text" id="lightbox-title-text"></h3>
+            <p class="lightbox-desc-text" id="lightbox-desc-text"></p>
+            <div class="lightbox-counter-badge" id="lightbox-counter-badge">1 / 14</div>
+          </div>
+        </div>
+      </div>
 
       <!-- ========================================== -->
       <!-- 10. A TURMA DO TOY STORY REUNIDA           -->
@@ -1093,14 +1303,24 @@
             <h4 style="color: #1e40af; font-family: var(--font-heading); margin-bottom: 6px;">
               📋 Conectar ao Google Apps Script
             </h4>
-            <p style="font-size: 0.88rem; color: #1e3a8a; margin-bottom: 12px;">
-              Cole a URL do seu Web App do Google Apps Script abaixo para sincronizar todas as respostas diretamente em uma planilha Google em tempo real:
+            <p style="font-size: 0.88rem; color: #1e3a8a; margin-bottom: 12px; line-height: 1.4;">
+              Cole a <strong>URL do App da Web</strong> (obtida no Google Apps Script terminada em <code>/exec</code>) para enviar as confirmações diretamente à sua planilha:
             </p>
-            <div style="display: flex; gap: 8px;">
-              <input type="url" id="admin-script-url-input" class="form-input" placeholder="https://script.google.com/macros/s/.../exec">
-              <button type="button" class="btn-pill btn-calendar" id="btn-save-script-url">Salvar URL</button>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <input type="url" id="admin-script-url-input" class="form-input" style="flex: 1; min-width: 240px;" placeholder="https://script.google.com/macros/s/.../exec">
+              <button type="button" class="btn-pill btn-calendar" id="btn-save-script-url">💾 Salvar URL</button>
             </div>
-            <div id="admin-sheet-save-status" style="margin-top: 8px; font-size: 0.85rem; color: #15803d; font-weight: bold;"></div>
+            
+            <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+              <button type="button" class="btn-pill btn-maps" id="btn-test-script-url" style="font-size: 0.85rem; padding: 8px 14px;">
+                🧪 Testar Envio na Planilha Agora
+              </button>
+              <button type="button" class="btn-pill btn-calendar" id="btn-sync-all-to-sheets" style="font-size: 0.85rem; padding: 8px 14px; background: #8b5cf6;">
+                🔄 Enviar Todas as Confirmações Salvas
+              </button>
+            </div>
+            
+            <div id="admin-sheet-save-status" style="margin-top: 10px; font-size: 0.88rem; font-weight: bold;"></div>
           </div>
         </div>
 

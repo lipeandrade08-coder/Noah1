@@ -77,6 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initCountdown();
   initQuizToyStory();
   initForbiddenButton();
+  initAlbumCarouselAndLightbox();
   initRsvpForm();
   initTimeCapsule();
   initAdminDashboard();
@@ -336,27 +337,91 @@ function playAlienOoooh() {
   });
 }
 
-// Sirene do Botão Proibido
-function playForbiddenAlarm() {
+// Sirene de Emergência do Botão Proibido (Loop Contínuo e Realista)
+let emergencySirenOsc = null;
+let emergencySirenGain = null;
+let emergencyRumbleOsc = null;
+let emergencyRumbleGain = null;
+let emergencySirenInterval = null;
+let emergencyIsActive = false;
+
+function startEmergencySirenAudio() {
+  stopEmergencySirenAudio();
   if (!AppState.soundEnabled) return;
   const ctx = getAudioContext();
   if (!ctx) return;
 
-  let now = ctx.currentTime;
-  for (let i = 0; i < 4; i++) {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "square";
-    osc.frequency.setValueAtTime(i % 2 === 0 ? 800 : 550, now + (i * 0.18));
-    gain.gain.setValueAtTime(0.2, now + (i * 0.18));
-    gain.gain.exponentialRampToValueAtTime(0.01, now + (i * 0.18) + 0.16);
+  emergencyIsActive = true;
 
-    osc.connect(gain);
-    gain.connect(ctx.destination);
+  try {
+    // Ganho principal da sirene
+    emergencySirenGain = ctx.createGain();
+    emergencySirenGain.gain.setValueAtTime(0.28, ctx.currentTime);
+    emergencySirenGain.connect(ctx.destination);
 
-    osc.start(now + (i * 0.18));
-    osc.stop(now + (i * 0.18) + 0.17);
+    // Oscilador de alta frequência estilo alarme/sirene europeia/americana
+    emergencySirenOsc = ctx.createOscillator();
+    emergencySirenOsc.type = "sawtooth";
+    emergencySirenOsc.frequency.setValueAtTime(480, ctx.currentTime);
+    emergencySirenOsc.connect(emergencySirenGain);
+    emergencySirenOsc.start();
+
+    // Oscilador grave de sub-rumble para sensação física de tremor
+    emergencyRumbleGain = ctx.createGain();
+    emergencyRumbleGain.gain.setValueAtTime(0.25, ctx.currentTime);
+    emergencyRumbleGain.connect(ctx.destination);
+
+    emergencyRumbleOsc = ctx.createOscillator();
+    emergencyRumbleOsc.type = "sine";
+    emergencyRumbleOsc.frequency.setValueAtTime(55, ctx.currentTime);
+    emergencyRumbleOsc.connect(emergencyRumbleGain);
+    emergencyRumbleOsc.start();
+
+    const scheduleSweep = () => {
+      if (!emergencyIsActive || !emergencySirenOsc) return;
+      const now = ctx.currentTime;
+      emergencySirenOsc.frequency.cancelScheduledValues(now);
+      emergencySirenOsc.frequency.setValueAtTime(450, now);
+      emergencySirenOsc.frequency.linearRampToValueAtTime(920, now + 0.55);
+      emergencySirenOsc.frequency.linearRampToValueAtTime(450, now + 1.1);
+    };
+
+    scheduleSweep();
+    emergencySirenInterval = setInterval(scheduleSweep, 1100);
+  } catch (err) {
+    console.warn("Erro ao iniciar sirene:", err);
   }
+}
+
+function stopEmergencySirenAudio() {
+  emergencyIsActive = false;
+  if (emergencySirenInterval) {
+    clearInterval(emergencySirenInterval);
+    emergencySirenInterval = null;
+  }
+  const ctx = getAudioContext();
+  if (ctx && emergencySirenGain) {
+    try {
+      emergencySirenGain.gain.setValueAtTime(emergencySirenGain.gain.value, ctx.currentTime);
+      emergencySirenGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    } catch (e) {}
+  }
+  if (ctx && emergencyRumbleGain) {
+    try {
+      emergencyRumbleGain.gain.setValueAtTime(emergencyRumbleGain.gain.value, ctx.currentTime);
+      emergencyRumbleGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    } catch (e) {}
+  }
+  setTimeout(() => {
+    if (emergencySirenOsc) {
+      try { emergencySirenOsc.stop(); } catch (e) {}
+      emergencySirenOsc = null;
+    }
+    if (emergencyRumbleOsc) {
+      try { emergencyRumbleOsc.stop(); } catch (e) {}
+      emergencyRumbleOsc = null;
+    }
+  }, 400);
 }
 
 // Trilha sonora leve em arpeggio de fundo
@@ -584,8 +649,59 @@ function initNoahBalloons() {
 }
 
 // ==========================================
-// 7. TURMA DO TOY STORY & BALÃO DE FALA
+// 7. TURMA DO TOY STORY & SONS ORIGINAIS DOS PERSONAGENS
 // ==========================================
+let currentCharacterAudio = null;
+
+function playCharacterSound(charKey) {
+  // Para áudio de personagem tocando atualmente
+  if (currentCharacterAudio) {
+    try {
+      currentCharacterAudio.pause();
+      currentCharacterAudio.currentTime = 0;
+    } catch (e) {}
+    currentCharacterAudio = null;
+  }
+
+  // Remove animação de todos os cards
+  document.querySelectorAll(".character-card").forEach(c => c.classList.remove("is-speaking"));
+
+  const targetCard = document.querySelector(`.character-card[data-character="${charKey}"]`);
+  if (targetCard) {
+    targetCard.classList.add("is-speaking");
+  }
+
+  const audioPath = `assets/audio/characters/${charKey}.mp4`;
+  const charAudio = new Audio(audioPath);
+  currentCharacterAudio = charAudio;
+
+  // Ducking na trilha sonora de fundo enquanto o personagem fala
+  const bgAudio = getThemeAudio();
+  let prevVolume = 1;
+  if (bgAudio && !bgAudio.paused) {
+    prevVolume = bgAudio.volume;
+    bgAudio.volume = Math.max(0.12, prevVolume * 0.2);
+  }
+
+  const onSoundEnded = () => {
+    if (targetCard) targetCard.classList.remove("is-speaking");
+    if (bgAudio && !bgAudio.paused) {
+      bgAudio.volume = prevVolume;
+    }
+    if (currentCharacterAudio === charAudio) {
+      currentCharacterAudio = null;
+    }
+  };
+
+  charAudio.onended = onSoundEnded;
+  charAudio.onerror = onSoundEnded;
+
+  charAudio.play().catch(err => {
+    console.log("Nota: áudio do personagem aguardando interação:", err.message);
+    onSoundEnded();
+  });
+}
+
 function initCharactersSection() {
   const cards = document.querySelectorAll(".character-card");
   const quoteToast = document.getElementById("character-quote-toast");
@@ -596,10 +712,10 @@ function initCharactersSection() {
       const charData = CHARACTER_QUOTES[charKey];
       if (!charData) return;
 
-      if (charKey === "buzz") playBuzzLaser();
-      else if (charKey === "alien") playAlienOoooh();
-      else playTone(440, 0.2, "triangle");
+      // Reproduz o áudio ORIGINAL do personagem enviado na pasta de sons
+      playCharacterSound(charKey);
 
+      // Exibe o balão de fala do personagem com animação
       if (quoteToast) {
         quoteToast.textContent = charData.quote;
         quoteToast.style.animation = "none";
@@ -773,48 +889,197 @@ function initQuizToyStory() {
 }
 
 // ==========================================
-// 11. O BOTÃO PROIBIDO 🚨
+// 11. O BOTÃO PROIBIDO - ALERTA MÁXIMO DE EMERGÊNCIA 🚨
 // ==========================================
 function initForbiddenButton() {
   const btn = document.getElementById("btn-forbidden");
+  const overlay = document.getElementById("emergency-overlay");
+  const cancelBtn = document.getElementById("btn-cancel-emergency");
+  const countdownEl = document.getElementById("emergency-countdown-num");
+  const rexRunner = document.getElementById("rex-panic-runner-wrapper");
   const toast = document.getElementById("forbidden-toast-msg");
-  const runner = document.getElementById("rex-panic-runner");
 
   if (!btn) return;
 
-  const funnyMessages = [
-    "🚨 VOCÊ ACORDOU TODOS OS BRINQUEDOS! Agora não tem volta: sua missão é se divertir no aniversário do Noah! 🤠",
-    "🦖 REX EM PÂNICO: 'ALGUÉM ESCONDEU O BOLO DE CHOCOLATE?! ROAAAR!'",
-    "🚀 BUZZ LIGHTYEAR: 'ALERTA VERMELHO! O ZURG FOI DETECTADO COMENDO BRIGADEIRO!'",
-    "👽 OS ALIENÍGENAS: 'A GARRA FOI ACIONADA PELO SEU DEDO! OOOOOH!'",
-    "🐎 JESSIE: 'IUPI-I-O! QUEM APERTOU O BOTÃO VAI TER QUE DANÇAR NO CHURRASCO!'"
-  ];
-  let msgIdx = 0;
+  let timerInterval = null;
+  let remainingSeconds = 7;
+
+  const stopEmergencyAlert = (wasManual = false) => {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    // 1. Remove tremor e overlay
+    document.body.classList.remove("emergency-screen-shake");
+    if (overlay) overlay.classList.remove("active");
+    if (rexRunner) rexRunner.classList.remove("running");
+
+    // 2. Para sirene de alarme
+    stopEmergencySirenAudio();
+
+    // 3. Restaura música de fundo do Andy
+    const bgAudio = getThemeAudio();
+    if (bgAudio && AppState.soundEnabled && bgAudio.paused) {
+      bgAudio.play().catch(() => {});
+    }
+
+    // 4. Feedback no balão de mensagem
+    if (toast) {
+      toast.textContent = wasManual
+        ? "✅ UFA! Alarme desativado a tempo! O Andy desistiu de subir... Todos os brinquedos continuam seguros! 🤠"
+        : "🎉 PROTOCOLO ESTABILIZADO! Falso alarme: o Andy foi brincar lá fora! Você tem a coragem de um verdadeiro patrulheiro espacial! 🚀";
+      toast.style.animation = "none";
+      toast.offsetHeight;
+      toast.style.animation = "fadeInZoom 0.4s ease";
+    }
+
+    // 5. Chuva de confetes triunfal
+    triggerConfetti(100, 80);
+  };
 
   btn.addEventListener("click", () => {
-    // 1. Tela treme
-    document.body.classList.remove("rumble-shake");
-    void document.body.offsetWidth; // trigger reflow
-    document.body.classList.add("rumble-shake");
-
-    // 2. Alarme sonoro
-    playForbiddenAlarm();
-
-    // 3. Rex correndo em pânico
-    if (runner) {
-      runner.classList.remove("running");
-      void runner.offsetWidth;
-      runner.classList.add("running");
+    // 1. Pausa momentaneamente a música suave para dar lugar à emergência
+    const bgAudio = getThemeAudio();
+    if (bgAudio && !bgAudio.paused) {
+      bgAudio.pause();
     }
 
-    // 4. Confetes
-    triggerConfetti(80, 90);
+    // 2. Tela começa a tremer violentamente (efeito terremoto de alarme)
+    document.body.classList.remove("emergency-screen-shake");
+    void document.body.offsetWidth;
+    document.body.classList.add("emergency-screen-shake");
 
-    // 5. Mensagem aleatória
-    if (toast) {
-      toast.textContent = funnyMessages[msgIdx % funnyMessages.length];
-      msgIdx++;
+    // 3. Ativa o overlay de tela cheia com luzes vermelhas passando
+    if (overlay) {
+      overlay.classList.add("active");
     }
+
+    // 4. Rex corre em desespero pela tela com balão de fala
+    if (rexRunner) {
+      rexRunner.classList.remove("running");
+      void rexRunner.offsetWidth;
+      rexRunner.classList.add("running");
+    }
+
+    // 5. Alarme sonoro contínuo e grito do Rex
+    startEmergencySirenAudio();
+    try {
+      const rexAudio = new Audio("assets/audio/characters/rex.mp4");
+      rexAudio.play().catch(() => {});
+    } catch (e) {}
+
+    // 6. Contagem regressiva de auto-estabilização
+    remainingSeconds = 7;
+    if (countdownEl) countdownEl.textContent = `${remainingSeconds}s`;
+
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      remainingSeconds--;
+      if (countdownEl) countdownEl.textContent = `${remainingSeconds}s`;
+      if (remainingSeconds <= 0) {
+        stopEmergencyAlert(false);
+      }
+    }, 1000);
+  });
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", () => {
+      stopEmergencyAlert(true);
+    });
+  }
+}
+
+// ==========================================
+// 11.1 ÁLBUM DE RECORDAÇÕES - CARROSSEL & LIGHTBOX 📸
+// ==========================================
+function initAlbumCarouselAndLightbox() {
+  const carousel = document.getElementById("polaroid-carousel");
+  const prevBtn = document.getElementById("album-prev-btn");
+  const nextBtn = document.getElementById("album-next-btn");
+
+  const lightbox = document.getElementById("album-lightbox");
+  const lbClose = document.getElementById("lightbox-btn-close");
+  const lbBg = document.getElementById("lightbox-bg-close");
+  const lbPrev = document.getElementById("lightbox-arrow-prev");
+  const lbNext = document.getElementById("lightbox-arrow-next");
+  const lbImg = document.getElementById("lightbox-active-img");
+  const lbTag = document.getElementById("lightbox-tag-pill");
+  const lbTitle = document.getElementById("lightbox-title-text");
+  const lbDesc = document.getElementById("lightbox-desc-text");
+  const lbCounter = document.getElementById("lightbox-counter-badge");
+
+  // Navegação por setas do carrossel
+  if (prevBtn && carousel) {
+    prevBtn.addEventListener("click", () => {
+      carousel.scrollBy({ left: -300, behavior: "smooth" });
+    });
+  }
+
+  if (nextBtn && carousel) {
+    nextBtn.addEventListener("click", () => {
+      carousel.scrollBy({ left: 300, behavior: "smooth" });
+    });
+  }
+
+  // Coleta dados dos cards de momentos
+  const cards = Array.from(document.querySelectorAll(".polaroid-card"));
+  if (cards.length === 0) return;
+
+  let currentLbIndex = 0;
+
+  const updateLightbox = (index) => {
+    if (index < 0) index = cards.length - 1;
+    if (index >= cards.length) index = 0;
+    currentLbIndex = index;
+
+    const card = cards[index];
+    const fullSrc = card.getAttribute("data-full") || card.querySelector("img").src;
+    const tag = card.getAttribute("data-tag") || "";
+    const title = card.getAttribute("data-title") || "";
+    const desc = card.getAttribute("data-desc") || "";
+
+    if (lbImg) {
+      lbImg.style.opacity = "0.2";
+      lbImg.src = fullSrc;
+      lbImg.onload = () => { lbImg.style.opacity = "1"; };
+    }
+    if (lbTag) lbTag.textContent = tag;
+    if (lbTitle) lbTitle.textContent = title;
+    if (lbDesc) lbDesc.textContent = desc;
+    if (lbCounter) lbCounter.textContent = `${index + 1} / ${cards.length}`;
+  };
+
+  const openLightbox = (index) => {
+    if (!lightbox) return;
+    updateLightbox(index);
+    lightbox.classList.add("active");
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeLightbox = () => {
+    if (!lightbox) return;
+    lightbox.classList.remove("active");
+    document.body.style.overflow = "";
+  };
+
+  cards.forEach((card, idx) => {
+    card.addEventListener("click", () => {
+      openLightbox(idx);
+    });
+  });
+
+  if (lbClose) lbClose.addEventListener("click", closeLightbox);
+  if (lbBg) lbBg.addEventListener("click", closeLightbox);
+  if (lbPrev) lbPrev.addEventListener("click", (e) => { e.stopPropagation(); updateLightbox(currentLbIndex - 1); });
+  if (lbNext) lbNext.addEventListener("click", (e) => { e.stopPropagation(); updateLightbox(currentLbIndex + 1); });
+
+  // Navegação por teclado
+  document.addEventListener("keydown", (e) => {
+    if (!lightbox || !lightbox.classList.contains("active")) return;
+    if (e.key === "Escape") closeLightbox();
+    else if (e.key === "ArrowLeft") updateLightbox(currentLbIndex - 1);
+    else if (e.key === "ArrowRight") updateLightbox(currentLbIndex + 1);
   });
 }
 

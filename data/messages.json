@@ -1,5 +1,14 @@
 [
   {
+    "id": "msg_rsvp_rsvp_sample_1",
+    "rsvpId": "rsvp_sample_1",
+    "author": "Lucas e Júlia Teste",
+    "message": "Grande festa!",
+    "theme": "woody",
+    "status": "approved",
+    "createdAt": "2026-10-24T00:47:52.623Z"
+  },
+  {
     "id": "msg_sample_1",
     "author": "Vovó Maria e Vovô João",
     "message": "Querido Xerife Noah, nosso pequeno raio de sol! Que sua vida seja repleta de alegrias, saúde e grandes aventuras. Te amamos ao infinito e além!",
