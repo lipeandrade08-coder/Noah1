@@ -45,18 +45,24 @@ Site de convite digital cinematográfico, animado e interativo, inspirado no uni
    - Roleta de revelação de personagem (Woody, Buzz, Jessie, Rex ou Alien).
    - Botão de compartilhamento direto com mensagem formatada no WhatsApp!
 
-6. **🚨 O Botão Proibido:**
+6. **🚨 O Botão Proibido (Alerta Máximo de Emergência):**
    - Botão vermelho 3D de emergência: *"🚨 ATENÇÃO! NÃO APERTE ESTE BOTÃO!"*.
-   - Ao apertar: a tela inteira treme (`screen shake`), alarme dispara, o **Rex surge correndo em pânico pela tela**, confetes caem e mensagens cômicas aleatórias são exibidas!
+   - Ao apertar: a tela inteira treme e vibra em modo terremoto contínuo, a tela escurece com iluminação vermelha de alerta, **feixes de luz e sirene giratória de 360° varrem toda a tela**, faixas de isolamento com avisos correm no topo e na base.
+   - **Sirene contínua de emergência** com modulação LFO sem interrupções, e o **Rex surge correndo em pânico pela tela** com áudio real e balão de fala!
+   - Painel com contagem regressiva de 7 segundos e opção de desativação manual que finaliza com chuva de confetes.
 
-7. **📸 Linha do Tempo: 365 Dias de Uma Grande Aventura:**
+7. **📸 Linha do Tempo: 365 Dias de Uma Grande Aventura (14 Momentos Reais):**
    - Álbum de fotografias instantâneas estilo Polaroid com fita adesiva amarela e estrelinhas.
-   - Fotos reais do bebê Noah (1º Mês, 4º Mês, 8º Mês e 1 Ano de vida).
-   - Carrossel horizontal deslizável por toque (*touch-friendly*).
+   - **14 fotos reais** da história do Noah em ordem cronológica (A Descoberta, Chá Revelação do Príncipe, Barriga da Mamãe, Dia do Nascimento, Primeiros 15 Dias e Mesversários do 1º ao 9º Mês).
+   - Carrossel horizontal deslizável por toque (*touch-friendly*) com botões de navegação lateral (`❮` e `❯`).
+   - **Modal Lightbox de Alta Resolução**: toque em qualquer foto para ver ampliada em tela cheia com legendas, contador e navegação por setas ou teclado (`Esc`, `←`, `→`).
 
-8. **🧸 Turma do Toy Story Reunida:**
-   - Woody, Buzz, Jessie, Rex, Marciano, Sr. Batata, Hamm e Slinky.
-   - Toque em cada um para ouvir seus sons e falas em balão de fala dinâmico!
+8. **🧸 Turma do Toy Story Reunida (Vozes Originais dos Personagens):**
+   - Woody, Buzz Lightyear, Jessie, Rex, Marcianos, Sr. Cabeça de Batata, Hamm e Slinky.
+   - Toque em cada personagem para ouvir seus **áudios e falas originais**!
+   - Suporte nativo e responsivo para celulares (**iOS Safari e Android**) com desbloqueio no primeiro toque, formato `.m4a` e buffers em *Web Audio API* com latência zero (funciona até mesmo com a chave de silencioso do iPhone ativada).
+   - Efeito sonoro de *Audio Ducking*: o volume da música de fundo abaixa suavemente enquanto o personagem fala.
+   - Feedback visual com pulsação luminosa e selo interativo `🔊 Ouvir Som`.
 
 9. **🎟️ Confirmação de Presença (RSVP) & Ingresso Digital Personalizado:**
    - Formulário completo para adultos e crianças.
