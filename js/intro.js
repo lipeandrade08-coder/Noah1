@@ -14,7 +14,14 @@
   let revealTimer;
   let confettiTimer;
   let closeTimer;
+  let sparkTimer;
+  let sparkInterval;
   let closingQueued = false;
+
+  function stopClosedSparks() {
+    clearTimeout(sparkTimer);
+    clearInterval(sparkInterval);
+  }
 
   function startOpeningAudio() {
     if (window.startThemeMusic) {
@@ -36,7 +43,7 @@
     const width = intro.clientWidth;
     const spread = Math.min(width * 0.56, 420);
     const baseCount = width < 640 ? 48 : 72;
-    const count = Math.max(12, Math.round(baseCount * multiplier));
+    const count = Math.max(6, Math.round(baseCount * multiplier));
     const pieces = document.createDocumentFragment();
     confettiLayer.style.setProperty("--confetti-x", `${opening.left + opening.width / 2}px`);
     confettiLayer.style.setProperty("--confetti-y", `${opening.top + opening.height / 2}px`);
@@ -67,6 +74,7 @@
   }
 
   openChest.addEventListener("click", () => {
+    stopClosedSparks();
     startOpeningAudio();
     window.playTone?.(440, 0.24, "triangle");
     stage.classList.add("opened");
@@ -136,6 +144,7 @@
 
   function enterInvitation() {
     if (intro.classList.contains("is-closing") || !intro.open) return;
+    stopClosedSparks();
     clearTimeout(revealTimer);
     clearTimeout(confettiTimer);
     confettiLayer.replaceChildren();
@@ -150,4 +159,18 @@
     enterInvitation();
   });
   intro.showModal();
+
+  if (!reducedMotion.matches) {
+    sparkTimer = setTimeout(() => {
+      if (stage.classList.contains("opened") || !intro.open || intro.classList.contains("is-closing")) return;
+      if (!document.hidden) launchConfetti(0.16);
+      sparkInterval = setInterval(() => {
+        if (stage.classList.contains("opened") || !intro.open || intro.classList.contains("is-closing")) {
+          stopClosedSparks();
+          return;
+        }
+        if (!document.hidden) launchConfetti(0.16);
+      }, 1750);
+    }, 1170);
+  }
 })();
