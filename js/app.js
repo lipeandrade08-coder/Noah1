@@ -69,7 +69,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initPartyConfig();
   initSoundSystem();
   preloadAllCharacterAudios();
-  initCinematicIntro();
   initAlienHuntMinigame();
   initInteractiveToyBlocks();
   initNoahBalloons();
@@ -221,8 +220,7 @@ function initSoundSystem() {
   const toggleBtn = document.getElementById("sound-toggle-btn");
   if (!toggleBtn) return;
 
-  // A música começa pausada e só começa a tocar após o convidado abrir a caixa!
-  updateSoundButton(false);
+  updateSoundButton(getThemeAudio()?.paused === false);
 
   toggleBtn.addEventListener("click", () => {
     const audio = getThemeAudio();
@@ -529,80 +527,6 @@ function stopBackgroundMelody() {
   AppState.bgTrackRunning = false;
 }
 
-// ==========================================
-// 3. ABERTURA CINEMATOGRÁFICA (QUARTO DO ANDY)
-// ==========================================
-function initCinematicIntro() {
-  const introEl = document.getElementById("cinematic-intro");
-  const openChestBtn = document.getElementById("btn-open-chest");
-  const skipBtn = document.getElementById("btn-skip-intro");
-  const stageEl = document.getElementById("toy-chest-stage");
-  const boxEl = document.getElementById("toy-chest-box");
-  const initialAction = document.getElementById("intro-initial-action");
-  const revealedPanel = document.getElementById("intro-revealed-panel");
-  const startAdvBtn = document.getElementById("btn-start-adventure");
-  const titleEl = document.getElementById("intro-main-title");
-
-  if (!introEl || !openChestBtn) return;
-
-  // Botão Pular Abertura
-  if (skipBtn) {
-    skipBtn.addEventListener("click", () => {
-      unlockMobileAudio();
-      introEl.classList.add("hide");
-      startThemeMusic();
-      playFanfare();
-      triggerConfetti();
-    });
-  }
-
-  // Clicar para Abrir a Caixa de Brinquedos
-  openChestBtn.addEventListener("click", () => {
-    unlockMobileAudio();
-    startThemeMusic();
-
-    // 1. A caixa treme
-    boxEl.classList.add("wobble");
-    playTone(180, 0.4, "triangle", 0.3);
-
-    setTimeout(() => {
-      boxEl.classList.remove("wobble");
-
-      // 2. A tampa se abre em 3D e a luz irrompe
-      stageEl.classList.add("opened");
-      playTone(440, 0.2, "sine");
-      playTone(554.37, 0.3, "triangle");
-      playTone(659.25, 0.5, "sine");
-
-      // 3. Disparar confetes suaves
-      triggerConfetti();
-
-      // 4. Transição para o painel revelado
-      setTimeout(() => {
-        if (initialAction) initialAction.style.display = "none";
-        if (titleEl) titleEl.style.display = "none";
-        if (revealedPanel) revealedPanel.classList.add("show");
-        playFanfare();
-      }, 700);
-
-    }, 600);
-  });
-
-  // Botão Começar a Aventura
-  if (startAdvBtn) {
-    startAdvBtn.addEventListener("click", () => {
-      introEl.classList.add("hide");
-      startThemeMusic();
-      playFanfare();
-      triggerConfetti();
-      const heroEl = document.querySelector(".hero-card");
-      if (heroEl) {
-        heroEl.scrollIntoView({ behavior: "smooth" });
-      }
-    });
-  }
-}
-
 // Disparador de Confetes
 function triggerConfetti(particleCount = 60, spread = 70) {
   if (typeof confetti === "function") {
@@ -713,15 +637,15 @@ function initInteractiveToyBlocks() {
   };
 
   blocks.forEach(block => {
+    let bounceTimer;
     block.addEventListener("click", () => {
       const note = block.getAttribute("data-note") || "C4";
       const freq = noteFreqs[note] || 440;
       playTone(freq, 0.35, "triangle", 0.25);
 
-      block.style.transform = "scale(1.2) translateY(-6px)";
-      setTimeout(() => {
-        block.style.transform = "";
-      }, 200);
+      clearTimeout(bounceTimer);
+      block.classList.add("bounce");
+      bounceTimer = setTimeout(() => block.classList.remove("bounce"), 180);
     });
   });
 }
@@ -889,30 +813,160 @@ function initCharactersSection() {
 // 8. FOGUETE DO BUZZ (MISSÃO INTERGALÁCTICA)
 // ==========================================
 function initSpaceMissionRocket() {
+  const dialog = document.getElementById("space-game");
   const launchBtn = document.getElementById("btn-launch-mission");
-  const rocketContainer = document.getElementById("rocket-ship-container");
+  if (!dialog || !launchBtn) return;
 
-  if (!launchBtn || !rocketContainer) return;
+  const board = document.getElementById("flight-board");
+  const course = document.getElementById("flight-course");
+  const controls = document.getElementById("flight-controls");
+  const buttons = Array.from(controls.querySelectorAll("[data-lane]"));
+  const keyboardHint = dialog.querySelector(".flight-keyboard-hint");
+  const status = document.getElementById("flight-status");
+  const starsText = document.getElementById("flight-stars");
+  const shieldText = document.getElementById("flight-shield");
+  const actions = document.getElementById("flight-actions");
+  const replay = document.getElementById("flight-replay");
+  const coordinates = document.getElementById("flight-coordinates");
+  const missionDetails = document.getElementById("space-mission-details");
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  // Cada trecho indica a trilha da estrela e a do asteroide, da esquerda (0) à direita (2).
+  const route = [
+    [1, 2], [0, 2], [2, 0], [2, 1], [1, 0], [0, 2],
+    [1, 0], [2, 1], [1, 2], [0, 1], [1, 0], [2, 0]
+  ];
+  const goal = 6;
+  const maxShield = 2;
+  let step, stars, shield, lane, result;
+  let moveTimer = 0;
+
+  function renderFlight() {
+    const rows = [2, 1, 0].map(offset => {
+      const [star, asteroid] = (result ? [] : route[step + offset]) || [];
+      const row = document.createElement("div");
+      row.className = offset === 0 && !result ? "flight-row flight-next" : "flight-row";
+      buttons.forEach((_, index) => {
+        const object = document.createElement("span");
+        if (index === star) {
+          object.className = "flight-star";
+          object.textContent = "⭐";
+        } else if (index === asteroid) {
+          object.textContent = "🪨";
+        }
+        row.append(object);
+      });
+      return row;
+    });
+    course.replaceChildren(...rows);
+    board.style.setProperty("--flight-lane", lane);
+    board.dataset.result = result;
+    starsText.textContent = `${stars}/${goal}`;
+    shieldText.textContent = `${shield}/${maxShield}`;
+    controls.hidden = Boolean(result);
+    keyboardHint.hidden = Boolean(result);
+    actions.hidden = !result;
+    coordinates.hidden = result !== "won";
+
+    const [star, asteroid] = route[step] || [];
+    buttons.forEach((button, index) => {
+      const obstacle = index === star ? "estrela" : index === asteroid ? "asteroide" : "trilha livre";
+      const position = index === lane ? ", posição da nave" : "";
+      button.dataset.current = index === lane;
+      button.setAttribute("aria-label", `${button.textContent}${position}, próximo trecho: ${obstacle}`);
+      button.setAttribute("aria-disabled", Math.abs(index - lane) > 1);
+    });
+  }
+
+  function resetFlight() {
+    clearTimeout(moveTimer);
+    moveTimer = 0;
+    step = 0;
+    stars = 0;
+    shield = maxShield;
+    lane = 1;
+    result = "";
+    board.classList.remove("advancing");
+    status.textContent = "Escolha uma trilha para decolar.";
+    renderFlight();
+  }
+
+  function flyTo(target, moveFocus) {
+    if (result || moveTimer) return;
+    if (!buttons[target] || Math.abs(target - lane) > 1) {
+      status.textContent = "A nave só muda uma trilha por vez.";
+      return;
+    }
+
+    lane = target;
+    board.style.setProperty("--flight-lane", lane);
+    board.classList.add("advancing");
+
+    const finishMove = () => {
+      moveTimer = 0;
+      if (!dialog.open) return;
+
+      const [star, asteroid] = route[step++];
+      let feedback = "Trecho livre. Continue pilotando!";
+      if (lane === star) {
+        stars++;
+        feedback = `Estrela coletada! ${stars} de ${goal}.`;
+        playTone(660 + stars * 38, 0.18, "triangle");
+      } else if (lane === asteroid) {
+        shield--;
+        feedback = `Impacto! Escudo ${shield} de ${maxShield}.`;
+        playTone(115, 0.24, "triangle");
+      }
+
+      if (stars === goal) {
+        result = "won";
+        feedback = `Missão cumprida! Você coletou ${goal} estrelas.`;
+        playFanfare();
+      } else if (!shield || step === route.length) {
+        result = "lost";
+        feedback = !shield ? "O escudo acabou. Tente de novo!" : `Fim da rota! Você coletou ${stars} de ${goal} estrelas.`;
+      }
+
+      board.classList.remove("advancing");
+      status.textContent = feedback;
+      renderFlight();
+      if (result) (result === "won" ? coordinates : replay).focus();
+      else if (moveFocus) buttons[lane].focus({ preventScroll: true });
+    };
+
+    if (reducedMotion.matches) finishMove();
+    else moveTimer = setTimeout(finishMove, 260);
+  }
 
   launchBtn.addEventListener("click", () => {
+    resetFlight();
+    dialog.showModal();
+    unlockMobileAudio();
     playBuzzLaser();
-    playTone(150, 0.8, "sawtooth", 0.2);
-    triggerConfetti(50, 60);
-
-    rocketContainer.classList.add("launched");
-    launchBtn.innerHTML = "<span>✨</span> MISSÃO EM CURSO!";
-
-    setTimeout(() => {
-      const missionDetails = document.querySelector(".space-mission-details");
-      if (missionDetails) {
-        missionDetails.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }, 600);
-
-    setTimeout(() => {
-      rocketContainer.classList.remove("launched");
-      launchBtn.innerHTML = "<span>🚀</span> INICIAR MISSÃO!";
-    }, 4000);
+  });
+  buttons.forEach((button, index) => {
+    button.addEventListener("click", event => flyTo(index, event.detail === 0));
+  });
+  dialog.addEventListener("keydown", event => {
+    const direction = { ArrowLeft: -1, ArrowUp: 0, ArrowRight: 1 }[event.key];
+    if (direction === undefined || result || event.altKey || event.ctrlKey || event.metaKey) return;
+    event.preventDefault();
+    if (!event.repeat) flyTo(lane + direction, true);
+  });
+  dialog.addEventListener("close", () => {
+    if (dialog.open) return;
+    clearTimeout(moveTimer);
+    moveTimer = 0;
+  });
+  replay.addEventListener("click", () => {
+    resetFlight();
+    buttons[lane].focus({ preventScroll: true });
+  });
+  coordinates.addEventListener("click", () => {
+    dialog.close();
+    missionDetails.focus({ preventScroll: true });
+    missionDetails.scrollIntoView({ block: "center" });
+    if (!reducedMotion.matches) triggerConfetti(80, 80);
   });
 }
 

@@ -15,62 +15,23 @@
   <!-- Favicon com Foguete Espacial -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
 
-  <!-- Estilos Visuais Oficiais -->
+  <link rel="preload" href="assets/images/logo-noah-story-1.webp" as="image" fetchpriority="high">
+  <link rel="preload" href="js/intro.js" as="script">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;family=Lilita+One&amp;family=Outfit:wght@400;500;600;700;800;900&amp;family=Bungee&amp;display=swap"
+        media="print" onload="this.media='all'">
 </head>
 <body>
-
-  <!-- Trilha Sonora Oficial do Toy Story: "Amigo Estou Aqui" -->
-  <audio id="theme-audio" src="assets/audio/amigo-estou-aqui.mp3" preload="auto" playsinline webkit-playsinline loop></audio>
-
-  <!-- Banco de Áudios dos Personagens Pré-Carregados para Mobile (Ultra Leves: ~40KB cada) -->
-  <div id="character-audio-bank" style="display: none;" aria-hidden="true">
-    <audio id="audio-char-woody" preload="auto" playsinline webkit-playsinline>
-      <source src="assets/audio/characters/woody.aac" type="audio/aac">
-      <source src="assets/audio/characters/woody.m4a" type="audio/mp4">
-    </audio>
-    <audio id="audio-char-buzz" preload="auto" playsinline webkit-playsinline>
-      <source src="assets/audio/characters/buzz.aac" type="audio/aac">
-      <source src="assets/audio/characters/buzz.m4a" type="audio/mp4">
-    </audio>
-    <audio id="audio-char-jessie" preload="auto" playsinline webkit-playsinline>
-      <source src="assets/audio/characters/jessie.aac" type="audio/aac">
-      <source src="assets/audio/characters/jessie.m4a" type="audio/mp4">
-    </audio>
-    <audio id="audio-char-rex" preload="auto" playsinline webkit-playsinline>
-      <source src="assets/audio/characters/rex.aac" type="audio/aac">
-      <source src="assets/audio/characters/rex.m4a" type="audio/mp4">
-    </audio>
-    <audio id="audio-char-alien" preload="auto" playsinline webkit-playsinline>
-      <source src="assets/audio/characters/alien.aac" type="audio/aac">
-      <source src="assets/audio/characters/alien.m4a" type="audio/mp4">
-    </audio>
-    <audio id="audio-char-potato" preload="auto" playsinline webkit-playsinline>
-      <source src="assets/audio/characters/potato.aac" type="audio/aac">
-      <source src="assets/audio/characters/potato.m4a" type="audio/mp4">
-    </audio>
-    <audio id="audio-char-hamm" preload="auto" playsinline webkit-playsinline>
-      <source src="assets/audio/characters/hamm.aac" type="audio/aac">
-      <source src="assets/audio/characters/hamm.m4a" type="audio/mp4">
-    </audio>
-    <audio id="audio-char-slinky" preload="auto" playsinline webkit-playsinline>
-      <source src="assets/audio/characters/slinky.aac" type="audio/aac">
-      <source src="assets/audio/characters/slinky.m4a" type="audio/mp4">
-    </audio>
-    <audio id="audio-emergency-rex" preload="auto" playsinline webkit-playsinline>
-      <source src="assets/audio/characters/rex.aac" type="audio/aac">
-      <source src="assets/audio/characters/rex.m4a" type="audio/mp4">
-    </audio>
-  </div>
 
   <!-- ========================================== -->
   <!-- 1. ABERTURA CINEMATOGRÁFICA (QUARTO DO ANDY) -->
   <!-- ========================================== -->
-  <div class="cinematic-intro" id="cinematic-intro" role="dialog" aria-modal="true" aria-label="Abertura do Convite Noah Story 1">
-    
+  <dialog class="cinematic-intro" id="cinematic-intro" aria-label="Abertura do convite Noah Story 1">
+
     <!-- Camada de nuvens do Andy e piso em perspectiva 3D -->
     <div class="intro-clouds-layer" aria-hidden="true"></div>
     <div class="intro-floor-perspective" aria-hidden="true"></div>
+    <div class="intro-confetti" id="intro-confetti" aria-hidden="true"></div>
 
     <!-- Botão de Acessibilidade para Pular Abertura -->
     <button type="button" class="btn-skip-intro" id="btn-skip-intro" aria-label="Pular introdução e ir direto ao convite">
@@ -78,62 +39,88 @@
     </button>
 
     <div class="intro-content">
-      <div class="intro-badge-top">⭐ MISSÃO SECRETA DE BRINQUEDO ⭐</div>
-      
-      <h1 class="intro-title" id="intro-main-title">
-        PSIU... OS BRINQUEDOS TÊM UMA MISSÃO PARA VOCÊ!
-      </h1>
+      <h1 class="intro-title">Uma surpresa para você!</h1>
 
-      <!-- A CAIXA DE BRINQUEDOS EM 3D REALISTA -->
       <div class="toy-chest-stage" id="toy-chest-stage">
-        <div class="toy-chest-box" id="toy-chest-box">
-          
-          <!-- Tampa 3D que se abre em perspectiva -->
-          <div class="chest-lid" id="chest-lid">
-            <div class="chest-lock"></div>
+        <div class="cardboard-box cardboard-back" aria-hidden="true">
+          <div class="cardboard-opening">
+            <span class="cardboard-flap flap-left"></span>
+            <span class="cardboard-flap flap-right"></span>
           </div>
-
-          <!-- Base da Caixa de Madeira com giz de cera do Andy / Noah -->
-          <div class="chest-base">
-            <div class="chest-planks"></div>
-            <div class="chest-name-chalk">NOAH</div>
+        </div>
+        <div class="chest-glow" aria-hidden="true"></div>
+        <div class="cardboard-box cardboard-foreground">
+          <div class="cardboard-side" aria-hidden="true"></div>
+          <div class="cardboard-front">
+            <img src="assets/images/logo-noah-story-1.webp" alt="Noah Story 1" class="cardboard-logo" fetchpriority="high">
           </div>
-
-          <!-- Feixe de luz mágica que explode do interior -->
-          <div class="chest-magic-light" id="chest-magic-light" aria-hidden="true"></div>
-
-          <!-- Brinquedos que saltam da caixa -->
-          <div class="jumping-toys-layer" id="jumping-toys-layer" aria-hidden="true">
-            <img src="assets/images/characters/woody.svg" alt="Woody" class="jumping-toy toy-1">
-            <img src="assets/images/characters/buzz.svg" alt="Buzz" class="jumping-toy toy-2">
-            <img src="assets/images/characters/jessie.svg" alt="Jessie" class="jumping-toy toy-3">
-            <img src="assets/images/characters/alien.svg" alt="Alien" class="jumping-toy toy-4">
-            <div class="jumping-toy toy-star" style="font-size: 3rem;">⭐</div>
-          </div>
-
+          <button type="button" class="chest-trigger" id="btn-open-chest" aria-label="Abrir a caixa Noah Story 1" aria-controls="intro-revealed-panel" autofocus>
+            <span class="btn-open-chest">Toque para abrir</span>
+          </button>
+        </div>
+        <div class="jumping-toys-layer" id="jumping-toys-layer" aria-hidden="true">
+          <div class="jumping-toy toy-woody"><img src="assets/images/woody-1.jpg" alt="Woody"></div>
+          <div class="jumping-toy toy-jessie"><img src="assets/images/jessie-toy-story.jpg" alt="Jessie"></div>
+          <div class="jumping-toy toy-buzz"><img src="assets/images/buzz-toy-story.jpg" alt="Buzz Lightyear"></div>
+          <div class="jumping-toy toy-alien"><img src="assets/images/aliens-toy-story.jpg" alt="Marciano de Toy Story"></div>
+          <div class="jumping-toy toy-family"><img src="assets/images/familia-abertura.webp" alt="A família do Noah fantasiada de Toy Story"></div>
+          <div class="jumping-toy toy-noah"><img src="assets/images/noah-xerife.webp" alt="Noah com seu chapéu de xerife"></div>
         </div>
       </div>
 
-      <!-- Botão para Abrir a Caixa -->
-      <div id="intro-initial-action">
-        <button type="button" class="btn-open-chest" id="btn-open-chest">
-          <span>🎁</span> ABRIR A CAIXA DE BRINQUEDOS
-        </button>
-      </div>
-
       <!-- Painel Revelado Após a Caixa Abrir -->
-      <div class="intro-revealed-panel" id="intro-revealed-panel">
-        <img src="assets/images/logo-noah-story-1.png" alt="Logo Oficial Noah Story 1" class="intro-revealed-logo">
-        <h2 class="intro-subtitle-hero">HÁ UM NOVO XERIFE NA CIDADE! 🤠</h2>
-        <p class="intro-desc-hero">
-          Nosso pequeno Noah está completando seu primeiro aninho, e você foi escolhido para fazer parte dessa aventura!
-        </p>
+      <div class="intro-revealed-panel" id="intro-revealed-panel" hidden>
         <button type="button" class="btn-start-adventure" id="btn-start-adventure">
-          🤠 COMEÇAR A AVENTURA! 🚀
+          Começar a aventura <span aria-hidden="true">→</span>
         </button>
       </div>
 
     </div>
+  </dialog>
+
+  <!-- Trilha Sonora Oficial do Toy Story: "Amigo Estou Aqui" -->
+  <audio id="theme-audio" src="assets/audio/amigo-estou-aqui.mp3" preload="none" playsinline webkit-playsinline loop></audio>
+
+  <script src="js/intro.js"></script>
+
+  <!-- Áudios dos personagens para reprodução após o primeiro toque -->
+  <div id="character-audio-bank" style="display: none;" aria-hidden="true">
+    <audio id="audio-char-woody" preload="none" playsinline webkit-playsinline>
+      <source src="assets/audio/characters/woody.aac" type="audio/aac">
+      <source src="assets/audio/characters/woody.m4a" type="audio/mp4">
+    </audio>
+    <audio id="audio-char-buzz" preload="none" playsinline webkit-playsinline>
+      <source src="assets/audio/characters/buzz.aac" type="audio/aac">
+      <source src="assets/audio/characters/buzz.m4a" type="audio/mp4">
+    </audio>
+    <audio id="audio-char-jessie" preload="none" playsinline webkit-playsinline>
+      <source src="assets/audio/characters/jessie.aac" type="audio/aac">
+      <source src="assets/audio/characters/jessie.m4a" type="audio/mp4">
+    </audio>
+    <audio id="audio-char-rex" preload="none" playsinline webkit-playsinline>
+      <source src="assets/audio/characters/rex.aac" type="audio/aac">
+      <source src="assets/audio/characters/rex.m4a" type="audio/mp4">
+    </audio>
+    <audio id="audio-char-alien" preload="none" playsinline webkit-playsinline>
+      <source src="assets/audio/characters/alien.aac" type="audio/aac">
+      <source src="assets/audio/characters/alien.m4a" type="audio/mp4">
+    </audio>
+    <audio id="audio-char-potato" preload="none" playsinline webkit-playsinline>
+      <source src="assets/audio/characters/potato.aac" type="audio/aac">
+      <source src="assets/audio/characters/potato.m4a" type="audio/mp4">
+    </audio>
+    <audio id="audio-char-hamm" preload="none" playsinline webkit-playsinline>
+      <source src="assets/audio/characters/hamm.aac" type="audio/aac">
+      <source src="assets/audio/characters/hamm.m4a" type="audio/mp4">
+    </audio>
+    <audio id="audio-char-slinky" preload="none" playsinline webkit-playsinline>
+      <source src="assets/audio/characters/slinky.aac" type="audio/aac">
+      <source src="assets/audio/characters/slinky.m4a" type="audio/mp4">
+    </audio>
+    <audio id="audio-emergency-rex" preload="none" playsinline webkit-playsinline>
+      <source src="assets/audio/characters/rex.aac" type="audio/aac">
+      <source src="assets/audio/characters/rex.m4a" type="audio/mp4">
+    </audio>
   </div>
 
   <!-- ========================================== -->
@@ -216,12 +203,12 @@
 
     <!-- 4. HERO CARD COM LOGO OFICIAL & RETRATO COWBOY -->
     <main>
-      <section class="hero-card" aria-label="Destaque Principal do Convite">
+      <section class="hero-card" id="convite" aria-label="Destaque principal do convite" tabindex="-1">
         <div class="hero-pretitle">⭐ MISSÃO ESPECIAL DE 1º ANIVERSÁRIO ⭐</div>
 
         <!-- Logotipo Oficial NOAH STORY 1 -->
         <div class="official-logo-container">
-          <img src="assets/images/logo-noah-story-1.png" alt="Logo Oficial Noah Story 1" class="official-logo-img">
+          <img src="assets/images/logo-noah-story-1.webp" alt="Logo Oficial Noah Story 1" class="official-logo-img">
         </div>
 
         <!-- Retrato Real do Xerife Noah -->
@@ -239,12 +226,22 @@
         </div>
 
         <!-- BLOCOS DE BRINQUEDO MUSICAIS 3D (N - O - A - H - 1) -->
-        <div class="toy-blocks-shelf" aria-label="Blocos de brinquedo com sons musicais">
-          <div class="interactive-block block-n" data-note="C4" title="Toque a nota Dó!">N</div>
-          <div class="interactive-block block-o" data-note="D4" title="Toque a nota Ré!">O</div>
-          <div class="interactive-block block-a" data-note="E4" title="Toque a nota Mi!">A</div>
-          <div class="interactive-block block-h" data-note="G4" title="Toque a nota Sol!">H</div>
-          <div class="interactive-block block-1" data-note="A4" title="Toque a nota Lá!">1</div>
+        <div class="toy-blocks-shelf" role="group" aria-label="Cubos musicais Noah 1">
+          <button type="button" class="interactive-block block-n" data-note="C4" aria-label="N, nota dó">
+            <span class="toy-cube" aria-hidden="true"><span class="cube-front">N</span><span class="cube-top"></span><span class="cube-right"></span></span>
+          </button>
+          <button type="button" class="interactive-block block-o" data-note="D4" aria-label="O, nota ré">
+            <span class="toy-cube" aria-hidden="true"><span class="cube-front">O</span><span class="cube-top"></span><span class="cube-right"></span></span>
+          </button>
+          <button type="button" class="interactive-block block-a" data-note="E4" aria-label="A, nota mi">
+            <span class="toy-cube" aria-hidden="true"><span class="cube-front">A</span><span class="cube-top"></span><span class="cube-right"></span></span>
+          </button>
+          <button type="button" class="interactive-block block-h" data-note="G4" aria-label="H, nota sol">
+            <span class="toy-cube" aria-hidden="true"><span class="cube-front">H</span><span class="cube-top"></span><span class="cube-right"></span></span>
+          </button>
+          <button type="button" class="interactive-block block-1" data-note="A4" aria-label="1, nota lá">
+            <span class="toy-cube" aria-hidden="true"><span class="cube-front">1</span><span class="cube-top"></span><span class="cube-right"></span></span>
+          </button>
         </div>
         <p class="shelf-hint">👆 Toque nos bloquinhos de brinquedo para ouvir as notas musicais!</p>
       </section>
@@ -312,7 +309,7 @@
 
         <!-- FOTO DA FAMÍLIA TODA REUNIDA -->
         <div class="family-full-adventure-card">
-          <img src="assets/images/familia-toy-story.png" alt="Família Toy Story Completa" class="family-full-img">
+          <img src="assets/images/familia-toy-story.png" loading="lazy" alt="Família Toy Story Completa" class="family-full-img">
           <p style="font-family: var(--font-display); font-size: 1.15rem; color: #ffcf00;">
             🤠 "Amigo, estou aqui!" — A família inteira pronta para essa comemoração mágica!
           </p>
@@ -342,25 +339,52 @@
           <div class="space-badge">🚀 STAR COMMAND • COMANDO ESTELAR</div>
           <h2 class="space-title">ATENÇÃO, RECRUTA! SUA PRESENÇA FOI SOLICITADA!</h2>
           <p style="color: #94a3b8; font-size: 1rem; margin-top: 6px;">
-            Inicie a sequência de lançamento para desbloquear as coordenadas holográficas da festa!
+            Pilote a nave do Buzz e colete estrelas para completar a missão!
           </p>
         </div>
 
         <!-- FOGUETE INTERATIVO DO BUZZ -->
         <div class="buzz-rocket-stage">
-          <div class="rocket-ship-container" id="rocket-ship-container">
-            <img src="assets/images/rocket-badge.jpg" alt="Foguete do Buzz Lightyear" class="rocket-img">
-            <div class="rocket-flame-stream" aria-hidden="true"></div>
-          </div>
-          <div>
-            <button type="button" class="btn-launch-mission" id="btn-launch-mission">
-              <span>🚀</span> INICIAR MISSÃO!
-            </button>
-          </div>
+          <button type="button" class="rocket-ship-container" id="btn-launch-mission" aria-haspopup="dialog" aria-controls="space-game">
+            <span class="rocket-emblem" aria-hidden="true">
+              <img src="assets/images/rocket-badge.jpg" alt="" class="rocket-img">
+              <span class="rocket-flame-stream"></span>
+            </span>
+            <span class="btn-launch-mission">Iniciar missão</span>
+          </button>
         </div>
 
+        <dialog class="space-game" id="space-game" aria-labelledby="space-game-title" aria-describedby="space-game-instructions">
+          <div class="space-game-header">
+            <h3 id="space-game-title">Rota estelar</h3>
+            <form method="dialog">
+              <button type="submit" class="space-game-close" aria-label="Fechar minijogo">×</button>
+            </form>
+          </div>
+          <p id="space-game-instructions">Colete 6 estrelas e desvie dos asteroides. A nave avança um trecho a cada toque e só muda uma trilha por vez.</p>
+          <div class="space-game-hud">
+            <span>Estrelas <strong id="flight-stars">0/6</strong></span>
+            <span>Escudo <strong id="flight-shield">2/2</strong></span>
+          </div>
+          <div class="flight-board" id="flight-board" aria-hidden="true">
+            <div class="flight-course" id="flight-course"></div>
+            <span class="flight-rocket">🚀</span>
+          </div>
+          <div class="flight-controls" id="flight-controls" role="group" aria-label="Trilhas da nave">
+            <button type="button" data-lane="0">Esquerda</button>
+            <button type="button" data-lane="1" autofocus>Centro</button>
+            <button type="button" data-lane="2">Direita</button>
+          </div>
+          <p class="flight-keyboard-hint">Teclado <kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd></p>
+          <p class="flight-status" id="flight-status" role="status"></p>
+          <div class="flight-actions" id="flight-actions" hidden>
+            <button type="button" id="flight-replay">Jogar de novo</button>
+            <button type="button" id="flight-coordinates" hidden>Ver coordenadas da festa</button>
+          </div>
+        </dialog>
+
         <!-- PAINEL HOLOGRÁFICO DA MISSÃO (DATA, HORA, LOCAL) -->
-        <div class="space-mission-details">
+        <div class="space-mission-details" id="space-mission-details" tabindex="-1">
           
           <!-- ALIEN ESCONDIDO #2 (PILOTANDO NO PAINEL CÓSMICO) -->
           <div class="hidden-alien-trigger hidden-alien-2" id="alien-secret-2" title="Opa! Um passageiro espacial!">
@@ -1134,7 +1158,7 @@
       <div class="ticket-wrapper" id="printable-ticket">
         
         <div class="ticket-header">
-          <img src="assets/images/logo-noah-story-1.png" alt="Noah Story 1" class="ticket-brand-logo">
+          <img src="assets/images/logo-noah-story-1.webp" alt="Noah Story 1" class="ticket-brand-logo">
           <span class="ticket-code-badge" id="ticket-display-code">NOAH-1-0000</span>
         </div>
 
@@ -1380,12 +1404,12 @@
   <!-- ========================================== -->
   <!-- SCRIPTS & BIBLIOTECAS LOCAIS               -->
   <!-- ========================================== -->
-  <script src="js/vendor/confetti.min.js"></script>
-  <script src="js/vendor/qrcode.min.js"></script>
-  <script src="js/vendor/html2canvas.min.js"></script>
+  <script defer src="js/vendor/confetti.min.js"></script>
+  <script defer src="js/vendor/qrcode.min.js"></script>
+  <script defer src="js/vendor/html2canvas.min.js"></script>
 
-  <script src="js/config.js"></script>
-  <script src="js/app.js"></script>
+  <script defer src="js/config.js"></script>
+  <script defer src="js/app.js"></script>
 
 </body>
 </html>
