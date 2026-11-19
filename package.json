@@ -4,7 +4,8 @@
   "description": "Convite Online de 1º Aninho do Noah - Tema Toy Story com integração direta ao Google Planilhas",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test:flight": "node --test tests/flight-engine.test.cjs"
   },
   "keywords": [
     "convite",

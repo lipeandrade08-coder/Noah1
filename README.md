@@ -26,7 +26,9 @@ Site de convite digital cinematográfico, animado e interativo, inspirado no uni
 3. **🚀 Missão Intergaláctica do Buzz (Star Command):**
    - Espaço cósmico com estrelas cintilantes, nebulosas e planetas.
    - Foguete espacial interativo do Buzz com chama animada.
-   - Botão **[🚀 INICIAR MISSÃO]** que lança o foguete e revela as coordenadas holográficas.
+   - Minijogo **Rota estelar** com voo contínuo, velocidade progressiva e rotas sorteadas: colete 6 estrelas e desvie dos asteroides com 2 pontos de escudo.
+   - Controle por toque, arrasto ou teclado; pausa manual e automática ao sair da aba. A preferência por movimento reduzido ativa o modo por comandos.
+   - A missão concluída revela as coordenadas holográficas. Testes da engine: `npm run test:flight`.
    - Botões para Google Maps, Waze, Copiar Endereço e Google Agenda.
    - **Contagem Regressiva Intergaláctica** (Dias, Horas, Minutos, Segundos).
 
@@ -113,6 +115,13 @@ http://SEU_IP_LOCAL:3000
 
 ### 3. Senha do Painel Administrativo dos Pais:
 - Senha: **`noah2027`**
+
+### Responsividade e reenvio das confirmações
+
+- Campos e cards se reorganizam em telas estreitas. Modais usam a altura disponível; tabelas e abas do painel permitem rolagem horizontal.
+- A barra superior informa sua altura ao layout para não cobrir as seções ao navegar. Seus controles e os botões de fechar têm áreas de toque de pelo menos 44 px em telas sensíveis ao toque.
+- O formulário aceita novos envios do mesmo aparelho. O mesmo telefone atualiza a confirmação e preserva o código do ingresso no servidor.
+- Apagar linhas da planilha não apaga os registros do servidor nem o progresso da caça e o distintivo salvos no navegador. Um reinício completo precisa tratar cada uma dessas cópias.
 
 ---
 

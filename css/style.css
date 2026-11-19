@@ -33,6 +33,7 @@
   --font-heading: 'Fredoka', 'Trebuchet MS', sans-serif;
   --font-body: 'Outfit', sans-serif;
   --font-badge: 'Bungee', 'Arial Rounded MT Bold', sans-serif;
+  --top-bar-height: 60px;
 
   /* Sombras 3D e Relevos de Brinquedo */
   --shadow-toy: 0 8px 0 rgba(0, 0, 0, 0.18), 0 16px 28px rgba(0, 0, 0, 0.2);
@@ -99,7 +100,7 @@ body.emergency-screen-shake {
 /* ==========================================================================
    1. ABERTURA NO QUARTO DO ANDY
    ========================================================================== */
-html:has(.cinematic-intro[open], .space-game[open]) {
+html:has(.cinematic-intro[open], .space-game[open], .modal-backdrop.open, .album-lightbox-modal.active) {
   overflow: hidden;
 }
 
@@ -111,7 +112,7 @@ html:has(.cinematic-intro[open], .space-game[open]) {
   max-width: none;
   max-height: none;
   border: 0;
-  padding: 70px clamp(12px, 4vw, 32px) 30px;
+  padding: calc(70px + env(safe-area-inset-top)) max(12px, 4vw, env(safe-area-inset-left), env(safe-area-inset-right)) calc(30px + env(safe-area-inset-bottom));
   overflow: hidden auto;
   overscroll-behavior: contain;
   text-align: center;
@@ -986,6 +987,9 @@ html:has(.cinematic-intro[open], .space-game[open]) {
   justify-content: space-between;
   align-items: center;
   gap: 10px;
+  padding-top: max(8px, env(safe-area-inset-top));
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
 }
 
 .top-bar-left, .top-bar-right {
@@ -1093,6 +1097,17 @@ html:has(.cinematic-intro[open], .space-game[open]) {
   gap: 28px;
 }
 
+.page-wrapper main {
+  display: grid;
+  gap: clamp(20px, 3vw, 28px);
+  min-width: 0;
+}
+
+.page-wrapper main > section {
+  min-width: 0;
+  scroll-margin-top: calc(var(--top-bar-height) + 12px);
+}
+
 /* Bandeirolas Festivas no Topo */
 .bunting-garland {
   display: flex;
@@ -1131,7 +1146,7 @@ html:has(.cinematic-intro[open], .space-game[open]) {
    4. HERO CARD COM LOGO OFICIAL & RETRATO COWBOY
    ========================================================================== */
 .hero-card {
-  scroll-margin-top: 70px;
+  scroll-margin-top: calc(var(--top-bar-height) + 12px);
   background: #ffffff;
   border-radius: 32px;
   border: 8px solid #ffcf00;
@@ -1961,6 +1976,7 @@ html:has(.hunt-dialog[open]) {
   width: min(calc(100% - 20px), 450px);
   max-width: none;
   max-height: calc(100% - 20px);
+  max-height: calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   margin: auto;
   padding: clamp(13px, 4vw, 23px);
   overflow: auto;
@@ -2033,10 +2049,12 @@ html:has(.hunt-dialog[open]) {
 .flight-board {
   position: relative;
   isolation: isolate;
-  height: clamp(148px, 31dvh, 240px);
+  height: clamp(142px, 30dvh, 280px);
   overflow: hidden;
   border: 1px solid #51467f;
   border-radius: 13px;
+  touch-action: none;
+  cursor: crosshair;
   background:
     linear-gradient(90deg, transparent calc(100% - 1px), #8f80d34d 0) 0 / calc(100% / 3) 100%,
     radial-gradient(circle, #b4bcf6 0 1px, transparent 1.4px) 0 0 / 51px 43px,
@@ -2055,49 +2073,103 @@ html:has(.hunt-dialog[open]) {
 
 .flight-course {
   position: absolute;
-  inset: 0 0 25%;
-  display: grid;
-  grid-template-rows: repeat(3, 1fr);
+  inset: 0;
+  pointer-events: none;
 }
 
-.flight-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  place-items: center;
-  font-size: clamp(1.1rem, 3.5dvh, 1.8rem);
+.flight-object {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 34px;
+  height: 34px;
+  font-size: 27px;
   line-height: 1;
+  pointer-events: none;
 }
 
-.flight-row:not(.flight-next) {
-  opacity: 0.58;
-}
-
-.flight-next {
-  border-block: 1px solid #a995fb75;
-  background: #7155c650;
+.flight-object:not([hidden]) {
+  display: grid;
+  place-items: center;
 }
 
 .flight-star {
   filter: drop-shadow(0 0 7px #ffc140a6);
 }
 
-.flight-board.advancing .flight-course {
-  transform: translateY(calc(100% / 3));
-  transition: transform 0.26s ease-in;
+.flight-asteroid {
+  filter: drop-shadow(0 4px 3px #05071d80);
 }
 
 .flight-rocket {
   position: absolute;
-  bottom: 0;
-  left: calc((var(--flight-lane, 1) + 0.5) * (100% / 3));
+  z-index: 2;
+  top: 0;
+  left: 0;
   display: grid;
-  height: 25%;
   place-items: center;
-  font-size: clamp(1.55rem, 5dvh, 2.4rem);
+  width: 40px;
+  height: 44px;
+  font-size: 33px;
   line-height: 1;
-  transform: translateX(-50%) rotate(-44deg);
   filter: drop-shadow(0 3px 6px #a796f4a0);
-  transition: left 0.21s ease-out;
+  pointer-events: none;
+}
+
+.flight-board::before {
+  content: "";
+  position: absolute;
+  top: 83%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #9c8cce66, transparent);
+  pointer-events: none;
+}
+
+.flight-board[data-phase="running"] .flight-rocket {
+  will-change: transform;
+}
+
+.flight-board[data-phase="paused"] .flight-course,
+.flight-board[data-phase="paused"] .flight-rocket {
+  opacity: 0.4;
+}
+
+.flight-board[data-invulnerable="true"] .flight-rocket {
+  filter: drop-shadow(0 0 8px #7bdbff) drop-shadow(0 0 16px #61c7ff);
+}
+
+.flight-board[data-feedback="star"] {
+  border-color: #ffe08a;
+  box-shadow: inset 0 0 24px #ffdc5838;
+}
+
+.flight-board[data-feedback="hit"] {
+  border-color: #ff9d95;
+  box-shadow: inset 0 0 28px #fd555546;
+}
+
+.flight-run-controls:not([hidden]) {
+  display: grid;
+  margin-top: 8px;
+}
+
+.flight-run-controls button {
+  min-height: 42px;
+  border: 1px solid #b9ee7e;
+  border-radius: 9px;
+  background: #b9ee7e;
+  color: #1d3221;
+  font: 600 0.95rem var(--font-heading);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+#flight-pause {
+  border-color: #7465a1;
+  background: #211c3b;
+  color: #e7e1f9;
 }
 
 .flight-controls:not([hidden]) {
@@ -2139,7 +2211,8 @@ html:has(.hunt-dialog[open]) {
 }
 
 .rocket-ship-container:focus-visible,
-.space-game button:focus-visible {
+.space-game button:focus-visible,
+.flight-board:focus-visible {
   outline: 2px solid #fcdd88;
   outline-offset: 3px;
 }
@@ -2185,7 +2258,7 @@ html:has(.hunt-dialog[open]) {
 
 /* PAINEL HOLOGRÁFICO DA MISSÃO (DATA, HORA, LOCAL) */
 .space-mission-details {
-  scroll-margin-top: 68px;
+  scroll-margin-top: calc(var(--top-bar-height) + 12px);
   background: rgba(30, 41, 59, 0.85);
   border: 2px solid #38bdf8;
   border-radius: 24px;
@@ -2199,7 +2272,7 @@ html:has(.hunt-dialog[open]) {
 
 .mission-grid-2col {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   gap: 16px;
   margin-bottom: 20px;
 }
@@ -2243,6 +2316,10 @@ html:has(.hunt-dialog[open]) {
 }
 
 .btn-pill {
+  min-height: 44px;
+  justify-content: center;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   padding: 10px 18px;
   border-radius: 999px;
   font-family: var(--font-heading);
@@ -3213,10 +3290,12 @@ html:has(.hunt-dialog[open]) {
   border: 6px solid #ffcf00;
   border-radius: 24px;
   box-shadow: 0 0 0 4px #ef4444, 0 25px 60px rgba(0, 0, 0, 0.55);
-  padding: 18px;
+  padding: 56px 18px 18px;
   max-width: 620px;
   width: 100%;
   max-height: 90vh;
+  max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3230,8 +3309,8 @@ html:has(.hunt-dialog[open]) {
 
 .lightbox-btn-close {
   position: absolute;
-  top: -16px;
-  right: -16px;
+  top: 8px;
+  right: 8px;
   width: 42px;
   height: 42px;
   border-radius: 50%;
@@ -3285,11 +3364,11 @@ html:has(.hunt-dialog[open]) {
 }
 
 .lightbox-prev {
-  left: -22px;
+  left: 8px;
 }
 
 .lightbox-next {
-  right: -22px;
+  right: 8px;
 }
 
 @media (max-width: 640px) {
@@ -3299,8 +3378,8 @@ html:has(.hunt-dialog[open]) {
 
 .lightbox-img-container {
   width: 100%;
-  height: 460px;
-  max-height: 52vh;
+  height: clamp(110px, 48dvh, 460px);
+  flex-shrink: 0;
   border-radius: 14px;
   overflow: hidden;
   background: #0f172a;
@@ -3635,6 +3714,7 @@ html:has(.hunt-dialog[open]) {
 }
 
 .form-input, .form-select, .form-textarea {
+  min-width: 0;
   width: 100%;
   padding: 12px 16px;
   border: 2px solid #cbd5e1;
@@ -3655,7 +3735,7 @@ html:has(.hunt-dialog[open]) {
 
 .form-row-2col {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -3673,6 +3753,8 @@ html:has(.hunt-dialog[open]) {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .children-box-title {
@@ -3683,6 +3765,7 @@ html:has(.hunt-dialog[open]) {
 }
 
 .btn-add-child-row {
+  min-height: 44px;
   background: #22c55e;
   color: #ffffff;
   border: none;
@@ -3705,10 +3788,12 @@ html:has(.hunt-dialog[open]) {
 }
 
 .child-name-input {
+  min-width: 0;
   flex: 2;
 }
 
 .child-age-select {
+  min-width: 0;
   flex: 1.2;
 }
 
@@ -3716,8 +3801,9 @@ html:has(.hunt-dialog[open]) {
   background: #ef4444;
   color: #ffffff;
   border: none;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
   border-radius: 50%;
   cursor: pointer;
   font-weight: bold;
@@ -3815,7 +3901,7 @@ html:has(.hunt-dialog[open]) {
 /* Mural de Mensagens Aprovadas */
 .capsule-messages-board {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   gap: 14px;
   margin-top: 16px;
   text-align: left;
@@ -3838,6 +3924,7 @@ html:has(.hunt-dialog[open]) {
 }
 
 .capsule-msg-author {
+  overflow-wrap: anywhere;
   font-family: var(--font-heading);
   font-weight: 800;
   font-size: 0.95rem;
@@ -3846,6 +3933,7 @@ html:has(.hunt-dialog[open]) {
 }
 
 .capsule-msg-text {
+  overflow-wrap: anywhere;
   font-size: 0.9rem;
   color: #451a03;
   line-height: 1.4;
@@ -3865,7 +3953,7 @@ html:has(.hunt-dialog[open]) {
 
 .gift-items-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
   gap: 12px;
   margin-top: 16px;
 }
@@ -3983,15 +4071,21 @@ html:has(.hunt-dialog[open]) {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 16px;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
   transition: all 0.3s ease;
 }
 
 .modal-backdrop.open {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
+}
+
+#ticket-modal {
+  z-index: 10001;
 }
 
 .modal-card {
@@ -4000,6 +4094,7 @@ html:has(.hunt-dialog[open]) {
   max-width: 580px;
   width: 100%;
   max-height: 90vh;
+  max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   overflow-y: auto;
   padding: 26px 20px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
@@ -4045,6 +4140,8 @@ html:has(.hunt-dialog[open]) {
   border-bottom: 2px dashed #b45309;
   padding-bottom: 12px;
   margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .ticket-brand-logo {
@@ -4053,6 +4150,8 @@ html:has(.hunt-dialog[open]) {
 }
 
 .ticket-code-badge {
+  max-width: 100%;
+  overflow-wrap: anywhere;
   font-family: var(--font-badge);
   background: #ef4444;
   color: #ffffff;
@@ -4064,7 +4163,7 @@ html:has(.hunt-dialog[open]) {
 
 .ticket-body-grid {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 16px;
   align-items: center;
   margin-bottom: 14px;
@@ -4078,6 +4177,7 @@ html:has(.hunt-dialog[open]) {
 }
 
 .ticket-field-val {
+  overflow-wrap: anywhere;
   font-family: var(--font-heading);
   font-weight: 800;
   font-size: 1.15rem;
@@ -4122,6 +4222,9 @@ html:has(.hunt-dialog[open]) {
 }
 
 .voucher-item-pill {
+  flex-wrap: wrap;
+  gap: 8px;
+  overflow-wrap: anywhere;
   padding: 8px 12px;
   border-radius: 10px;
   display: flex;
@@ -4156,11 +4259,13 @@ html:has(.hunt-dialog[open]) {
   border-bottom: 2px solid #e2e8f0;
   padding-bottom: 12px;
   margin-bottom: 16px;
+  padding-right: 40px;
+  gap: 12px;
 }
 
 .admin-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
   gap: 10px;
   margin-bottom: 20px;
 }
@@ -4196,6 +4301,9 @@ html:has(.hunt-dialog[open]) {
 }
 
 .admin-tab-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  min-height: 44px;
   background: none;
   border: none;
   font-family: var(--font-heading);
@@ -4213,6 +4321,7 @@ html:has(.hunt-dialog[open]) {
 }
 
 .responses-table {
+  min-width: 640px;
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
@@ -4229,6 +4338,30 @@ html:has(.hunt-dialog[open]) {
 .responses-table td {
   padding: 10px 8px;
   border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-login-row {
+  max-width: 340px;
+  margin: 0 auto 16px;
+}
+
+.admin-table-scroll {
+  max-height: 320px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.admin-vouchers-scroll {
+  max-height: 240px;
 }
 
 /* Modais de Celebração dos Aliens */
@@ -4257,7 +4390,7 @@ html:has(.hunt-dialog[open]) {
 @media (max-width: 640px) {
   /* Barra Superior Fixa */
   .top-action-bar {
-    padding: 6px 8px;
+    padding: max(6px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 6px max(8px, env(safe-area-inset-left));
     gap: 4px;
   }
   .sound-toggle-btn {
@@ -4280,7 +4413,7 @@ html:has(.hunt-dialog[open]) {
 
   /* Estrutura da Página */
   .page-wrapper {
-    padding: 10px 10px 70px 10px;
+    padding: 10px max(10px, env(safe-area-inset-right)) calc(70px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
     gap: 20px;
   }
 
@@ -4587,12 +4720,13 @@ html:has(.hunt-dialog[open]) {
 
   /* 14. Modais Responsivos */
   .modal-backdrop {
-    padding: 8px;
+    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
   }
   .modal-card {
     padding: 20px 12px;
     border-radius: 20px;
     max-height: 94vh;
+    max-height: calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   }
   .ticket-wrapper {
     padding: 14px 10px;
@@ -4615,6 +4749,57 @@ html:has(.hunt-dialog[open]) {
   .ticket-code-badge {
     font-size: 0.8rem;
     padding: 3px 8px;
+  }
+}
+
+@media (max-width: 540px) {
+  .form-row-2col, .admin-input-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-input-row button {
+    width: 100%;
+  }
+
+  .presence-choice-container {
+    gap: 8px;
+  }
+
+  .gift-guide-section {
+    padding: 22px 12px;
+    border-width: 5px;
+    border-radius: 22px;
+  }
+
+  .hunt-dialog {
+    padding: 56px 18px 22px;
+  }
+
+  .hunt-primary, .hunt-secondary {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (pointer: coarse) {
+  .top-action-bar button, .top-action-bar a,
+  .modal-close-x, .hunt-close, .lightbox-btn-close, .space-game-close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .top-action-bar {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .top-bar-left, .top-bar-right {
+    flex-wrap: wrap;
+  }
+
+  .responses-table button {
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 
@@ -4829,5 +5014,5 @@ html:has(.hunt-dialog[open]) {
 }
 
 #rsvp-section {
-  scroll-margin-top: 80px;
+  scroll-margin-top: calc(var(--top-bar-height) + 12px);
 }

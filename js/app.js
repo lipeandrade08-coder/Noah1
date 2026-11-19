@@ -67,6 +67,7 @@ const CHARACTER_QUOTES = {
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
   initPartyConfig();
+  initResponsiveLayout();
   initSoundSystem();
   preloadAllCharacterAudios();
   initAlienHuntMinigame();
@@ -81,8 +82,60 @@ document.addEventListener("DOMContentLoaded", () => {
   initRsvpForm();
   initTimeCapsule();
   initAdminDashboard();
+  initModalKeyboardControls();
   loadInitialData();
 });
+
+function initResponsiveLayout() {
+  const bar = document.querySelector(".top-action-bar");
+  if (!bar) return;
+  const measure = () => document.documentElement.style.setProperty("--top-bar-height", Math.ceil(bar.getBoundingClientRect().height) + "px");
+  new ResizeObserver(measure).observe(bar);
+  measure();
+}
+
+function initModalKeyboardControls() {
+  document.querySelectorAll(".modal-backdrop").forEach(modal => {
+    let wasOpen = false;
+    let previousFocus;
+    const focusable = () => Array.from(modal.querySelectorAll("button, a[href], input, select, textarea, [tabindex='0']"))
+      .filter(element => !element.disabled && element.getClientRects().length && getComputedStyle(element).visibility !== "hidden");
+    new MutationObserver(() => {
+      const open = modal.classList.contains("open");
+      if (open === wasOpen) return;
+      wasOpen = open;
+      if (open) {
+        previousFocus = document.activeElement;
+        requestAnimationFrame(() => {
+          if (modal.classList.contains("open") && !modal.contains(document.activeElement) &&
+              !document.querySelector("dialog[open], .album-lightbox-modal.active") &&
+              (modal.id === "ticket-modal" || !document.querySelector("#ticket-modal.open"))) {
+            focusable()[0]?.focus({ preventScroll: true });
+          }
+        });
+      } else if (modal.contains(document.activeElement) && !document.querySelector("dialog[open]")) {
+        previousFocus?.focus({ preventScroll: true });
+      }
+    }).observe(modal, { attributes: true, attributeFilter: ["class"] });
+    document.addEventListener("keydown", event => {
+      if (event.defaultPrevented || !modal.classList.contains("open") ||
+          document.querySelector("dialog[open], .album-lightbox-modal.active") ||
+          (modal.id !== "ticket-modal" && document.querySelector("#ticket-modal.open"))) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        modal.classList.remove("open");
+      } else if (event.key === "Tab") {
+        const items = focusable();
+        const first = items[0];
+        const last = items[items.length - 1];
+        if ((event.shiftKey && document.activeElement === first) || (!event.shiftKey && document.activeElement === last)) {
+          event.preventDefault();
+          (event.shiftKey ? last : first)?.focus();
+        }
+      }
+    });
+  });
+}
 
 // ==========================================
 // 1. CARREGAR CONFIGURAÇÕES BÁSICAS
@@ -98,7 +151,6 @@ function initPartyConfig() {
   const tipDressEl = document.getElementById("tip-dresscode");
   const tipClothEl = document.getElementById("tip-clothingsize");
   const tipShoeEl = document.getElementById("tip-shoesize");
-  const tipDiaperEl = document.getElementById("tip-diapersize");
 
   if (datePrimaryEl) datePrimaryEl.textContent = PARTY_CONFIG.dateFormatted;
   if (dateTextEl) dateTextEl.textContent = PARTY_CONFIG.dateFormatted;
@@ -110,7 +162,6 @@ function initPartyConfig() {
   if (tipDressEl && PARTY_CONFIG.tips) tipDressEl.textContent = PARTY_CONFIG.tips.dressCode;
   if (tipClothEl && PARTY_CONFIG.tips) tipClothEl.textContent = PARTY_CONFIG.tips.clothingSize;
   if (tipShoeEl && PARTY_CONFIG.tips?.shoeSize) tipShoeEl.textContent = PARTY_CONFIG.tips.shoeSize;
-  if (tipDiaperEl && PARTY_CONFIG.tips) tipDiaperEl.textContent = PARTY_CONFIG.tips.diaperSize;
 
   // Botões de Maps e Waze
   const mapsBtn = document.getElementById("btn-google-maps");
@@ -684,19 +735,8 @@ function initCharactersSection() {
   const cards = document.querySelectorAll(".character-card");
   const quoteToast = document.getElementById("character-quote-toast");
 
-  let lastTouchTime = 0;
-
   cards.forEach(card => {
-    const triggerCharacter = (e) => {
-      const now = Date.now();
-      // Previne duplo disparo caso touchend e click ocorram em sequência rápida no mobile
-      if (e.type === "click" && now - lastTouchTime < 450) {
-        return;
-      }
-      if (e.type === "touchend") {
-        lastTouchTime = now;
-      }
-
+    const triggerCharacter = () => {
       const charKey = card.getAttribute("data-character");
       const charData = CHARACTER_QUOTES[charKey];
       if (!charData) return;
@@ -714,7 +754,12 @@ function initCharactersSection() {
     };
 
     card.addEventListener("click", triggerCharacter);
-    card.addEventListener("touchend", triggerCharacter, { passive: true });
+    card.addEventListener("keydown", event => {
+      if ((event.key === "Enter" || event.key === " ") && !event.repeat) {
+        event.preventDefault();
+        triggerCharacter();
+      }
+    });
   });
 }
 
@@ -728,9 +773,14 @@ function initSpaceMissionRocket() {
 
   const board = document.getElementById("flight-board");
   const course = document.getElementById("flight-course");
+  const rocket = board.querySelector(".flight-rocket");
   const controls = document.getElementById("flight-controls");
   const buttons = Array.from(controls.querySelectorAll("[data-lane]"));
+  const start = document.getElementById("flight-start");
+  const pause = document.getElementById("flight-pause");
+  const runControls = document.getElementById("flight-run-controls");
   const keyboardHint = dialog.querySelector(".flight-keyboard-hint");
+  const instructions = document.getElementById("space-game-instructions");
   const status = document.getElementById("flight-status");
   const starsText = document.getElementById("flight-stars");
   const shieldText = document.getElementById("flight-shield");
@@ -739,137 +789,259 @@ function initSpaceMissionRocket() {
   const coordinates = document.getElementById("flight-coordinates");
   const missionDetails = document.getElementById("space-mission-details");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const fixedStep = 1 / 120;
+  let game;
+  let sprites = [];
+  let frameId = 0;
+  let previousFrame = null;
+  let accumulator = 0;
+  let width = 0;
+  let height = 0;
+  let uiKey = "";
+  let feedbackTimer;
+  let pointerId = null;
+  let focusedResult = false;
 
-  // Cada trecho indica a trilha da estrela e a do asteroide, da esquerda (0) à direita (2).
-  const route = [
-    [1, 2], [0, 2], [2, 0], [2, 1], [1, 0], [0, 2],
-    [1, 0], [2, 1], [1, 2], [0, 1], [1, 0], [2, 0]
-  ];
-  const goal = 6;
-  const maxShield = 2;
-  let step, stars, shield, lane, result;
-  let moveTimer = 0;
+  function stopLoop() {
+    cancelAnimationFrame(frameId);
+    frameId = 0;
+    previousFrame = null;
+    accumulator = 0;
+    if (pointerId !== null && board.hasPointerCapture(pointerId)) board.releasePointerCapture(pointerId);
+    pointerId = null;
+  }
 
-  function renderFlight() {
-    const rows = [2, 1, 0].map(offset => {
-      const [star, asteroid] = (result ? [] : route[step + offset]) || [];
-      const row = document.createElement("div");
-      row.className = offset === 0 && !result ? "flight-row flight-next" : "flight-row";
-      buttons.forEach((_, index) => {
-        const object = document.createElement("span");
-        if (index === star) {
-          object.className = "flight-star";
-          object.textContent = "⭐";
-        } else if (index === asteroid) {
-          object.textContent = "🪨";
+  function message(text) {
+    if (status.textContent !== text) status.textContent = text;
+  }
+
+  function feedback(kind) {
+    clearTimeout(feedbackTimer);
+    board.dataset.feedback = kind;
+    feedbackTimer = setTimeout(() => delete board.dataset.feedback, 250);
+  }
+
+  function renderMotion() {
+    if (!game || !width || !height) return;
+    const state = game.state;
+    rocket.style.transform = `translate3d(${state.shipX * width - 20}px, ${state.shipY * height - 22}px, 0) rotate(-44deg)`;
+    board.dataset.invulnerable = state.elapsed < state.invulnerableUntil;
+    for (let index = 0; index < state.objects.length; index++) {
+      const object = state.objects[index];
+      const visible = object.active && object.y >= -0.15 && object.y <= 1.15;
+      const sprite = sprites[index];
+      sprite.hidden = !visible;
+      if (!visible) continue;
+      const angle = object.kind === "asteroid" && !state.stepMode ? state.elapsed * (20 + object.row * 3) : 0;
+      sprite.style.transform = `translate3d(${object.x * width - 17}px, ${object.y * height - 17}px, 0) rotate(${angle}deg)`;
+    }
+  }
+
+  function renderUI() {
+    const state = game.state;
+    const key = [state.phase, state.stars, state.shield, state.targetLane, state.nextRow].join("|");
+    if (key === uiKey) return;
+    uiKey = key;
+    const ended = state.phase === "won" || state.phase === "lost";
+    const next = state.rows[state.nextRow];
+    board.dataset.phase = state.phase;
+    board.dataset.result = ended ? state.phase : "";
+    starsText.textContent = `${state.stars}/${state.goal}`;
+    shieldText.textContent = `${state.shield}/${state.maxShield}`;
+    controls.hidden = ended;
+    keyboardHint.hidden = ended;
+    runControls.hidden = ended;
+    start.hidden = state.phase !== "ready";
+    pause.hidden = state.phase === "ready" || ended;
+    pause.textContent = state.phase === "paused" ? "Continuar" : "Pausar";
+    actions.hidden = !ended;
+    coordinates.hidden = state.phase !== "won";
+    buttons.forEach((button, lane) => {
+      const blocked = state.stepMode && Math.abs(lane - state.targetLane) > 1;
+      const disabled = state.phase === "paused" || ended || blocked;
+      button.disabled = disabled;
+      button.setAttribute("aria-disabled", String(disabled));
+      button.dataset.current = String(lane === state.targetLane);
+      const object = next?.star === lane ? "estrela" : next?.asteroid === lane ? "asteroide" : "trilha livre";
+      button.setAttribute("aria-label", `${button.textContent}, ${object}${lane === state.targetLane ? ", trilha selecionada" : ""}`);
+    });
+    if (ended && !focusedResult) {
+      focusedResult = true;
+      (state.phase === "won" ? coordinates : replay).focus({ preventScroll: true });
+    }
+  }
+
+  function updateView() {
+    for (const event of game.state.events) {
+      if (event.type === "star") {
+        playTone(660 + game.state.stars * 38, 0.15, "triangle");
+        feedback("star");
+        message(`Estrela coletada! ${game.state.stars} de ${game.state.goal}.`);
+      } else if (event.type === "hit") {
+        playTone(115, 0.22, "triangle");
+        feedback("hit");
+        message(`Impacto! Escudo ${game.state.shield} de ${game.state.maxShield}.`);
+      } else if (event.type === "blocked") {
+        message(game.state.stepMode ? "Mude apenas uma trilha por comando." : "Você chegou à borda da rota.");
+      } else if (event.type === "clear") {
+        message("Trecho livre. Continue pilotando!");
+      } else if (event.type === "phase") {
+        if (event.phase === "running") message("Voo em curso. Colete as estrelas!");
+        else if (event.phase === "paused") message("Voo pausado. Toque em Continuar para retomar.");
+        else if (event.phase === "won") {
+          stopLoop();
+          playFanfare();
+          message(`Missão cumprida! Você coletou ${game.state.goal} estrelas.`);
+        } else if (event.phase === "lost") {
+          stopLoop();
+          message(game.state.shield ? "Fim da rota! Tente coletar mais estrelas." : "O escudo acabou. Tente de novo!");
         }
-        row.append(object);
-      });
-      return row;
-    });
-    course.replaceChildren(...rows);
-    board.style.setProperty("--flight-lane", lane);
-    board.dataset.result = result;
-    starsText.textContent = `${stars}/${goal}`;
-    shieldText.textContent = `${shield}/${maxShield}`;
-    controls.hidden = Boolean(result);
-    keyboardHint.hidden = Boolean(result);
-    actions.hidden = !result;
-    coordinates.hidden = result !== "won";
+      }
+    }
+    game.state.events.length = 0;
+    renderMotion();
+    renderUI();
+  }
 
-    const [star, asteroid] = route[step] || [];
-    buttons.forEach((button, index) => {
-      const obstacle = index === star ? "estrela" : index === asteroid ? "asteroide" : "trilha livre";
-      const position = index === lane ? ", posição da nave" : "";
-      button.dataset.current = index === lane;
-      button.setAttribute("aria-label", `${button.textContent}${position}, próximo trecho: ${obstacle}`);
-      button.setAttribute("aria-disabled", Math.abs(index - lane) > 1);
-    });
+  function frame(timestamp) {
+    frameId = 0;
+    if (!dialog.open || game.state.phase !== "running") return;
+    if (previousFrame === null) previousFrame = timestamp;
+    accumulator += Math.min((timestamp - previousFrame) / 1000, 0.1);
+    previousFrame = timestamp;
+    while (accumulator >= fixedStep && game.state.phase === "running") {
+      game.tick(fixedStep);
+      accumulator -= fixedStep;
+    }
+    updateView();
+    if (game.state.phase === "running") frameId = requestAnimationFrame(frame);
+  }
+
+  function startLoop() {
+    stopLoop();
+    if (!game.state.stepMode && game.state.phase === "running") frameId = requestAnimationFrame(frame);
+  }
+
+  function measure() {
+    width = board.clientWidth;
+    height = board.clientHeight;
+    renderMotion();
   }
 
   function resetFlight() {
-    clearTimeout(moveTimer);
-    moveTimer = 0;
-    step = 0;
-    stars = 0;
-    shield = maxShield;
-    lane = 1;
-    result = "";
-    board.classList.remove("advancing");
-    status.textContent = "Escolha uma trilha para decolar.";
-    renderFlight();
+    stopLoop();
+    clearTimeout(feedbackTimer);
+    delete board.dataset.feedback;
+    game = createFlightEngine({ stepMode: reducedMotion.matches });
+    uiKey = "";
+    focusedResult = false;
+    const fragment = document.createDocumentFragment();
+    sprites = game.state.objects.map(object => {
+      const sprite = document.createElement("span");
+      sprite.className = "flight-object flight-" + object.kind;
+      sprite.textContent = object.kind === "star" ? "⭐" : "🪨";
+      fragment.append(sprite);
+      return sprite;
+    });
+    course.replaceChildren(fragment);
+    instructions.textContent = game.state.stepMode
+      ? "Colete 6 estrelas e desvie dos asteroides. Com movimento reduzido, cada comando avança um trecho. Mude uma trilha por vez."
+      : "Colete 6 estrelas e desvie dos asteroides. A nave avança sozinha. Toque em uma trilha, arraste ou use as setas.";
+    keyboardHint.textContent = game.state.stepMode
+      ? "Teclado ← → muda de trilha · ↑ avança · P pausa"
+      : "Teclado ← → ou A/D · P pausa";
+    message("Escolha uma trilha e toque em Decolar.");
+    renderUI();
+    measure();
   }
 
-  function flyTo(target, moveFocus) {
-    if (result || moveTimer) return;
-    if (!buttons[target] || Math.abs(target - lane) > 1) {
-      status.textContent = "A nave só muda uma trilha por vez.";
-      return;
-    }
+  function command(lane) {
+    if (!game) return;
+    game.command(lane);
+    updateView();
+  }
 
-    lane = target;
-    board.style.setProperty("--flight-lane", lane);
-    board.classList.add("advancing");
-
-    const finishMove = () => {
-      moveTimer = 0;
-      if (!dialog.open) return;
-
-      const [star, asteroid] = route[step++];
-      let feedback = "Trecho livre. Continue pilotando!";
-      if (lane === star) {
-        stars++;
-        feedback = `Estrela coletada! ${stars} de ${goal}.`;
-        playTone(660 + stars * 38, 0.18, "triangle");
-      } else if (lane === asteroid) {
-        shield--;
-        feedback = `Impacto! Escudo ${shield} de ${maxShield}.`;
-        playTone(115, 0.24, "triangle");
-      }
-
-      if (stars === goal) {
-        result = "won";
-        feedback = `Missão cumprida! Você coletou ${goal} estrelas.`;
-        playFanfare();
-      } else if (!shield || step === route.length) {
-        result = "lost";
-        feedback = !shield ? "O escudo acabou. Tente de novo!" : `Fim da rota! Você coletou ${stars} de ${goal} estrelas.`;
-      }
-
-      board.classList.remove("advancing");
-      status.textContent = feedback;
-      renderFlight();
-      if (result) (result === "won" ? coordinates : replay).focus();
-      else if (moveFocus) buttons[lane].focus({ preventScroll: true });
-    };
-
-    if (reducedMotion.matches) finishMove();
-    else moveTimer = setTimeout(finishMove, 260);
+  function pauseFlight() {
+    if (!dialog.open || game?.state.phase !== "running") return;
+    game.pause();
+    stopLoop();
+    updateView();
   }
 
   launchBtn.addEventListener("click", () => {
     resetFlight();
     dialog.showModal();
+    measure();
     unlockMobileAudio();
+    start.focus({ preventScroll: true });
+  });
+  start.addEventListener("click", () => {
+    game.start();
     playBuzzLaser();
+    updateView();
+    startLoop();
+    board.focus({ preventScroll: true });
   });
-  buttons.forEach((button, index) => {
-    button.addEventListener("click", event => flyTo(index, event.detail === 0));
+  pause.addEventListener("click", () => {
+    if (game.state.phase === "running") pauseFlight();
+    else if (game.state.phase === "paused") {
+      game.resume();
+      updateView();
+      startLoop();
+      board.focus({ preventScroll: true });
+    }
   });
+  buttons.forEach((button, lane) => button.addEventListener("click", () => command(lane)));
   dialog.addEventListener("keydown", event => {
-    const direction = { ArrowLeft: -1, ArrowUp: 0, ArrowRight: 1 }[event.key];
-    if (direction === undefined || result || event.altKey || event.ctrlKey || event.metaKey) return;
+    if (event.altKey || event.ctrlKey || event.metaKey || !game) return;
+    const key = event.key.toLowerCase();
+    if (key === "p" && !event.repeat && ["running", "paused"].includes(game.state.phase)) {
+      event.preventDefault();
+      pause.click();
+      return;
+    }
+    const direction = { arrowleft: -1, a: -1, arrowright: 1, d: 1, arrowup: 0 }[key];
+    if (direction === undefined) return;
     event.preventDefault();
-    if (!event.repeat) flyTo(lane + direction, true);
+    if (!event.repeat || !game.state.stepMode) command(game.state.targetLane + direction);
   });
+
+  function pointerLane(event) {
+    const rectangle = board.getBoundingClientRect();
+    return Math.max(0, Math.min(2, Math.floor((event.clientX - rectangle.left) / rectangle.width * 3)));
+  }
+  board.addEventListener("pointerdown", event => {
+    if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0) ||
+        !game || !["ready", "running"].includes(game.state.phase)) return;
+    pointerId = event.pointerId;
+    board.setPointerCapture(pointerId);
+    if (!game.state.stepMode) command(pointerLane(event));
+  });
+  board.addEventListener("pointermove", event => {
+    if (pointerId !== event.pointerId || game.state.stepMode) return;
+    const lane = pointerLane(event);
+    if (lane !== game.state.targetLane) command(lane);
+  });
+  board.addEventListener("pointerup", event => {
+    if (pointerId !== event.pointerId) return;
+    if (game.state.stepMode) command(pointerLane(event));
+    if (board.hasPointerCapture(event.pointerId)) board.releasePointerCapture(event.pointerId);
+    pointerId = null;
+  });
+  board.addEventListener("pointercancel", () => { pointerId = null; });
   dialog.addEventListener("close", () => {
-    if (dialog.open) return;
-    clearTimeout(moveTimer);
-    moveTimer = 0;
+    game?.pause();
+    stopLoop();
+    clearTimeout(feedbackTimer);
   });
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) pauseFlight();
+  });
+  window.addEventListener("blur", pauseFlight);
+  new ResizeObserver(measure).observe(board);
   replay.addEventListener("click", () => {
     resetFlight();
-    buttons[lane].focus({ preventScroll: true });
+    start.focus({ preventScroll: true });
   });
   coordinates.addEventListener("click", () => {
     dialog.close();
@@ -1123,12 +1295,7 @@ function initForbiddenButton() {
     }, 1000);
   };
 
-  let lastBtnTouchTime = 0;
-  const handleBtnToggle = (e) => {
-    const now = Date.now();
-    if (e.type === "click" && now - lastBtnTouchTime < 450) return;
-    if (e.type === "touchend") lastBtnTouchTime = now;
-
+  const handleBtnToggle = () => {
     if (isEmergencyActive) {
       stopEmergencyAlert(true);
     } else {
@@ -1138,18 +1305,13 @@ function initForbiddenButton() {
 
   // Clicar ou tocar no botão vermelho inicia ou desativa a emergência
   btn.addEventListener("click", handleBtnToggle);
-  btn.addEventListener("touchend", handleBtnToggle, { passive: true });
 
   // Botão manual de desativação na tela de emergência
   if (cancelBtn) {
-    const handleCancel = (e) => {
-      const now = Date.now();
-      if (e.type === "click" && now - lastBtnTouchTime < 450) return;
-      if (e.type === "touchend") lastBtnTouchTime = now;
+    const handleCancel = () => {
       stopEmergencyAlert(true);
     };
     cancelBtn.addEventListener("click", handleCancel);
-    cancelBtn.addEventListener("touchend", handleCancel, { passive: true });
   }
 }
 
@@ -1190,6 +1352,7 @@ function initAlbumCarouselAndLightbox() {
   if (cards.length === 0) return;
 
   let currentLbIndex = 0;
+  let previousFocus;
 
   const updateLightbox = (index) => {
     if (index < 0) index = cards.length - 1;
@@ -1205,6 +1368,7 @@ function initAlbumCarouselAndLightbox() {
     if (lbImg) {
       lbImg.style.opacity = "0.2";
       lbImg.src = fullSrc;
+      lbImg.alt = title;
       lbImg.onload = () => { lbImg.style.opacity = "1"; };
     }
     if (lbTag) lbTag.textContent = tag;
@@ -1217,18 +1381,32 @@ function initAlbumCarouselAndLightbox() {
     if (!lightbox) return;
     updateLightbox(index);
     lightbox.classList.add("active");
+    lightbox.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
+    previousFocus = document.activeElement;
+    lbClose?.focus({ preventScroll: true });
   };
 
   const closeLightbox = () => {
     if (!lightbox) return;
     lightbox.classList.remove("active");
+    lightbox.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
+    previousFocus?.focus({ preventScroll: true });
   };
 
   cards.forEach((card, idx) => {
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-label", "Ampliar foto: " + card.dataset.title);
     card.addEventListener("click", () => {
       openLightbox(idx);
+    });
+    card.addEventListener("keydown", event => {
+      if ((event.key === "Enter" || event.key === " ") && !event.repeat) {
+        event.preventDefault();
+        openLightbox(idx);
+      }
     });
   });
 
@@ -1290,6 +1468,8 @@ function initRsvpForm() {
         for (let i = currentRows; i < qty; i++) {
           addChildRow(i + 1);
         }
+      } else if (currentRows > qty) {
+        Array.from(rowsList.children).slice(qty).forEach(row => row.remove());
       }
     } else {
       dynamicBox.style.display = "none";
@@ -1331,7 +1511,7 @@ function initRsvpForm() {
     row.querySelector(".btn-remove-child-row").addEventListener("click", () => {
       row.remove();
       const remaining = rowsList.querySelectorAll(".child-row-item").length;
-      if (childrenSelect) childrenSelect.value = remaining;
+      if (childrenSelect) childrenSelect.value = Math.min(remaining, 4);
       if (remaining === 0 && dynamicBox) dynamicBox.style.display = "none";
     });
 
@@ -1342,7 +1522,7 @@ function initRsvpForm() {
     addChildBtn.addEventListener("click", () => {
       const current = rowsList.querySelectorAll(".child-row-item").length;
       addChildRow(current + 1);
-      if (childrenSelect) childrenSelect.value = current + 1;
+      if (childrenSelect) childrenSelect.value = Math.min(current + 1, 4);
       if (dynamicBox) dynamicBox.style.display = "block";
     });
   }
@@ -1458,6 +1638,7 @@ function initRsvpForm() {
         }
 
         form.reset();
+        if (attendeesContainer) attendeesContainer.style.display = "block";
         rowsList.innerHTML = "";
         if (dynamicBox) dynamicBox.style.display = "none";
       } catch (err) {

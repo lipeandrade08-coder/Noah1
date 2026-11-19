@@ -44,7 +44,6 @@ const PARTY_CONFIG = {
     dressCode: "Venham com uma roupa confortável.",
     clothingSize: "Tamanhos de 1 a 2 anos",
     shoeSize: "Numeração 20/21",
-    diaperSize: "Fralda: Tamanho G ou XG (qualquer marca)",
     bbqRule: "Churrasco Americano: Levar apenas 500g de carne por pessoa (bebidas por nossa conta!)",
     giftWishlistUrl: "",
     pixKey: ""

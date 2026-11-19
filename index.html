@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <title>NOAH STORY 1 — Uma Aventura Para o Infinito e Além! 🤠🚀</title>
 
   <!-- Meta Tags para Compartilhamento em Redes Sociais e WhatsApp -->
@@ -166,7 +166,6 @@
         <span aria-hidden="true">👽</span>
         <span>Caça <strong id="aliens-counter-text">0</strong>/5</span>
       </button>
-    </div>
     </div>
 
     <div class="top-bar-right">
@@ -353,21 +352,25 @@
               <button type="submit" class="space-game-close" aria-label="Fechar minijogo">×</button>
             </form>
           </div>
-          <p id="space-game-instructions">Colete 6 estrelas e desvie dos asteroides. A nave avança um trecho a cada toque e só muda uma trilha por vez.</p>
+          <p id="space-game-instructions">Colete 6 estrelas e desvie dos asteroides. A nave avança sozinha. Toque em uma trilha, arraste ou use as setas.</p>
           <div class="space-game-hud">
             <span>Estrelas <strong id="flight-stars">0/6</strong></span>
             <span>Escudo <strong id="flight-shield">2/2</strong></span>
           </div>
-          <div class="flight-board" id="flight-board" aria-hidden="true">
-            <div class="flight-course" id="flight-course"></div>
-            <span class="flight-rocket">🚀</span>
+          <div class="flight-board" id="flight-board" tabindex="0" role="group" aria-label="Área de voo. Use os botões de trilha ou as setas do teclado.">
+            <div class="flight-course" id="flight-course" aria-hidden="true"></div>
+            <span class="flight-rocket" aria-hidden="true">🚀</span>
           </div>
           <div class="flight-controls" id="flight-controls" role="group" aria-label="Trilhas da nave">
             <button type="button" data-lane="0">Esquerda</button>
             <button type="button" data-lane="1" autofocus>Centro</button>
             <button type="button" data-lane="2">Direita</button>
           </div>
-          <p class="flight-keyboard-hint">Teclado <kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd></p>
+          <div class="flight-run-controls" id="flight-run-controls">
+            <button type="button" id="flight-start">Decolar</button>
+            <button type="button" id="flight-pause" hidden>Pausar</button>
+          </div>
+          <p class="flight-keyboard-hint">Teclado <kbd>←</kbd> <kbd>→</kbd> ou <kbd>A</kbd> <kbd>D</kbd> · <kbd>P</kbd> pausa</p>
           <p class="flight-status" id="flight-status" role="status"></p>
           <div class="flight-actions" id="flight-actions" hidden>
             <button type="button" id="flight-replay">Jogar de novo</button>
@@ -1118,11 +1121,6 @@
             </ul>
           </article>
 
-          <article class="gift-item-card">
-            <div class="gift-item-icon" aria-hidden="true">👶</div>
-            <h3 class="gift-item-title">Fraldas</h3>
-            <p class="gift-item-val" id="tip-diapersize">Tamanho G ou XG (qualquer marca)</p>
-          </article>
         </div>
 
         <article class="guest-outfit-card">
@@ -1266,7 +1264,7 @@
         <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 16px;">
           Digite a senha de administrador para acompanhar confirmações, lembrancinhas e recados:
         </p>
-        <div style="display: flex; gap: 8px; max-width: 340px; margin: 0 auto 16px auto;">
+        <div class="admin-input-row admin-login-row">
           <input type="password" id="admin-password-input" class="form-input" placeholder="Senha dos Pais" autocomplete="current-password">
           <button type="button" class="btn-pill btn-calendar" id="btn-admin-login">Entrar</button>
         </div>
@@ -1329,7 +1327,7 @@
             </button>
           </div>
 
-          <div style="max-height: 320px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
+          <div class="admin-table-scroll" tabindex="0" role="region" aria-label="Lista de convidados. Deslize para ver todas as colunas.">
             <table class="responses-table">
               <thead>
                 <tr>
@@ -1355,7 +1353,7 @@
             <h4 style="font-family: var(--font-heading); font-size: 1.05rem; color: #1e293b; margin-bottom: 8px;">
               🎟️ Validação Rápida de Voucher na Festa
             </h4>
-            <div style="display: flex; gap: 8px;">
+            <div class="admin-input-row">
               <input type="text" id="voucher-code-input" class="form-input" placeholder="Digite o código (Ex: VOUCH-RED-4821-1)">
               <button type="button" class="btn-pill btn-calendar" id="btn-validate-voucher">Validar Entrega</button>
             </div>
@@ -1365,7 +1363,7 @@
           <h4 style="font-family: var(--font-heading); font-size: 1rem; color: #334155; margin-bottom: 8px;">
             Histórico de Todos os Vouchers Emitidos:
           </h4>
-          <div style="max-height: 240px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
+          <div class="admin-table-scroll admin-vouchers-scroll" tabindex="0" role="region" aria-label="Lista de lembrancinhas. Deslize para ver todas as colunas.">
             <table class="responses-table">
               <thead>
                 <tr>
@@ -1404,7 +1402,7 @@
               Cole a <strong>URL do App da Web</strong> (obtida no Google Apps Script terminada em <code>/exec</code>) para enviar as confirmações diretamente à sua planilha:
             </p>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <input type="url" id="admin-script-url-input" class="form-input" style="flex: 1; min-width: 240px;" placeholder="https://script.google.com/macros/s/.../exec">
+              <input type="url" id="admin-script-url-input" class="form-input" style="flex: 1 1 240px; min-width: 0;" placeholder="https://script.google.com/macros/s/.../exec">
               <button type="button" class="btn-pill btn-calendar" id="btn-save-script-url">💾 Salvar URL</button>
             </div>
             
@@ -1438,6 +1436,7 @@
   <script defer src="js/sheet-payload.js"></script>
   <script defer src="js/delivery.js"></script>
   <script defer src="js/hunt.js"></script>
+  <script defer src="js/flight-engine.js"></script>
   <script defer src="js/app.js"></script>
 
 </body>
