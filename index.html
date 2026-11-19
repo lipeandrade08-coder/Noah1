@@ -16,8 +16,8 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
 
   <link rel="preload" href="assets/images/logo-noah-toys-box.webp" as="image" fetchpriority="high">
-  <link rel="preload" href="js/intro.js" as="script">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="preload" href="js/intro.js?v=20261119-live" as="script">
+  <link rel="stylesheet" href="css/style.css?v=20261119-live">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;family=Lilita+One&amp;family=Outfit:wght@400;500;600;700;800;900&amp;family=Bungee&amp;display=swap"
         media="print" onload="this.media='all'">
 </head>
@@ -81,7 +81,7 @@
   <!-- Trilha Sonora Oficial do Toy Story: "Amigo Estou Aqui" -->
   <audio id="theme-audio" src="assets/audio/amigo-estou-aqui.mp3" preload="none" playsinline webkit-playsinline loop></audio>
 
-  <script src="js/intro.js"></script>
+  <script src="js/intro.js?v=20261119-live"></script>
 
   <!-- Áudios dos personagens para reprodução após o primeiro toque -->
   <div id="character-audio-bank" style="display: none;" aria-hidden="true">
@@ -352,14 +352,20 @@
               <button type="submit" class="space-game-close" aria-label="Fechar minijogo">×</button>
             </form>
           </div>
-          <p id="space-game-instructions">Colete 6 estrelas e desvie dos asteroides. A nave avança sozinha. Toque em uma trilha, arraste ou use as setas.</p>
+          <p id="space-game-instructions">Colete 10 estrelas e desvie dos asteroides. A nave avança sozinha. Toque em uma trilha, arraste ou use as setas.</p>
           <div class="space-game-hud">
-            <span>Estrelas <strong id="flight-stars">0/6</strong></span>
+            <span>Estrelas <strong id="flight-stars">0/10</strong></span>
             <span>Escudo <strong id="flight-shield">2/2</strong></span>
+            <span>Voo <strong id="flight-time">00:00</strong></span>
           </div>
           <div class="flight-board" id="flight-board" tabindex="0" role="group" aria-label="Área de voo. Use os botões de trilha ou as setas do teclado.">
             <div class="flight-course" id="flight-course" aria-hidden="true"></div>
             <span class="flight-rocket" aria-hidden="true">🚀</span>
+            <div class="flight-outcome" id="flight-outcome" hidden>
+              <div class="flight-outcome-art" aria-hidden="true"><span class="flight-result-orbit">✦</span><span class="flight-result-symbol">🚀</span><span class="flight-result-spark">✧</span></div>
+              <strong id="flight-outcome-title"></strong>
+              <span id="flight-outcome-description"></span>
+            </div>
           </div>
           <div class="flight-controls" id="flight-controls" role="group" aria-label="Trilhas da nave">
             <button type="button" data-lane="0">Esquerda</button>
@@ -555,7 +561,7 @@
       </div>
 
       <!-- OVERLAY CINEMATOGRÁFICO DE ALERTA MÁXIMO E EMERGÊNCIA 🚨 -->
-      <div class="emergency-overlay" id="emergency-overlay" aria-hidden="true">
+      <dialog class="emergency-overlay" id="emergency-overlay" aria-labelledby="emergency-headline">
         <!-- Luz Vermelha Estroboscópica e Feixe Varrendo a Tela -->
         <div class="emergency-backdrop-fx"></div>
         <div class="emergency-sweeper-beam"></div>
@@ -585,7 +591,7 @@
         <!-- Painel Central de Alerta -->
         <div class="emergency-modal-card">
           <div class="emergency-icon-pulse">🚨</div>
-          <h2 class="emergency-headline">ALERTA VERMELHO DE EMERGÊNCIA!</h2>
+          <h2 class="emergency-headline" id="emergency-headline">ALERTA VERMELHO DE EMERGÊNCIA!</h2>
           <div class="emergency-subheadline">O ANDY ESTÁ SUBINDO AS ESCADAS!</div>
           <p class="emergency-body-text">
             Você apertou o botão proibido da caixa de brinquedos! Todos os brinquedos devem congelar e ficar em suas posições agora mesmo!
@@ -600,7 +606,7 @@
             🛑 DESATIVAR EMERGÊNCIA / TUDO LIMPO!
           </button>
         </div>
-      </div>
+      </dialog>
 
       <!-- ========================================== -->
       <!-- 9. LINHA DO TEMPO: 365 DIAS DE AVENTURA 📸 -->
@@ -1146,6 +1152,7 @@
       </div>
       <p class="footer-quote">"Você é o nosso brinquedo favorito!" ❤️</p>
       <p class="footer-note">Com muito amor, Família do Noah • Noah Story 1º Aninho • 16 de Janeiro de 2027</p>
+      <p class="footer-credit">Feito pela <a href="https://www.instagram.com/2typeofc/" target="_blank" rel="noopener noreferrer">2type · @2typeofc</a></p>
     </footer>
 
   </div>
@@ -1381,22 +1388,8 @@
             Histórico de Todos os Vouchers Emitidos:
           </h4>
           <div class="voucher-legend"><span class="voucher-category voucher-category-pink">Criança · 0 a 12 anos</span><span class="voucher-category voucher-category-blue">Pré-adolescente · 13 a 17 anos</span></div>
-          <div class="admin-table-scroll admin-vouchers-scroll" tabindex="0" role="region" aria-label="Lista de lembrancinhas. Deslize para ver todas as colunas.">
-            <table class="responses-table">
-              <thead>
-                <tr>
-                  <th>Código Voucher</th>
-                  <th>Tipo</th>
-                  <th>Criança</th>
-                  <th>Qtd</th>
-                  <th>Status</th>
-                  <th>Ação</th>
-                </tr>
-              </thead>
-              <tbody id="admin-vouchers-table-body">
-                <!-- Preenchido dinamicamente -->
-              </tbody>
-            </table>
+          <div class="admin-vouchers-list" id="admin-vouchers-table-body" role="region" aria-label="Vouchers de crianças e pré-adolescentes">
+            <!-- Cartões inseridos dinamicamente. A rolagem vertical pertence ao painel. -->
           </div>
         </div>
 
@@ -1450,14 +1443,14 @@
   <script defer src="js/vendor/qrcode.min.js"></script>
   <script defer src="js/vendor/html2canvas.min.js"></script>
 
-  <script defer src="js/config.js"></script>
-  <script defer src="js/sheet-payload.js"></script>
-  <script defer src="js/records.js"></script>
-  <script defer src="js/data-api.js"></script>
-  <script defer src="js/delivery.js"></script>
-  <script defer src="js/hunt.js"></script>
-  <script defer src="js/flight-engine.js"></script>
-  <script defer src="js/app.js"></script>
+  <script defer src="js/config.js?v=20261119-live"></script>
+  <script defer src="js/sheet-payload.js?v=20261119-live"></script>
+  <script defer src="js/records.js?v=20261119-live"></script>
+  <script defer src="js/data-api.js?v=20261119-live"></script>
+  <script defer src="js/delivery.js?v=20261119-live"></script>
+  <script defer src="js/hunt.js?v=20261119-live"></script>
+  <script defer src="js/flight-engine.js?v=20261119-live"></script>
+  <script defer src="js/app.js?v=20261119-live"></script>
 
 </body>
 </html>

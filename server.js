@@ -114,19 +114,36 @@ function generateVouchers(ticketCode, childrenDetails = []) {
   return NoahRecords.vouchers({ ticketCode, childrenDetails, presence: 'Confirmado' });
 }
 
+function currentCampaign() { return readJsonFile(SETTINGS_FILE).campaignId || ''; }
+function staleCampaign(data) { return currentCampaign() && data.campaignId !== currentCampaign(); }
+
+async function replyRsvp(res, id, status, flags = {}) {
+  const destination = readJsonFile(SETTINGS_FILE).googleScriptUrl ? 'sheet' : 'server';
+  if (destination === 'sheet') await flushSheets(true);
+  const record = readJsonFile(RSVPS_FILE).find(item => item.id === id);
+  return sendJson(res, status, { success: true, ...flags, rsvp: record, destination,
+    message: destination === 'sheet' && record?.sheetSync?.status !== 'synced'
+      ? 'Resposta guardada no servidor e aguardando confirmação da planilha.' : 'Resposta confirmada.' });
+}
+
 // Os próprios registros guardam a fila, inclusive após reiniciar o servidor.
-let sheetsRunning = false;
+let sheetsRunning;
 const sheetSources = [[RSVPS_FILE, 'rsvp'], [HUNTERS_FILE, 'hunter'], [MESSAGES_FILE, 'message']];
 
-async function flushSheets(force = false) {
-  if (sheetsRunning) return;
+function flushSheets(force = false) {
+  if (sheetsRunning) return sheetsRunning;
+  sheetsRunning = syncSheets(force).finally(() => { sheetsRunning = null; });
+  return sheetsRunning;
+}
+
+async function syncSheets(force = false) {
   const settings = readJsonFile(SETTINGS_FILE);
   if (!settings.googleScriptUrl) return;
-  sheetsRunning = true;
   try {
     for (const [file, kind] of sheetSources) {
       const pending = readJsonFile(file).filter(record =>
         !String(record.id || '').startsWith('rsvp_sample_') && record.sheetSync?.status !== 'synced' &&
+        (!settings.campaignId || record.campaignId === settings.campaignId) &&
         !['archived', 'deleted'].includes(record.status) &&
         (force || (record.sheetSync?.nextAttemptAt || 0) <= Date.now()));
       for (const initial of pending) {
@@ -161,7 +178,7 @@ async function flushSheets(force = false) {
         writeJsonFile(file, latest);
       }
     }
-  } finally { sheetsRunning = false; }
+  } catch (error) { console.warn('Sincronização pendente:', error.message); }
 }
 
 function sheetsStatus() {
@@ -185,6 +202,7 @@ function saveRsvpMessageToCapsule(rsvpRecord) {
     const exists = messages.some(m => m.rsvpId === rsvpRecord.id || (m.author === rsvpRecord.name && m.message === rsvpRecord.message.trim()));
     if (!exists) {
       messages.unshift({
+        campaignId: rsvpRecord.campaignId,
         id: `msg_rsvp_${Date.now()}`,
         rsvpId: rsvpRecord.id,
         author: rsvpRecord.name,
@@ -213,6 +231,7 @@ function syncAllExistingRsvpMessages() {
         const exists = messages.some(m => m.rsvpId === r.id || (m.author === r.name && m.message === cleanMsg));
         if (!exists) {
           messages.unshift({
+            campaignId: r.campaignId,
             id: `msg_rsvp_${r.id || Date.now()}`,
             rsvpId: r.id,
             author: r.name,
@@ -320,6 +339,7 @@ async function handleRequest(req, res) {
   if (pathname === '/api/rsvp' && req.method === 'POST') {
     try {
       const data = await parseBody(req);
+      if (staleCampaign(data)) return sendJson(res, 409, { success: false, message: 'O convite foi reiniciado. Recarregue a página antes de enviar.' });
       if (!data.name || !data.name.trim()) {
         return sendJson(res, 400, { success: false, message: 'O nome do convidado é obrigatório.' });
       }
@@ -344,7 +364,7 @@ async function handleRequest(req, res) {
       const previous = rsvps[existingIndex];
       if (previous && !data.forceNew &&
           Date.parse(submittedAt) <= Date.parse(previous.submittedAt || previous.updatedAt || previous.createdAt)) {
-        return sendJson(res, 200, { success: true, rsvp: previous, message: 'Registro já recebido.' });
+        return replyRsvp(res, previous.id, 200);
       }
 
       const randomSuffix = Math.floor(1000 + Math.random() * 9000);
@@ -354,6 +374,7 @@ async function handleRequest(req, res) {
       const vouchers = generateVouchers(ticketCode, data.childrenDetails || []);
 
       const rsvpRecord = {
+        campaignId: data.campaignId,
         id: data.id || `rsvp_${Date.now()}_${randomSuffix}`,
         ticketCode: ticketCode,
         name: data.name.trim(),
@@ -387,15 +408,13 @@ async function handleRequest(req, res) {
         rsvps[existingIndex] = rsvpRecord;
         writeJsonFile(RSVPS_FILE, rsvps);
         saveRsvpMessageToCapsule(rsvpRecord);
-        void flushSheets().catch(console.error);
-        return sendJson(res, 200, { success: true, updated: true, rsvp: rsvpRecord, message: 'Confirmação atualizada com sucesso!' });
+        return replyRsvp(res, rsvpRecord.id, 200, { updated: true });
       }
 
       rsvps.unshift(rsvpRecord);
       writeJsonFile(RSVPS_FILE, rsvps);
       saveRsvpMessageToCapsule(rsvpRecord);
-      void flushSheets().catch(console.error);
-      return sendJson(res, 201, { success: true, created: true, rsvp: rsvpRecord, message: 'Presença confirmada com sucesso!' });
+      return replyRsvp(res, rsvpRecord.id, 201, { created: true });
     } catch (err) {
       console.error('Erro em POST /api/rsvp:', err);
       return sendJson(res, 500, { success: false, message: 'Erro interno ao processar confirmação.' });
@@ -520,6 +539,7 @@ async function handleRequest(req, res) {
   if (pathname === '/api/messages' && req.method === 'POST') {
     try {
       const data = await parseBody(req);
+      if (staleCampaign(data)) return sendJson(res, 409, { success: false, message: 'O convite foi reiniciado. Recarregue a página antes de enviar.' });
       if (!data.author || !data.author.trim() || !data.message || !data.message.trim()) {
         return sendJson(res, 400, { success: false, message: 'Nome e mensagem são obrigatórios.' });
       }
@@ -531,6 +551,7 @@ async function handleRequest(req, res) {
       const id = data.rsvpId ? 'rsvp-' + data.rsvpId : data.id || 'msg_' + randomUUID();
       const existing = messages.find(item => item.id === id);
       const newMsg = existing || {
+        campaignId: data.campaignId,
         id,
         author: data.author.trim(),
         message: data.message.trim(),
@@ -650,11 +671,12 @@ async function handleRequest(req, res) {
     if (!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(endpoint || '')) {
       return sendJson(res, 400, { success: false, message: 'Informe a URL de implantação /exec.' });
     }
-    const result = await postToSheets(endpoint, { kind: 'test', recordId: 'connection-test', revision: randomUUID() });
+    const result = await postToSheets(endpoint, { kind: 'test', campaignId: currentCampaign(), recordId: 'connection-test', revision: randomUUID() });
     return sendJson(res, 200, { success: true, message: result.message || 'Gravação e leitura de teste confirmadas.' });
   }
   if (pathname === '/api/hunters' && req.method === 'POST') {
     const data = await parseBody(req);
+    if (staleCampaign(data)) return sendJson(res, 409, { success: false, message: 'O convite foi reiniciado. Recarregue a página antes de enviar.' });
     if (!/^[a-zA-Z0-9-]{8,80}$/.test(data.id || '') || !String(data.name || '').trim() ||
         !Array.isArray(data.found) || new Set(data.found).size !== 5 ||
         !data.found.every(value => Number.isInteger(value) && value >= 1 && value <= 5)) {
@@ -676,6 +698,7 @@ async function handleRequest(req, res) {
     }
     if (hunter.rsvpId !== registration.id || hunter.ticketCode !== registration.ticketCode || hunter.name !== registration.name) {
       Object.assign(hunter, {
+        campaignId: data.campaignId,
         name: registration.name, rsvpId: registration.id, phone: registration.phone,
         ticketCode: registration.ticketCode, found: [1, 2, 3, 4, 5],
         completedAt: hunter.completedAt || data.completedAt || new Date().toISOString(),

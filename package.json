@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node --test tests/*.test.cjs",
     "start": "node server.js",
-    "test:flight": "node --test tests/flight-engine.test.cjs"
+    "test:flight": "node --test tests/flight-engine.test.cjs",
+    "build": "node scripts/build-static.cjs"
   },
   "keywords": [
     "convite",

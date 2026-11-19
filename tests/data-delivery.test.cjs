@@ -92,3 +92,19 @@ test('ACK de servidor antigo sem destino confirmado usa gravação direta identi
   assert.equal(state.messages[0].id, 'stable-id-1');
   assert.equal(state.messages[0].destination, 'sheet');
 });
+
+test('confirmação de presença aguarda gravação real, sem perder a fila nem duplicar a resposta', async () => {
+  let synced = false;
+  let attempts = 0;
+  const state = browser(async () => {
+    attempts++;
+    return Response.json({ success: true, destination: 'sheet', rsvp: { id: 'rsvp-live', sheetSync: { status: synced ? 'synced' : 'pending' } } });
+  });
+  state.context.delivery.enqueue('rsvp', { id: 'rsvp-live', name: 'Família' });
+  await state.context.delivery.flush();
+  assert.equal(state.context.delivery.pending('rsvp', 'rsvp-live'), true);
+  synced = true;
+  await state.context.delivery.flush();
+  assert.equal(state.context.delivery.pending('rsvp', 'rsvp-live'), false);
+  assert.equal(attempts, 2);
+});

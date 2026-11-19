@@ -82,3 +82,13 @@ test('planilha separa vouchers por idade, exige escolha e mantém histórico de 
   assert.ok(rows.slice(1).every(row => row[6] === 'Cancelado'));
   assert.equal(f.sheets.get('Entregas de lembrancinhas').rows.length, 2);
 });
+
+test('a fase oficial recusa filas antigas e não recria registros dos testes', () => {
+  const f = fixture();
+  assert.equal(f.post({ ...registration, campaignId: undefined }).result, 'error');
+  assert.equal(f.post({ ...registration, campaignId: 'fase-de-testes' }).result, 'error');
+  assert.equal(f.sheets.size, 0);
+  assert.equal(f.post(registration).result, 'success');
+  assert.equal(f.post({ action: 'redeemVoucher', password: 'noah2027', code: 'VOUCH-RED-TEST1234-1', campaignId: 'fase-de-testes' }).result, 'error');
+  assert.equal(f.sheets.get('Entregas de lembrancinhas').rows.length, 1);
+});

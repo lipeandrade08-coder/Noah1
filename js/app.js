@@ -783,6 +783,8 @@ function initSpaceMissionRocket() {
   const instructions = document.getElementById("space-game-instructions");
   const status = document.getElementById("flight-status");
   const starsText = document.getElementById("flight-stars");
+  const timeText = document.getElementById("flight-time");
+  const outcome = document.getElementById("flight-outcome");
   const shieldText = document.getElementById("flight-shield");
   const actions = document.getElementById("flight-actions");
   const replay = document.getElementById("flight-replay");
@@ -839,7 +841,7 @@ function initSpaceMissionRocket() {
 
   function renderUI() {
     const state = game.state;
-    const key = [state.phase, state.stars, state.shield, state.targetLane, state.nextRow].join("|");
+    const key = [state.phase, state.stars, state.shield, state.targetLane, state.nextRow, Math.floor(state.elapsed)].join("|");
     if (key === uiKey) return;
     uiKey = key;
     const ended = state.phase === "won" || state.phase === "lost";
@@ -848,6 +850,17 @@ function initSpaceMissionRocket() {
     board.dataset.result = ended ? state.phase : "";
     starsText.textContent = `${state.stars}/${state.goal}`;
     shieldText.textContent = `${state.shield}/${state.maxShield}`;
+    const seconds = Math.floor(state.elapsed);
+    timeText.textContent = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+    outcome.hidden = !ended;
+    if (ended) {
+      const won = state.phase === "won";
+      document.getElementById("flight-outcome-title").textContent = won ? "Missão cumprida!" : "Resgate a caminho!";
+      document.getElementById("flight-outcome-description").textContent = won
+        ? `${state.goal} estrelas! O Comando Estelar comemora com você.`
+        : "O Buzz vai ajudar. Recarregue a nave e tente outra vez!";
+      outcome.querySelector(".flight-result-symbol").textContent = won ? "🏅" : "🚀";
+    }
     controls.hidden = ended;
     keyboardHint.hidden = ended;
     runControls.hidden = ended;
@@ -945,8 +958,8 @@ function initSpaceMissionRocket() {
     });
     course.replaceChildren(fragment);
     instructions.textContent = game.state.stepMode
-      ? "Colete 6 estrelas e desvie dos asteroides. Com movimento reduzido, cada comando avança um trecho. Mude uma trilha por vez."
-      : "Colete 6 estrelas e desvie dos asteroides. A nave avança sozinha. Toque em uma trilha, arraste ou use as setas.";
+      ? `Colete ${game.state.goal} estrelas e desvie dos asteroides. Com movimento reduzido, cada comando avança um trecho. Mude uma trilha por vez.`
+      : `Colete ${game.state.goal} estrelas e desvie dos asteroides. A nave avança sozinha. Toque em uma trilha, arraste ou use as setas.`;
     keyboardHint.textContent = game.state.stepMode
       ? "Teclado ← → muda de trilha · ↑ avança · P pausa"
       : "Teclado ← → ou A/D · P pausa";
@@ -1210,7 +1223,7 @@ function initForbiddenButton() {
 
     // 1. Remove tremor e overlay
     document.body.classList.remove("emergency-screen-shake");
-    if (overlay) overlay.classList.remove("active");
+    if (overlay) { overlay.classList.remove("active"); if (overlay.open) overlay.close(); }
     if (rexRunner) rexRunner.classList.remove("running");
 
     // 2. Para sirene de alarme imediatamente
@@ -1254,6 +1267,7 @@ function initForbiddenButton() {
 
     // 3. Ativa o overlay de tela cheia com luzes vermelhas varrendo
     if (overlay) {
+      if (!overlay.open) overlay.showModal();
       overlay.classList.add("active");
     }
 
@@ -1305,6 +1319,8 @@ function initForbiddenButton() {
 
   // Clicar ou tocar no botão vermelho inicia ou desativa a emergência
   btn.addEventListener("click", handleBtnToggle);
+  overlay?.addEventListener("cancel", event => { event.preventDefault(); stopEmergencyAlert(true); });
+  overlay?.addEventListener("close", () => { stopEmergencyAlert(true); btn.focus({ preventScroll: true }); });
 
   // Botão manual de desativação na tela de emergência
   if (cancelBtn) {
@@ -1596,7 +1612,7 @@ function initRsvpForm() {
         const deliveryStatus = document.getElementById("rsvp-delivery-status");
         deliveryStatus.textContent = waiting
           ? "Sua resposta está guardada neste aparelho e aguarda conexão. Mantenha o convite aberto para concluir o envio."
-          : "Sua resposta foi recebida. O envio à planilha continua automaticamente se houver instabilidade.";
+          : "Sua resposta foi recebida e confirmada. Obrigado por participar!";
         deliveryStatus.dataset.pending = waiting;
 
         // Celebração & Modal do Ingresso
@@ -2150,33 +2166,25 @@ function renderAdminVouchersTable() {
   });
 
   if (allVouchers.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #64748b; padding: 14px;">Nenhum voucher emitido até o momento.</td></tr>`;
+    tbody.innerHTML = '<p class="admin-empty-state">Nenhum voucher emitido até o momento.</p>';
     return;
   }
 
   allVouchers.forEach(v => {
-    const tr = document.createElement("tr");
-    tr.className = `admin-voucher-row voucher-row-${v.type}`;
+    const tr = document.createElement("article");
+    tr.className = `admin-voucher-card voucher-card-${v.type}`;
     tr.innerHTML = `
-      <td><code>${escapeHtml(v.code)}</code></td>
-      <td>
+      <div class="admin-voucher-heading">
+        <div><strong>${escapeHtml(v.childName || "")}</strong><span>Responsável: ${escapeHtml(v.guestName || "")}</span></div>
         <span class="voucher-category voucher-category-${v.type}">${escapeHtml(v.label)}</span>
-      </td>
-      <td>
-        <div style="font-weight: 600;">${escapeHtml(v.childName || "")}</div>
-        <div style="font-size: 0.72rem; color: #64748b;">Resp: ${escapeHtml(v.guestName || "")}</div>
-      </td>
-      <td><strong>${v.qty}</strong></td>
-      <td>
-        <span style="font-weight: bold; color: ${v.redeemed ? "#15803d" : "#ea580c"}">
-          ${v.redeemed ? "ENTREGUE ✅" : "PENDENTE ⏳"}
-        </span>
-      </td>
-      <td>
-        ${!v.redeemed ? `<button type="button" class="btn-redeem-row" style="background: #22c55e; color: #fff; border: none; padding: 3px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem;">Dar Baixa</button>` : `<span style="font-size: 0.75rem; color: #64748b;">${v.redeemedAt ? new Date(v.redeemedAt).toLocaleDateString("pt-BR") : "OK"}</span>`}
-      </td>
+      </div>
+      <code>${escapeHtml(v.code)}</code>
+      <div class="admin-voucher-footer">
+        <span>${v.qty} lembrancinha${v.qty === 1 ? "" : "s"}</span>
+        <strong class="voucher-delivery-state" data-redeemed="${v.redeemed}">${v.redeemed ? "Entregue ✓" : "A entregar"}</strong>
+        ${!v.redeemed ? '<button type="button" class="btn-redeem-row">Registrar entrega</button>' : `<span>${v.redeemedAt ? new Date(v.redeemedAt).toLocaleDateString("pt-BR") : "Entrega registrada"}</span>`}
+      </div>
     `;
-
     const redeemBtn = tr.querySelector(".btn-redeem-row");
     if (redeemBtn) {
       redeemBtn.addEventListener("click", async () => {

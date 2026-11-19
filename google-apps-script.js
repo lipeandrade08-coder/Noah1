@@ -3,6 +3,7 @@
  * As primeiras treze colunas antigas são preservadas.
  * O distintivo exige uma confirmação de presença já gravada.
  */
+var NOAH_CAMPAIGN = "noah-live-20261119-01";
 function respostaNoah(data) {
   return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
 }
@@ -332,6 +333,9 @@ function doPost(e) {
     catch (ignored) { data = e.parameter || {}; }
     var book = SpreadsheetApp.getActiveSpreadsheet();
     if (!book) throw new Error("Este Apps Script precisa estar vinculado à planilha do convite.");
+    if ((!data.action || ["redeemVoucher", "cancelRsvp", "archiveMessage"].indexOf(data.action) !== -1) && data.campaignId !== NOAH_CAMPAIGN) {
+      throw new Error("O convite foi reiniciado para a abertura oficial. Recarregue a página antes de enviar.");
+    }
     if (data.action) return respostaNoah(acaoNoah(book, data));
     var kind = data.kind || "rsvp";
     if (["rsvp", "hunter", "message", "test"].indexOf(kind) === -1) throw new Error("Tipo de registro inválido.");
@@ -404,5 +408,5 @@ function doPost(e) {
 }
 
 function doGet() {
-  return respostaNoah({ result: "active", version: 7, message: "Vouchers: crianças de 0 a 12 anos em rosa e pré-adolescentes de 13 a 17 anos em azul." });
+  return respostaNoah({ result: "active", version: 8, campaignId: NOAH_CAMPAIGN, message: "Convite em uso oficial. Confirmações, distintivos, recados e vouchers conectados à planilha." });
 }

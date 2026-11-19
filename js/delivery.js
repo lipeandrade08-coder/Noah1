@@ -10,6 +10,7 @@ const NoahDelivery = (() => {
   }
 
   function enqueue(kind, record) {
+    record = { ...record, campaignId: typeof PARTY_CONFIG !== "undefined" ? PARTY_CONFIG.campaignId : record.campaignId };
     if (kind === "message" && record.rsvpId) record = { ...record, id: "rsvp-" + record.rsvpId };
     const items = read().filter(item => !(item.kind === kind && item.record.id === record.id));
     items.push({ kind, record, revision: createId() });
@@ -29,12 +30,13 @@ const NoahDelivery = (() => {
         const answer = await response.json();
         recognizedServer = typeof answer.success === "boolean";
         if (answer.success) {
-          if (item.kind === "message" && !["sheet", "server"].includes(answer.destination)) {
+          if (["message", "rsvp"].includes(item.kind) && !["sheet", "server"].includes(answer.destination)) {
             recognizedServer = false;
             throw new Error("O servidor antigo não confirmou o destino do recado.");
           }
-          if (item.kind === "message" && answer.destination === "sheet" && answer.message?.sheetSync?.status !== "synced") {
-            throw new Error("O recado está no servidor e aguarda confirmação na planilha.");
+          const saved = item.kind === "rsvp" ? answer.rsvp : answer.message;
+          if (["message", "rsvp"].includes(item.kind) && answer.destination === "sheet" && saved?.sheetSync?.status !== "synced") {
+            throw new Error("O registro está no servidor e aguarda confirmação na planilha.");
           }
           return answer;
         }

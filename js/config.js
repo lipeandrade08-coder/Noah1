@@ -5,6 +5,8 @@
  */
 
 const PARTY_CONFIG = {
+  // Identifica a abertura oficial e invalida o progresso e as filas da fase de testes.
+  campaignId: "noah-live-20261119-01",
   // Informações do Aniversariante
   childName: "Noah",
   ageNumber: "1",
@@ -63,6 +65,13 @@ const PARTY_CONFIG = {
 // Sincroniza URL salva localmente pelo painel administrativo
 (function syncStoredConfig() {
   try {
+    if (localStorage.getItem("noah_campaign_id") !== PARTY_CONFIG.campaignId) {
+      ["noah_story_rsvps", "noah_story_messages", "noah_delivery_queue_v2", "noah_alien_hunt_v2",
+        "noah_alien_badge_v2", "noah_invite_script_url"].forEach(key => localStorage.removeItem(key));
+      localStorage.setItem("noah_campaign_id", PARTY_CONFIG.campaignId);
+      localStorage.setItem("noah_delivery_migrated_v2", "1");
+      localStorage.setItem("noah_messages_migrated_v1", "1");
+    }
     const savedScriptUrl = localStorage.getItem("noah_invite_script_url");
     if (savedScriptUrl && savedScriptUrl.trim() !== "") {
       PARTY_CONFIG.googleScriptUrl = savedScriptUrl.trim();

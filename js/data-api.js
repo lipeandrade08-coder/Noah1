@@ -1,6 +1,7 @@
 // A mesma consulta funciona no servidor Node e em hospedagem estática.
 const NoahData = (() => {
   async function request(action, values = {}) {
+    values = { ...values, campaignId: typeof PARTY_CONFIG !== "undefined" ? PARTY_CONFIG.campaignId : undefined };
     let response;
     try {
       response = await fetch("/api/invite-data", {

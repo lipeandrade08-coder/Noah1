@@ -6,3 +6,7 @@ assets/images/Downloads/
 data/*.bak
 data/*.tmp
 data/hunters.json
+
+data/backups/
+
+dist/

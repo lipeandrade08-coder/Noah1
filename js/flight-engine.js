@@ -1,5 +1,5 @@
 function createFlightEngine({ random = Math.random, stepMode = false } = {}) {
-  const goal = 6;
+  const goal = 10;
   const maxShield = 2;
   const rowCount = 18;
   const spacing = 0.27;
@@ -103,7 +103,7 @@ function createFlightEngine({ random = Math.random, stepMode = false } = {}) {
     const previousShipX = state.shipX;
     const previousDistance = state.distance;
     state.elapsed += delta;
-    state.distance = 0.22 * state.elapsed + 0.0025 * state.elapsed * state.elapsed;
+    state.distance = 0.14 * state.elapsed + 0.0009 * state.elapsed * state.elapsed;
     const difference = (state.targetLane + 0.5) / 3 - state.shipX;
     state.shipX += Math.sign(difference) * Math.min(Math.abs(difference), 1.9 * delta);
 

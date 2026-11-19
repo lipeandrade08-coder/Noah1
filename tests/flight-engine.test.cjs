@@ -20,14 +20,15 @@ function autopilot(seed, delta) {
   return engine.state;
 }
 
-test("80 random routes allow collecting all six stars without an impact", () => {
+test("80 random routes allow collecting all ten stars without an impact", () => {
   const patterns = new Set();
   for (let seed = 1; seed <= 80; seed++) {
     const engine = createFlightEngine({ random: seeded(seed) });
     patterns.add(JSON.stringify(engine.state.rows));
     const end = autopilot(seed, 1 / 120);
     assert.equal(end.phase, "won", "Reachable route for seed " + seed);
-    assert.equal(end.stars, 6);
+    assert.equal(end.stars, 10);
+    assert.ok(end.elapsed >= 18 && end.elapsed < 25, "A successful flight lasts about twenty seconds");
     assert.equal(end.shield, 2);
   }
   assert.ok(patterns.size > 70, "Routes vary between games");
@@ -98,7 +99,7 @@ test("reduced-motion routes wait for commands and remain reachable", () => {
     engine.start();
     engine.tick(5);
     assert.equal(engine.state.nextRow, 0);
-    for (let row = 0; row < 6; row++) engine.command(engine.state.rows[row].star);
+    for (let row = 0; row < engine.state.goal; row++) engine.command(engine.state.rows[row].star);
     assert.equal(engine.state.phase, "won");
     assert.equal(engine.state.shield, 2);
     assert.equal(engine.command(1), false);

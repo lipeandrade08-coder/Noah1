@@ -78,9 +78,9 @@ body.rumble-shake {
 }
 
 body.emergency-screen-shake {
-  animation: emergencyScreenTremble 0.08s infinite alternate ease-in-out !important;
   overflow: hidden !important;
 }
+body.emergency-screen-shake .page-wrapper { animation: emergencyScreenTremble 0.15s 8 alternate ease-in-out; }
 
 @keyframes bodyRumble {
   10%, 90% { transform: translate3d(-3px, 0, 0); }
@@ -100,7 +100,7 @@ body.emergency-screen-shake {
 /* ==========================================================================
    1. ABERTURA NO QUARTO DO ANDY
    ========================================================================== */
-html:has(.cinematic-intro[open], .space-game[open], .modal-backdrop.open, .album-lightbox-modal.active) {
+html:has(.cinematic-intro[open], .space-game[open], .emergency-overlay[open], .modal-backdrop.open, .album-lightbox-modal.active) {
   overflow: hidden;
 }
 
@@ -2658,8 +2658,15 @@ html:has(.hunt-dialog[open]) {
 .emergency-overlay {
   position: fixed;
   inset: 0;
+  margin: 0;
+  border: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  background: #230b13;
   z-index: 100000;
-  display: flex;
+  display: none;
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -2670,6 +2677,8 @@ html:has(.hunt-dialog[open]) {
   transition: opacity 0.3s ease, visibility 0.3s ease;
   overflow: hidden;
 }
+.emergency-overlay[open] { display: flex; }
+.emergency-overlay::backdrop { background: #230b13; }
 
 .emergency-overlay.active {
   opacity: 1;
@@ -2863,6 +2872,9 @@ html:has(.hunt-dialog[open]) {
   padding: 32px 24px;
   max-width: 520px;
   width: 92%;
+  max-height: calc(100dvh - 80px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   text-align: center;
   box-shadow: 0 0 50px rgba(239, 68, 68, 0.7), 0 20px 40px rgba(0, 0, 0, 0.8), inset 0 0 25px rgba(239, 68, 68, 0.3);
   color: #ffffff;
@@ -5098,3 +5110,43 @@ html:has(.hunt-dialog[open]) {
 #rsvp-section {
   scroll-margin-top: calc(var(--top-bar-height) + 12px);
 }
+
+/* Vouchers: um único fluxo de rolagem no painel, sem tabela dentro de tabela. */
+.admin-modal-card { overscroll-behavior-y: contain; scrollbar-gutter: stable; }
+.admin-vouchers-list { display: grid; gap: 12px; min-width: 0; }
+.admin-voucher-card { border: 1px solid; border-radius: 16px; padding: 16px; min-width: 0; font-size: 1rem; }
+.voucher-card-pink { background: #fdf2f8; border-color: #f9a8d4; color: #831843; }
+.voucher-card-blue { background: #eff6ff; border-color: #93c5fd; color: #1e3a8a; }
+.admin-voucher-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.admin-voucher-heading > div { flex: 1; min-width: min(100%, 190px); }
+.admin-voucher-heading strong, .admin-voucher-heading > div > span { display: block; overflow-wrap: anywhere; }
+.admin-voucher-heading > div > span { font-size: 0.875rem; margin-top: 4px; color: #475569; }
+.admin-voucher-card code { display: block; margin: 12px 0; font-size: 0.875rem; overflow-wrap: anywhere; }
+.admin-voucher-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; font-size: 0.875rem; }
+.admin-voucher-footer .btn-redeem-row { margin-left: auto; border: 0; border-radius: 10px; padding: 12px 14px; background: #15803d; color: #fff; min-height: 44px; cursor: pointer; font: inherit; font-weight: 700; }
+.voucher-delivery-state { color: #9a3412; }
+.voucher-delivery-state[data-redeemed="true"] { color: #166534; }
+.admin-empty-state { padding: 16px; text-align: center; color: #475569; }
+.footer-credit { font-size: 0.875rem; margin-top: 16px; color: #475569; }
+.footer-credit a { color: #1d4ed8; font-weight: 700; text-underline-offset: 3px; }
+.flight-outcome { position: absolute; inset: 0; z-index: 4; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px; text-align: center; background: radial-gradient(ellipse at 50% 35%, #183755f5, #071327fa); }
+.flight-outcome[hidden] { display: none; }
+.flight-outcome > strong { font-size: clamp(1.35rem, 5vw, 1.8rem); color: #fde68a; }
+.flight-outcome > span { max-width: 300px; font-size: 1rem; line-height: 1.5; color: #e2e8f0; }
+.flight-outcome-art { position: relative; width: 110px; height: 100px; display: grid; place-items: center; }
+.flight-result-symbol { display: block; font-size: 4rem; }
+.flight-result-orbit, .flight-result-spark { position: absolute; font-size: 2rem; color: #fde047; }
+.flight-result-orbit { left: 0; top: 6px; }
+.flight-result-spark { right: 0; bottom: 4px; }
+.flight-board[data-result="won"] .flight-outcome { animation: flightResultReveal 0.55s ease-out both; }
+.flight-board[data-result="won"] .flight-result-symbol { animation: flightMedalArrive 0.9s cubic-bezier(.2,.8,.2,1.3) both; }
+.flight-board[data-result="won"] .flight-result-orbit, .flight-board[data-result="won"] .flight-result-spark { animation: flightSparkle 1.5s 3 ease-in-out alternate; }
+.flight-board[data-result="lost"] .flight-outcome { animation: flightResultReveal 0.65s ease-out both; }
+.flight-board[data-result="lost"] .flight-result-symbol { animation: flightRescue 2.2s 2 ease-in-out; }
+.flight-board[data-result="lost"] .flight-result-orbit, .flight-board[data-result="lost"] .flight-result-spark { color: #93c5fd; }
+@keyframes flightResultReveal { from { opacity: 0; } to { opacity: 1; } }
+@keyframes flightMedalArrive { from { transform: translateY(55px) scale(.2) rotate(-100deg); opacity: 0; } to { transform: translateY(0) scale(1) rotate(0); opacity: 1; } }
+@keyframes flightSparkle { from { transform: scale(.5) rotate(0); opacity: .4; } to { transform: scale(1.2) rotate(40deg); opacity: 1; } }
+@keyframes flightRescue { 0%, 100% { transform: translateY(0) rotate(-20deg); } 50% { transform: translateY(-14px) rotate(8deg); } }
+@media (max-width: 480px) { .admin-voucher-heading { display: block; } .admin-voucher-heading .voucher-category { margin-top: 10px; } .admin-voucher-footer .btn-redeem-row { width: 100%; margin: 0; } .emergency-modal-card { padding: 20px 14px; width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .flight-outcome, .flight-outcome-art span, body.emergency-screen-shake .page-wrapper, .emergency-overlay * { animation: none !important; transition: none !important; } }

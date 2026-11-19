@@ -26,7 +26,7 @@ Site de convite digital cinematográfico, animado e interativo, inspirado no uni
 3. **🚀 Missão Intergaláctica do Buzz (Star Command):**
    - Espaço cósmico com estrelas cintilantes, nebulosas e planetas.
    - Foguete espacial interativo do Buzz com chama animada.
-   - Minijogo **Rota estelar** com voo contínuo, velocidade progressiva e rotas sorteadas: colete 6 estrelas e desvie dos asteroides com 2 pontos de escudo.
+   - Minijogo **Rota estelar** com voo contínuo, velocidade progressiva e rotas sorteadas: colete 10 estrelas e desvie dos asteroides com 2 pontos de escudo.
    - Controle por toque, arrasto ou teclado; pausa manual e automática ao sair da aba. A preferência por movimento reduzido ativa o modo por comandos.
    - A missão concluída revela as coordenadas holográficas. Testes da engine: `npm run test:flight`.
    - Botões para Google Maps, Waze, Copiar Endereço e Google Agenda.
@@ -139,3 +139,17 @@ http://SEU_IP_LOCAL:3000
 Com amor, Família do Noah • Noah Story 1º Aninho! 🤠🚀
 
 - O formulário exige nome e idade (0–17) de cada criança ou pré-adolescente, sem idade pré-selecionada. A aba **Vouchers** registra uma linha por beneficiário: rosa para 0–12 e azul para 13–17, com responsável, quantidade e entrega. As mesmas cores aparecem no ingresso e no painel dos pais. Códigos de vouchers anteriores e baixas já realizadas são preservados.
+
+
+Ativação oficial em 19/11/2026:
+- Planilha e arquivos de dados foram zerados após backup. As abas, os cabeçalhos e as regras de cor foram preservados.
+- A campanha `noah-live-20261119-01` limpa o progresso de teste de cada aparelho na primeira visita à versão nova. Envios antigos sem essa identificação são recusados pelo servidor e pelo Apps Script.
+- A fila só considera a confirmação de presença entregue após a confirmação identificada da planilha. Uma falha de conexão mantém a resposta guardada para nova tentativa.
+- A lista de vouchers do painel usa cartões responsivos e acompanha a rolagem do painel, sem uma segunda rolagem vertical.
+- O botão vermelho abre um diálogo preso à tela. O jogo exige 10 estrelas, com voo ampliado e telas de vitória e resgate; a preferência de movimento reduzido continua respeitada.
+- Crédito no rodapé: 2type · @2typeofc.
+- O backup completo da planilha está guardado no Google Drive do responsável. O link é entregue separadamente e não faz parte do código público.
+- Backup local dos dados: `data/backups/pre-ativacao-20261119/` (fora do Git e da rota pública).
+- A publicação do HTML, CSS e JS deve usar os arquivos desta versão juntos, incluindo a configuração de campanha. Uma versão pública antiga será recusada pela integração até ser atualizada.
+
+Publicação na Vercel: `npm run build` gera `dist/` com apenas HTML, CSS, JavaScript e assets do convite. O arquivo `vercel.json` aponta a publicação para esse diretório. Na hospedagem estática, o navegador usa diretamente o Apps Script; o painel consulta a mesma planilha.
