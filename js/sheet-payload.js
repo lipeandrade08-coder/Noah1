@@ -1,4 +1,9 @@
 function NoahSheetPayload(record, kind, revision = record.sheetSync?.revision) {
+  if (kind === 'message') {
+    return { kind, recordId: record.rsvpId ? 'rsvp-' + record.rsvpId : record.id, revision,
+      issuedAt: record.updatedAt || record.createdAt, nome: record.author, mensagem: record.message,
+      rsvpId: record.rsvpId || '', origem: record.rsvpId ? 'rsvp' : 'capsule' };
+  }
   if (kind === 'hunter') {
     return {
       kind, recordId: record.id, revision,

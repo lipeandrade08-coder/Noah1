@@ -1053,16 +1053,17 @@
           <form id="capsule-form">
             <div class="form-group" style="text-align: left;">
               <label for="capsule-author" class="form-label">De quem é a mensagem? (Seu Nome / Família):</label>
-              <input type="text" id="capsule-author" class="form-input" placeholder="Ex: Titios Bruno e Camila, Padrinhos, Vovó..." required>
+              <input type="text" id="capsule-author" class="form-input" placeholder="Ex: Titios Bruno e Camila, Padrinhos, Vovó..." maxlength="160" required>
             </div>
             <div class="form-group" style="text-align: left;">
               <label for="capsule-message" class="form-label">Escreva para o Pequeno Xerife Noah:</label>
-              <textarea id="capsule-message" class="form-textarea" rows="4" placeholder="Querido Xerife Noah, quando você crescer e abrir esta cápsula, queremos que saiba que..." required></textarea>
+              <textarea id="capsule-message" class="form-textarea" rows="4" placeholder="Querido Xerife Noah, quando você crescer e abrir esta cápsula, queremos que saiba que..." maxlength="5000" required></textarea>
             </div>
             <button type="submit" class="btn-send-capsule" id="btn-send-capsule">
               🤠 ENVIAR PARA O PEQUENO XERIFE! 💌
             </button>
           </form>
+          <p id="capsule-delivery-status" role="status"></p>
         </div>
 
         <!-- Mensagens do Mural -->
@@ -1283,6 +1284,11 @@
         </div>
 
         <!-- CARDS DE ESTATÍSTICAS RÁPIDAS -->
+        <div class="admin-data-toolbar">
+          <p id="admin-data-status" role="status">Carregando dados da planilha...</p>
+          <button type="button" class="btn-pill btn-maps" id="admin-refresh-data">Atualizar resumo</button>
+          <button type="button" class="btn-pill btn-copy" id="admin-logout">Sair</button>
+        </div>
         <div class="admin-stats-grid">
           <div class="admin-stat-card">
             <div class="admin-stat-num" id="stat-total-rsvps">0</div>
@@ -1298,17 +1304,26 @@
           </div>
           <div class="admin-stat-card" style="border-color: #f59e0b;">
             <div class="admin-stat-num" style="color: #b45309;" id="stat-kids">0</div>
-            <div class="admin-stat-label">Crianças (0-12)</div>
+            <div class="admin-stat-label">Crianças e Jovens</div>
           </div>
           <div class="admin-stat-card" style="border-color: #3b82f6;">
-            <div class="admin-stat-num" style="color: #1d4ed8;" id="stat-teens">0</div>
-            <div class="admin-stat-label">Teens (13-16)</div>
+            <div class="admin-stat-num" style="color: #1d4ed8;" id="stat-badges">0</div>
+            <div class="admin-stat-label">Distintivos Conquistados</div>
           </div>
           <div class="admin-stat-card" style="border-color: #ef4444; background: #fef2f2;">
             <div class="admin-stat-num" style="color: #b91c1c;" id="stat-favors">0</div>
             <div class="admin-stat-label">Lembrancinhas Previstas</div>
           </div>
+          <div class="admin-stat-card">
+            <div class="admin-stat-num" id="stat-messages">0</div>
+            <div class="admin-stat-label">Recados para o Noah</div>
+          </div>
+          <div class="admin-stat-card">
+            <div class="admin-stat-num" id="stat-declined">0</div>
+            <div class="admin-stat-label">Ausentes / Cancelados</div>
+          </div>
         </div>
+        <p id="admin-summary-note"></p>
 
         <!-- NAVEGAÇÃO DE ABAS DO PAINEL -->
         <div class="admin-tabs">
@@ -1337,6 +1352,7 @@
                   <th>Adultos</th>
                   <th>Crianças</th>
                   <th>Lembrancinhas</th>
+                  <th>Distintivo</th>
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -1408,7 +1424,7 @@
             
             <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
               <button type="button" class="btn-pill btn-maps" id="btn-test-script-url" style="font-size: 0.85rem; padding: 8px 14px;">
-                🧪 Testar Envio na Planilha Agora
+                🧪 Conferir conexão com a planilha
               </button>
               <button type="button" class="btn-pill btn-calendar" id="btn-sync-all-to-sheets" style="font-size: 0.85rem; padding: 8px 14px; background: #8b5cf6;">
                 🔄 Enviar Todas as Confirmações Salvas
@@ -1434,6 +1450,8 @@
 
   <script defer src="js/config.js"></script>
   <script defer src="js/sheet-payload.js"></script>
+  <script defer src="js/records.js"></script>
+  <script defer src="js/data-api.js"></script>
   <script defer src="js/delivery.js"></script>
   <script defer src="js/hunt.js"></script>
   <script defer src="js/flight-engine.js"></script>

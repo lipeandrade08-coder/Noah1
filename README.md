@@ -98,7 +98,7 @@ Site de convite digital cinematográfico, animado e interativo, inspirado no uni
 
 ## 🚀 Como Executar o Projeto
 
-O servidor Node.js já está pronto e rodando localmente!
+Execute `npm start` na pasta do projeto para iniciar o servidor local.
 
 ### 1. No Computador:
 Abra seu navegador favorito (Chrome, Edge, Firefox, Safari) e acesse:
@@ -122,6 +122,16 @@ http://SEU_IP_LOCAL:3000
 - A barra superior informa sua altura ao layout para não cobrir as seções ao navegar. Seus controles e os botões de fechar têm áreas de toque de pelo menos 44 px em telas sensíveis ao toque.
 - O formulário aceita novos envios do mesmo aparelho. O mesmo telefone atualiza a confirmação e preserva o código do ingresso no servidor.
 - Apagar linhas da planilha não apaga os registros do servidor nem o progresso da caça e o distintivo salvos no navegador. Um reinício completo precisa tratar cada uma dessas cópias.
+
+### Painel dos pais e recados
+
+- Com a integração configurada, o painel lê a planilha como origem dos convidados, distintivos e recados, tanto no Node quanto em hospedagem estática. A senha é validada no servidor ou Apps Script; fica somente na memória da sessão.
+- O resumo mostra respostas, pessoas confirmadas, adultos, crianças e jovens, distintivos, lembrancinhas e recados. Dados antigos sem idades ou ingresso ficam sinalizados, sem inventar informações.
+- O painel atualiza ao abrir, pelo botão **Atualizar resumo** e a cada 30 segundos enquanto estiver aberto. Uma falha mantém a última leitura e mostra o erro.
+- A cápsula entrega as cartas na aba **Recados para o Noah**, com remetente, destinatário, texto e data. O painel também inclui os recados antigos do formulário de presença. O mural público recebe apenas textos e nomes, sem telefones ou códigos de ingresso.
+- Recados são guardados antes do envio e só recebem confirmação após a gravação. Falhas ficam na fila para nova tentativa; reabrir o convite recupera também mensagens de versões anteriores guardadas naquele navegador.
+- Cancelar presença e arquivar recado preservam o conteúdo na planilha. As entregas de vouchers ficam em **Entregas de lembrancinhas** para impedir uma segunda baixa.
+- Testes: `npm test` (regras do resumo, Apps Script, fila de entrega e integração do servidor com uma planilha simulada).
 
 ---
 

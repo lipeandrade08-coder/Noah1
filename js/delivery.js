@@ -10,6 +10,7 @@ const NoahDelivery = (() => {
   }
 
   function enqueue(kind, record) {
+    if (kind === "message" && record.rsvpId) record = { ...record, id: "rsvp-" + record.rsvpId };
     const items = read().filter(item => !(item.kind === kind && item.record.id === record.id));
     items.push({ kind, record, revision: createId() });
     write(items);
@@ -19,14 +20,24 @@ const NoahDelivery = (() => {
     let response;
     let recognizedServer = false;
     try {
-      response = await fetch(item.kind === "hunter" ? "/api/hunters" : "/api/rsvp", {
+      const paths = { hunter: "/api/hunters", rsvp: "/api/rsvp", message: "/api/messages" };
+      response = await fetch(paths[item.kind], {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(item.record), signal: AbortSignal.timeout(12000)
       });
       if (response.ok) {
         const answer = await response.json();
         recognizedServer = typeof answer.success === "boolean";
-        if (answer.success) return answer;
+        if (answer.success) {
+          if (item.kind === "message" && !["sheet", "server"].includes(answer.destination)) {
+            recognizedServer = false;
+            throw new Error("O servidor antigo não confirmou o destino do recado.");
+          }
+          if (item.kind === "message" && answer.destination === "sheet" && answer.message?.sheetSync?.status !== "synced") {
+            throw new Error("O recado está no servidor e aguarda confirmação na planilha.");
+          }
+          return answer;
+        }
         throw new Error(answer.message || "Envio pendente");
       }
       if (response.status !== 404 && response.status !== 405) throw new Error("O servidor não confirmou o envio.");
@@ -55,7 +66,7 @@ const NoahDelivery = (() => {
       record.code = result.code;
     }
     record.sheetSync = { status: "synced", revision: item.revision };
-    return { success: true, rsvp: record, hunter: record };
+    return { success: true, rsvp: record, hunter: record, message: record, destination: "sheet" };
   }
 
   async function flush() {
@@ -64,16 +75,21 @@ const NoahDelivery = (() => {
       for (const item of read()) {
         try {
           const answer = await deliver(item);
-          const record = item.kind === "hunter" ? answer.hunter : answer.rsvp;
+          const record = item.kind === "hunter" ? answer.hunter : item.kind === "message" ? answer.message : answer.rsvp;
           if (!record) throw new Error("Confirmação incompleta");
           if (item.kind === "hunter" && (record.rsvpId !== item.record.rsvpId ||
               record.ticketCode !== item.record.ticketCode || record.sheetSync?.status !== "synced")) {
             throw new Error("O distintivo aguarda o formulário e a gravação na planilha.");
           }
           if (item.kind === "rsvp") record.deliveryConfirmedAt = new Date().toISOString();
+          if (item.kind === "message") {
+            record.deliveryConfirmedAt = new Date().toISOString();
+            record.destination = answer.destination || "sheet";
+          }
           const current = read();
           if (!current.some(entry => entry.revision === item.revision)) continue;
           if (item.kind === "rsvp") saveRsvpLocally(record);
+          else if (item.kind === "message") saveMessageLocally(record);
           else localStorage.setItem("noah_alien_badge_v2", JSON.stringify(record));
           write(current.filter(entry => entry.revision !== item.revision));
           document.dispatchEvent(new CustomEvent("noah:delivered", { detail: { kind: item.kind, record } }));
@@ -94,6 +110,12 @@ const NoahDelivery = (() => {
       if (!localStorage.getItem("noah_delivery_migrated_v2")) {
         previous.forEach(record => { if (record.id && !record.id.startsWith("rsvp_sample_")) enqueue("rsvp", record); });
         localStorage.setItem("noah_delivery_migrated_v2", "1");
+      }
+      if (!localStorage.getItem("noah_messages_migrated_v1")) {
+        const messages = JSON.parse(localStorage.getItem("noah_story_messages") || "[]");
+        messages.filter(message => message.author && message.message && !["archived", "deleted"].includes(message.status))
+          .forEach(message => enqueue("message", { ...message, id: message.id || createId() }));
+        localStorage.setItem("noah_messages_migrated_v1", "1");
       }
       void flush();
     } catch (error) { console.warn("Não foi possível recuperar a fila local:", error); }

@@ -2,7 +2,8 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { randomUUID } = require('crypto');
-const { markPending, toSheetPayload, postToSheets } = require('./lib/sheets');
+const { markPending, toSheetPayload, postToSheets, requestSheet } = require('./lib/sheets');
+const NoahRecords = require('./js/records');
 
 const PORT = Number(process.env.PORT) || 3000;
 const DATA_DIR = process.env.NOAH_DATA_DIR || path.join(__dirname, 'data');
@@ -101,6 +102,7 @@ function parseBody(req) {
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, {
     'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'no-store',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization'
@@ -148,7 +150,7 @@ function generateVouchers(ticketCode, childrenDetails = []) {
 
 // Os próprios registros guardam a fila, inclusive após reiniciar o servidor.
 let sheetsRunning = false;
-const sheetSources = [[RSVPS_FILE, 'rsvp'], [HUNTERS_FILE, 'hunter']];
+const sheetSources = [[RSVPS_FILE, 'rsvp'], [HUNTERS_FILE, 'hunter'], [MESSAGES_FILE, 'message']];
 
 async function flushSheets(force = false) {
   if (sheetsRunning) return;
@@ -159,6 +161,7 @@ async function flushSheets(force = false) {
     for (const [file, kind] of sheetSources) {
       const pending = readJsonFile(file).filter(record =>
         !String(record.id || '').startsWith('rsvp_sample_') && record.sheetSync?.status !== 'synced' &&
+        !['archived', 'deleted'].includes(record.status) &&
         (force || (record.sheetSync?.nextAttemptAt || 0) <= Date.now()));
       for (const initial of pending) {
         const records = readJsonFile(file);
@@ -294,6 +297,57 @@ async function handleRequest(req, res) {
   // ==========================================
   // API ENDPOINTS
   // ==========================================
+
+  if (pathname === '/api/invite-data' && req.method === 'POST') {
+    const data = await parseBody(req);
+    if (!['dashboard', 'publicMessages', 'archiveMessage', 'cancelRsvp', 'redeemVoucher'].includes(data.action)) {
+      return sendJson(res, 400, { success: false, message: 'Consulta desconhecida.' });
+    }
+    const endpoint = readJsonFile(SETTINGS_FILE).googleScriptUrl;
+    if (endpoint) {
+      try {
+        const answer = await requestSheet(endpoint, data);
+        return sendJson(res, 200, { ...answer, success: true });
+      } catch (error) {
+        return sendJson(res, /[Ss]enha/.test(error.message) ? 401 : 502, { success: false, message: error.message });
+      }
+    }
+    if (data.action !== 'publicMessages' && data.password !== (process.env.NOAH_ADMIN_PASSWORD || 'noah2027')) {
+      return sendJson(res, 401, { success: false, message: 'Senha dos pais incorreta.' });
+    }
+    const rsvps = readJsonFile(RSVPS_FILE);
+    const stored = readJsonFile(MESSAGES_FILE);
+    const messages = NoahRecords.messages(rsvps, stored);
+    if (data.action === 'publicMessages') return sendJson(res, 200, { success: true, messages: messages.filter(item => item.status === 'approved').slice(0, 6).map(item => ({
+      id: item.id, author: item.author, message: item.message, recipient: 'Pequeno Xerife Noah', createdAt: item.createdAt, status: item.status
+    })) });
+    if (data.action === 'dashboard') return sendJson(res, 200, { success: true, source: 'server',
+      updatedAt: new Date().toISOString(), rsvps, messages });
+    if (data.action === 'cancelRsvp') {
+      const record = rsvps.find(item => item.id === data.id);
+      if (!record) return sendJson(res, 404, { success: false, message: 'Confirmação não encontrada.' });
+      record.presence = 'Cancelado';
+      record.updatedAt = new Date().toISOString();
+      writeJsonFile(RSVPS_FILE, rsvps);
+      return sendJson(res, 200, { success: true, message: 'Presença cancelada.' });
+    }
+    if (data.action === 'archiveMessage') {
+      const message = messages.find(item => item.id === data.id);
+      if (!message) return sendJson(res, 404, { success: false, message: 'Recado não encontrado.' });
+      const record = stored.find(item => item.id === data.id);
+      if (record) record.status = 'archived';
+      else stored.push({ ...message, status: 'archived' });
+      writeJsonFile(MESSAGES_FILE, stored);
+      return sendJson(res, 200, { success: true, message: 'Recado arquivado.' });
+    }
+    const record = rsvps.find(item => item.presence === 'Confirmado' && (item.vouchers || []).some(voucher => voucher.code === data.code));
+    const voucher = record?.vouchers.find(item => item.code === data.code);
+    if (!voucher || voucher.redeemed) return sendJson(res, 400, { success: false, message: voucher ? 'Este voucher já foi entregue.' : 'Voucher não encontrado.' });
+    voucher.redeemed = true;
+    voucher.redeemedAt = new Date().toISOString();
+    writeJsonFile(RSVPS_FILE, rsvps);
+    return sendJson(res, 200, { success: true, message: 'Lembrancinha entregue para ' + voucher.childName + '.' });
+  }
 
   // 1. POST /api/rsvp (Criar ou atualizar confirmação de presença)
   if (pathname === '/api/rsvp' && req.method === 'POST') {
@@ -499,18 +553,29 @@ async function handleRequest(req, res) {
       }
 
       const messages = readJsonFile(MESSAGES_FILE);
-      const newMsg = {
-        id: `msg_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      if (String(data.author).length > 160 || String(data.message).length > 5000) {
+        return sendJson(res, 400, { success: false, message: 'Nome ou recado ultrapassa o tamanho permitido.' });
+      }
+      const id = data.rsvpId ? 'rsvp-' + data.rsvpId : data.id || 'msg_' + randomUUID();
+      const existing = messages.find(item => item.id === id);
+      const newMsg = existing || {
+        id,
         author: data.author.trim(),
         message: data.message.trim(),
         theme: data.theme || 'woody',
         status: data.autoApprove ? 'approved' : 'approved',
-        createdAt: new Date().toISOString()
+        createdAt: data.createdAt || new Date().toISOString(), recipient: 'Pequeno Xerife Noah',
+        rsvpId: data.rsvpId || '', source: data.rsvpId ? 'rsvp' : 'capsule'
       };
-
-      messages.unshift(newMsg);
-      writeJsonFile(MESSAGES_FILE, messages);
-      return sendJson(res, 201, { success: true, message: newMsg });
+      if (!existing) {
+        markPending(newMsg);
+        messages.unshift(newMsg);
+        writeJsonFile(MESSAGES_FILE, messages);
+      }
+      const endpoint = readJsonFile(SETTINGS_FILE).googleScriptUrl;
+      if (endpoint && newMsg.sheetSync?.status !== 'synced') await flushSheets(true);
+      const saved = readJsonFile(MESSAGES_FILE).find(item => item.id === id);
+      return sendJson(res, existing ? 200 : 201, { success: true, message: saved, destination: endpoint ? 'sheet' : 'server' });
     } catch (err) {
       return sendJson(res, 500, { success: false, message: 'Erro ao salvar recado.' });
     }
@@ -668,6 +733,12 @@ async function handleRequest(req, res) {
   let reqPath = decodedPath === '/' ? 'index.html' : decodedPath;
   let safePath = path.normalize(reqPath).replace(/^(\.\.[\/\\])+/, '');
   let filePath = path.join(__dirname, safePath);
+  const relative = path.relative(__dirname, filePath).split(path.sep).join('/');
+  if (relative.startsWith('../') || path.isAbsolute(relative) ||
+      (!['index.html', 'card.html'].includes(relative) && !/^(assets|css|js)\//.test(relative))) {
+    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    return res.end('404 Not Found');
+  }
 
   fs.stat(filePath, (err, stats) => {
     if (err) {

@@ -13,7 +13,8 @@ function textoNoah(value) {
 }
 
 function abaNoah(book, kind) {
-  var names = { rsvp: "Confirmações", hunter: "Caçadores de aliens", badge: "Distintivos", test: "Teste de conexão" };
+  var names = { rsvp: "Confirmações", hunter: "Caçadores de aliens", badge: "Distintivos", test: "Teste de conexão",
+    message: "Recados para o Noah", delivery: "Entregas de lembrancinhas" };
   var sheet = book.getSheetByName(names[kind]);
   if (!sheet && kind === "rsvp") {
     var all = book.getSheets();
@@ -34,7 +35,9 @@ function abaNoah(book, kind) {
       "ID da confirmação", "WhatsApp / Telefone", "Código do ingresso", "Distintivo"],
     badge: ["Nome do Convidado", "WhatsApp / Telefone", "Status de Presença", "Distintivo",
       "Código do distintivo", "Código do ingresso", "ID da confirmação", "Data da conquista"],
-    test: ["ID", "Teste em", "Revisão"]
+    test: ["ID", "Teste em", "Revisão"],
+    message: ["ID", "Enviado em", "De", "Para", "Mensagem", "Origem", "ID da confirmação", "Status", "Revisão", "Atualizado em"],
+    delivery: ["Código do voucher", "Entregue em", "Criança", "Responsável", "Quantidade", "ID da confirmação"]
   };
   var headers = columns[kind];
   sheet.getRange(1, 1, 1, headers.length).setValues([headers])
@@ -46,6 +49,131 @@ function abaNoah(book, kind) {
 function linhasNoah(sheet, width) {
   return sheet.getLastRow() > 1
     ? sheet.getRange(2, 1, sheet.getLastRow() - 1, width).getValues() : [];
+}
+
+function dataISOnoah(value) {
+  return value instanceof Date ? value.toISOString() : String(value || "");
+}
+
+function confirmacoesNoah(book) {
+  return linhasNoah(abaNoah(book, "rsvp"), 16).map(function(row, index) {
+    if (!row[1]) return null;
+    var children = [];
+    try { children = JSON.parse(String(row[10] || "[]")); } catch (ignored) {}
+    if (!Array.isArray(children)) children = [];
+    return { id: String(row[8] || "sheet-row-" + (index + 2)), name: String(row[1]), presence: String(row[2]),
+      adults: Number(row[3]) || 0, children: Number(row[4]) || 0, companions: String(row[5] || ""),
+      phone: String(row[6] || ""), message: String(row[7] || ""), ticketCode: String(row[9] || ""),
+      childrenDetails: children, createdAt: dataISOnoah(row[0]), updatedAt: dataISOnoah(row[12]),
+      badgeStatus: row[13] === "Sim" ? "Sim" : "Não", badgeCode: String(row[14] || ""),
+      completedAt: dataISOnoah(row[15]), sheetSync: { status: "synced" } };
+  }).filter(Boolean);
+}
+
+function recadosNoah(book, registrations) {
+  var messages = linhasNoah(abaNoah(book, "message"), 10).filter(function(row) { return row[0]; }).map(function(row) {
+    return { id: String(row[0]), createdAt: dataISOnoah(row[1]), author: String(row[2] || ""),
+      recipient: String(row[3] || "Pequeno Xerife Noah"), message: String(row[4] || ""), source: String(row[5] || "capsule"),
+      rsvpId: String(row[6] || ""), status: String(row[7] || "approved"), sheetSync: { status: "synced" } };
+  });
+  registrations.forEach(function(record) {
+    if (!record.message.trim() || messages.some(function(item) { return item.rsvpId === record.id; })) return;
+    messages.push({ id: "rsvp-" + record.id, author: record.name, message: record.message, rsvpId: record.id,
+      recipient: "Pequeno Xerife Noah", source: "rsvp", status: "approved", createdAt: record.updatedAt || record.createdAt });
+  });
+  return messages.filter(function(item) { return item.status === "approved"; }).sort(function(a, b) {
+    return String(b.createdAt).localeCompare(String(a.createdAt));
+  });
+}
+
+function gravarRecadoNoah(book, data) {
+  if (!String(data.nome || "").trim() || !String(data.mensagem || "").trim()) throw new Error("Nome e recado são obrigatórios.");
+  if (String(data.nome).length > 160 || String(data.mensagem).length > 5000) throw new Error("O recado ultrapassa o tamanho permitido.");
+  var id = data.rsvpId ? "rsvp-" + data.rsvpId : String(data.recordId || "");
+  if (!id || id.length > 120 || !data.revision) throw new Error("Recado sem identificação.");
+  var sheet = abaNoah(book, "message");
+  var entries = linhasNoah(sheet, 10);
+  var index = entries.findIndex(function(row) { return String(row[0]) === id; });
+  var previous = index >= 0 ? entries[index] : null;
+  var issued = data.issuedAt || new Date().toISOString();
+  if (!previous || (String(previous[9]) <= String(issued) && previous[7] !== "archived")) {
+    sheet.getRange(index >= 0 ? index + 2 : sheet.getLastRow() + 1, 1, 1, 10).setValues([[
+      id, previous ? previous[1] : issued, textoNoah(data.nome), "Pequeno Xerife Noah", textoNoah(data.mensagem),
+      data.rsvpId ? "rsvp" : "capsule", String(data.rsvpId || ""), "approved", data.revision, issued
+    ]]);
+  }
+  SpreadsheetApp.flush();
+  var row = linhasNoah(sheet, 10).find(function(item) { return String(item[0]) === id; });
+  if (!row || (!previous && String(row[8]) !== String(data.revision))) throw new Error("A leitura não confirmou o recado.");
+  return { result: "success", recordId: id, revision: data.revision, message: "Recado endereçado ao Noah e confirmado na planilha." };
+}
+
+function painelNoah(book) {
+  var registrations = confirmacoesNoah(book);
+  return { result: "success", source: "sheet", updatedAt: new Date().toISOString(), rsvps: registrations,
+    messages: recadosNoah(book, registrations), deliveries: linhasNoah(abaNoah(book, "delivery"), 6).map(function(row) {
+      return { code: String(row[0]), redeemed: true, redeemedAt: dataISOnoah(row[1]) };
+    }) };
+}
+
+function acaoNoah(book, data) {
+  if (data.action === "publicMessages") {
+    // A consulta pública devolve somente recados aprovados; nunca telefones ou ingressos.
+    return { result: "success", messages: recadosNoah(book, confirmacoesNoah(book)).slice(0, 6).map(function(item) {
+      return { id: item.id, author: item.author, message: item.message, recipient: item.recipient, createdAt: item.createdAt, status: "approved" };
+    }) };
+  }
+  var password = PropertiesService.getScriptProperties().getProperty("NOAH_ADMIN_PASSWORD") || "noah2027";
+  if (!data.password || String(data.password) !== password) throw new Error("Senha dos pais incorreta.");
+  if (data.action === "dashboard") return painelNoah(book);
+  if (data.action === "archiveMessage") {
+    var registrations = confirmacoesNoah(book);
+    var message = recadosNoah(book, registrations).find(function(item) { return item.id === data.id; });
+    var sheet = abaNoah(book, "message");
+    var rows = linhasNoah(sheet, 10);
+    var index = rows.findIndex(function(row) { return String(row[0]) === String(data.id); });
+    if (index < 0 && message) {
+      gravarRecadoNoah(book, { recordId: message.id, rsvpId: message.rsvpId, nome: message.author,
+        mensagem: message.message, revision: Utilities.getUuid(), issuedAt: new Date().toISOString() });
+      index = linhasNoah(sheet, 10).findIndex(function(row) { return String(row[0]) === String(data.id); });
+    }
+    if (index < 0) throw new Error("Recado não encontrado.");
+    sheet.getRange(index + 2, 8).setValue("archived");
+    return { result: "success", message: "Recado arquivado. O texto continua guardado na planilha." };
+  }
+  if (data.action === "cancelRsvp") {
+    var sheet = abaNoah(book, "rsvp");
+    var rows = linhasNoah(sheet, 16);
+    var index = rows.findIndex(function(row, index) { return String(row[8] || "sheet-row-" + (index + 2)) === String(data.id); });
+    if (index < 0) throw new Error("Confirmação não encontrada.");
+    sheet.getRange(index + 2, 3).setValue("Cancelado");
+    sheet.getRange(index + 2, 13).setValue(new Date().toISOString());
+    atualizarDistintivosNoah(book, sheet.getRange(index + 2, 1, 1, 16).getValues()[0]);
+    return { result: "success", message: "Presença cancelada. O registro continua guardado na planilha." };
+  }
+  if (data.action === "redeemVoucher") {
+    var match;
+    confirmacoesNoah(book).forEach(function(record) {
+      if (record.presence !== "Confirmado") return;
+      var sequence = 1;
+      record.childrenDetails.forEach(function(child) {
+        if (child.age === "" || child.age === null || child.age === undefined) return;
+        var age = Number(child.age);
+        if (!Number.isInteger(age) || age < 0 || age > 16 || !record.ticketCode) return;
+        var type = age <= 12 ? "RED" : "GOLD";
+        var code = "VOUCH-" + type + "-" + record.ticketCode.replace("NOAH-1-", "") + "-" + sequence++;
+        if (code === data.code) match = { code: code, name: child.name || "Criança", guest: record.name, qty: age <= 12 ? 2 : 1, id: record.id };
+      });
+    });
+    if (!match) throw new Error("Voucher não encontrado entre as presenças confirmadas.");
+    var deliveries = abaNoah(book, "delivery");
+    if (linhasNoah(deliveries, 6).some(function(row) { return String(row[0]) === match.code; })) throw new Error("Este voucher já foi entregue.");
+    deliveries.getRange(deliveries.getLastRow() + 1, 1, 1, 6).setValues([[
+      match.code, new Date().toISOString(), textoNoah(match.name), textoNoah(match.guest), match.qty, match.id
+    ]]);
+    return { result: "success", message: "Lembrancinha entregue para " + match.name + " (" + match.qty + " itens)." };
+  }
+  throw new Error("Ação desconhecida. Atualize a implantação do Apps Script.");
 }
 
 function atualizarDistintivosNoah(book, registration) {
@@ -149,14 +277,16 @@ function doPost(e) {
     var data;
     try { data = JSON.parse(e.postData.contents); }
     catch (ignored) { data = e.parameter || {}; }
-    var kind = data.kind || "rsvp";
-    if (["rsvp", "hunter", "test"].indexOf(kind) === -1) throw new Error("Tipo de registro inválido.");
     var book = SpreadsheetApp.getActiveSpreadsheet();
     if (!book) throw new Error("Este Apps Script precisa estar vinculado à planilha do convite.");
+    if (data.action) return respostaNoah(acaoNoah(book, data));
+    var kind = data.kind || "rsvp";
+    if (["rsvp", "hunter", "message", "test"].indexOf(kind) === -1) throw new Error("Tipo de registro inválido.");
     var id = String(data.recordId || data.codigoIngresso || ("legacy-" + (data.telefone || data.nome || "")));
     if (id === "legacy-") throw new Error("Registro sem identificação.");
     data.recordId = id;
     data.revision = data.revision || ("legacy-" + new Date().toISOString());
+    if (kind === "message") return respostaNoah(gravarRecadoNoah(book, data));
     if (kind === "hunter") return registrarDistintivoNoah(book, data);
     if (kind === "test") {
       prepararDistintivosNoah(book);
@@ -195,6 +325,10 @@ function doPost(e) {
       sheet.getRange(row, 1, 1, 16).setValues([values]);
     }
     atualizarDistintivosNoah(book, sheet.getRange(row, 1, 1, 16).getValues()[0]);
+    if (!stale && String(data.mensagem || "").trim()) {
+      gravarRecadoNoah(book, { recordId: "rsvp-" + id, rsvpId: id, nome: data.nome,
+        mensagem: data.mensagem, revision: data.revision, issuedAt: issued });
+    }
     SpreadsheetApp.flush();
     if (String(sheet.getRange(row, 9).getValue()) !== String(stale ? existing[8] : id)) throw new Error("A leitura não confirmou a gravação.");
     if (!stale && String(sheet.getRange(row, 12).getValue()) !== String(data.revision)) throw new Error("A revisão gravada não confere.");
@@ -207,5 +341,5 @@ function doPost(e) {
 }
 
 function doGet() {
-  return respostaNoah({ result: "active", version: 3, message: "Distintivos vinculados ao formulário de presença." });
+  return respostaNoah({ result: "active", version: 5, message: "Painel dos pais e recados para o Noah conectados à planilha." });
 }

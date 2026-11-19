@@ -1804,7 +1804,26 @@ function initDigitalTicketActions() {
 // ==========================================
 function initTimeCapsule() {
   const form = document.getElementById("capsule-form");
-  const board = document.getElementById("capsule-messages-board");
+  const status = document.getElementById("capsule-delivery-status");
+  let latestMessageId;
+  try {
+    const saved = JSON.parse(localStorage.getItem("noah_story_messages") || "[]");
+    if (saved.some(message => NoahDelivery.pending("message", message.id))) {
+      status.textContent = "Há uma carta guardada neste aparelho aguardando confirmação de entrega. O convite tentará enviar novamente.";
+      status.dataset.pending = "true";
+    }
+  } catch {}
+  document.addEventListener("noah:delivered", event => {
+    if (event.detail.kind !== "message") return;
+    if (!latestMessageId || event.detail.record.id === latestMessageId) {
+      status.textContent = event.detail.record.destination === "server"
+        ? "Recado para o Noah recebido e guardado pelos pais."
+        : "Recado para o Noah confirmado na planilha e entregue aos pais!";
+      status.dataset.pending = "false";
+    }
+    void renderApprovedMessages();
+    if (AppState.adminAuthenticated) void refreshAdminData();
+  });
 
   if (form) {
     form.addEventListener("submit", async (e) => {
@@ -1819,47 +1838,29 @@ function initTimeCapsule() {
       btn.textContent = "🚀 GUARDANDO NA CÁPSULA...";
 
       const newMsg = {
+        id: NoahDelivery.createId(), createdAt: new Date().toISOString(),
         author: authorInput.value.trim(),
         message: messageInput.value.trim(),
-        theme: "woody",
-        autoApprove: true
+        recipient: "Pequeno Xerife Noah", source: "capsule", status: "approved"
       };
 
       try {
-        let saved = null;
-        try {
-          const res = await fetch("/api/messages", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newMsg)
-          });
-          if (res.ok) {
-            const data = await res.json();
-            saved = data.message;
-          }
-        } catch (apiErr) {
-          console.warn("API offline:", apiErr);
+        NoahDelivery.enqueue("message", newMsg);
+        latestMessageId = newMsg.id;
+        saveMessageLocally(newMsg);
+        status.textContent = "Enviando sua carta para o Noah...";
+        status.dataset.pending = "true";
+        await NoahDelivery.flush();
+        if (NoahDelivery.pending("message", newMsg.id)) {
+          status.dataset.pending = "true";
+          status.textContent = "Sua carta está guardada neste aparelho e aguarda confirmação de entrega. O convite tentará enviar novamente quando houver conexão.";
+        } else {
+          playFanfare();
+          triggerConfetti(40, 50);
         }
-
-        if (!saved) {
-          saved = {
-            id: `msg_${Date.now()}`,
-            ...newMsg,
-            status: "approved",
-            createdAt: new Date().toISOString()
-          };
-        }
-
-        saveMessageLocally(saved);
-        renderApprovedMessages();
-
-        playFanfare();
-        triggerConfetti(40, 50);
-        showNotification("💌 Carta endereçada ao Pequeno Xerife Noah e guardada com amor na Cápsula do Tempo!");
-
         form.reset();
       } catch (err) {
-        console.error("Erro ao salvar mensagem:", err);
+        status.textContent = "Não foi possível guardar sua carta. Seu texto continua no formulário; tente enviar novamente.";
       } finally {
         btn.disabled = false;
         btn.textContent = "🤠 ENVIAR PARA O PEQUENO XERIFE! 💌";
@@ -1871,6 +1872,7 @@ function initTimeCapsule() {
 function saveMessageLocally(msg) {
   try {
     let local = JSON.parse(localStorage.getItem("noah_story_messages") || "[]");
+    local = local.filter(item => item.id !== msg.id);
     local.unshift(msg);
     localStorage.setItem("noah_story_messages", JSON.stringify(local));
   } catch (e) {
@@ -1885,13 +1887,16 @@ async function renderApprovedMessages() {
   let messages = [];
 
   try {
-    const res = await fetch("/api/messages");
-    if (res.ok) {
-      const data = await res.json();
-      messages = data.messages || [];
-    }
+    const data = await NoahData.request("publicMessages");
+    if (!Array.isArray(data.messages)) throw new Error("Recados indisponíveis");
+    messages = data.messages;
   } catch (e) {
-    messages = JSON.parse(localStorage.getItem("noah_story_messages") || "[]");
+    try { messages = JSON.parse(localStorage.getItem("noah_story_messages") || "[]").filter(message => message.deliveryConfirmedAt); }
+    catch {}
+    if (!messages.length) {
+      board.textContent = "Os recados não puderam ser carregados agora. Suas cartas pendentes continuam guardadas neste aparelho.";
+      return;
+    }
   }
 
   board.innerHTML = "";
@@ -1923,244 +1928,177 @@ async function renderApprovedMessages() {
 // 15. PAINEL DOS PAIS (FILIPE & YASMIN) ⚙️
 // ==========================================
 function initAdminDashboard() {
-  const quickBtn = document.getElementById("admin-quick-btn");
   const modal = document.getElementById("admin-modal");
-  const loginScreen = document.getElementById("admin-login-screen");
-  const dashScreen = document.getElementById("admin-dashboard-screen");
-  const loginBtn = document.getElementById("btn-admin-login");
-  const passInput = document.getElementById("admin-password-input");
-  const loginErr = document.getElementById("admin-login-err");
-  const loginCloseBtn = document.getElementById("admin-login-close-btn");
-  const dashCloseBtn = document.getElementById("admin-dash-close-btn");
-
-  const closeAdminModal = () => {
-    if (modal) modal.classList.remove("open");
+  const login = document.getElementById("admin-login-screen");
+  const dashboard = document.getElementById("admin-dashboard-screen");
+  const password = document.getElementById("admin-password-input");
+  const loginError = document.getElementById("admin-login-err");
+  const loginButton = document.getElementById("btn-admin-login");
+  const showScreen = () => {
+    login.style.display = AppState.adminAuthenticated ? "none" : "block";
+    dashboard.style.display = AppState.adminAuthenticated ? "block" : "none";
   };
-  if (loginCloseBtn) loginCloseBtn.addEventListener("click", closeAdminModal);
-  if (dashCloseBtn) dashCloseBtn.addEventListener("click", closeAdminModal);
-
-  if (quickBtn && modal) {
-    quickBtn.addEventListener("click", () => {
-      modal.classList.add("open");
-      if (AppState.adminAuthenticated) {
-        if (loginScreen) loginScreen.style.display = "none";
-        if (dashScreen) dashScreen.style.display = "block";
-        refreshAdminData();
-      } else {
-        if (loginScreen) loginScreen.style.display = "block";
-        if (dashScreen) dashScreen.style.display = "none";
-      }
-    });
+  document.getElementById("admin-quick-btn").addEventListener("click", () => {
+    showScreen();
+    modal.classList.add("open");
+    if (AppState.adminAuthenticated) void refreshAdminData();
+  });
+  for (const id of ["admin-login-close-btn", "admin-dash-close-btn"]) {
+    document.getElementById(id).addEventListener("click", () => modal.classList.remove("open"));
   }
-
-  // Login de Administrador (Senha padrão: noah2027)
-  if (loginBtn && passInput) {
-    loginBtn.addEventListener("click", () => {
-      const pass = passInput.value.trim();
-      if (pass === "noah2027" || pass === "123456") {
-        AppState.adminAuthenticated = true;
-        if (loginErr) loginErr.textContent = "";
-        passInput.value = "";
-        if (loginScreen) loginScreen.style.display = "none";
-        if (dashScreen) dashScreen.style.display = "block";
-        refreshAdminData();
-      } else {
-        if (loginErr) loginErr.textContent = "Senha incorreta! Dica: ano da festa";
-      }
+  loginButton.addEventListener("click", async () => {
+    loginButton.disabled = true;
+    loginError.textContent = "Conectando ao controle dos pais...";
+    try {
+      const data = await NoahData.request("dashboard", { password: password.value });
+      NoahRecords.dashboard(data); // Valida o contrato antes de abrir o painel.
+      AppState.adminPassword = password.value;
+      AppState.adminAuthenticated = true;
+      password.value = "";
+      loginError.textContent = "";
+      showScreen();
+      await refreshAdminData(data);
+    } catch (error) { loginError.textContent = error.message; }
+    finally { loginButton.disabled = false; }
+  });
+  password.addEventListener("keydown", event => { if (event.key === "Enter" && !loginButton.disabled) loginButton.click(); });
+  document.getElementById("admin-logout").addEventListener("click", () => {
+    AppState.adminAuthenticated = false;
+    AppState.adminPassword = null;
+    AppState.rsvps = [];
+    AppState.messages = [];
+    showScreen();
+    password.focus();
+  });
+  document.getElementById("admin-refresh-data").addEventListener("click", () => void refreshAdminData());
+  setInterval(() => {
+    if (AppState.adminAuthenticated && modal.classList.contains("open") && !document.hidden) void refreshAdminData();
+  }, 30000);
+  document.querySelectorAll(".admin-tab-btn").forEach(button => button.addEventListener("click", () => {
+    document.querySelectorAll(".admin-tab-btn").forEach(item => item.classList.toggle("active", item === button));
+    document.querySelectorAll(".admin-tab-content").forEach(section => {
+      section.style.display = section.id === button.dataset.tab ? "block" : "none";
     });
-
-    passInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") loginBtn.click();
-    });
-  }
-
-  // Abas do Painel
-  const tabBtns = document.querySelectorAll(".admin-tab-btn");
-  tabBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      tabBtns.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      const targetId = btn.getAttribute("data-tab");
-      document.querySelectorAll(".admin-tab-content").forEach(content => {
-        content.style.display = content.id === targetId ? "block" : "none";
-      });
-    });
+  }));
+  document.getElementById("admin-guest-search").addEventListener("input", event => renderAdminGuestsTable(event.target.value.toLowerCase()));
+  document.getElementById("btn-validate-voucher").addEventListener("click", async event => {
+    const input = document.getElementById("voucher-code-input");
+    const status = document.getElementById("voucher-validation-feedback");
+    if (!input.value.trim()) return;
+    event.currentTarget.disabled = true;
+    try {
+      const answer = await adminAction("redeemVoucher", { code: input.value.trim() });
+      status.textContent = answer.message;
+      input.value = "";
+    } catch (error) { status.textContent = error.message; }
+    finally { document.getElementById("btn-validate-voucher").disabled = false; }
+  });
+  document.getElementById("btn-export-csv-direct").addEventListener("click", () => {
+    const cell = value => {
+      let text = String(value ?? "");
+      if (/^[-=+@]/.test(text)) text = "'" + text;
+      return '"' + text.replace(/"/g, '""') + '"';
+    };
+    const rows = [["Convidado", "Telefone", "Presença", "Adultos", "Crianças e jovens", "Distintivo", "Código do ingresso", "Recado para o Noah"]];
+    AppState.rsvps.forEach(record => rows.push([record.name, record.phone, record.presence, record.adults, record.children,
+      record.badgeStatus || "Não", record.ticketCode, record.message]));
+    const blob = new Blob(["\uFEFF" + rows.map(row => row.map(cell).join(";")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "resumo-pais-noah.csv";
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
   });
 
-  // Busca de convidados
-  const searchInput = document.getElementById("admin-guest-search");
-  if (searchInput) {
-    searchInput.addEventListener("input", (e) => {
-      renderAdminGuestsTable(e.target.value.toLowerCase());
-    });
-  }
-
-  // Validador de Vouchers de Lembrancinhas
-  const validateBtn = document.getElementById("btn-validate-voucher");
-  const voucherInput = document.getElementById("voucher-code-input");
-  const voucherFeedback = document.getElementById("voucher-validation-feedback");
-
-  if (validateBtn && voucherInput) {
-    validateBtn.addEventListener("click", async () => {
-      const code = voucherInput.value.trim();
-      if (!code) return;
-
-      try {
-        const res = await fetch("/api/vouchers/redeem", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code: code })
-        });
-        const data = await res.json();
-        if (data.success) {
-          playFanfare();
-          triggerConfetti(40, 50);
-          if (voucherFeedback) {
-            voucherFeedback.style.color = "#15803d";
-            voucherFeedback.textContent = `✅ ${data.message}`;
-          }
-          voucherInput.value = "";
-          refreshAdminData();
-        } else {
-          if (voucherFeedback) {
-            voucherFeedback.style.color = "#b91c1c";
-            voucherFeedback.textContent = `❌ ${data.message}`;
-          }
-        }
-      } catch (e) {
-        if (voucherFeedback) {
-          voucherFeedback.style.color = "#b91c1c";
-          voucherFeedback.textContent = "Erro ao conectar com servidor.";
-        }
-      }
-    });
-  }
-
-  // Download do CSV
-  const exportBtn = document.getElementById("btn-export-csv-direct");
-  if (exportBtn) {
-    exportBtn.addEventListener("click", () => {
-      window.location.href = "/api/export-csv";
-    });
-  }
-
-  const saveScriptBtn = document.getElementById("btn-save-script-url");
   const scriptInput = document.getElementById("admin-script-url-input");
   const scriptStatus = document.getElementById("admin-sheet-save-status");
-  const sheetInfo = document.getElementById("sheet-sync-status");
-  async function updateSheetStatus() {
-    try {
-      const response = await fetch("/api/sheets/status");
-      const state = await response.json();
-      if (!response.ok || !state.success) throw new Error("Servidor indisponível");
-      sheetInfo.textContent = state.configured
-        ? `${state.synced} registros confirmados na planilha · ${state.pending} aguardando envio.`
-        : `${state.pending} registros guardados. Configure a URL da planilha.`;
-      if (state.lastError) sheetInfo.textContent += " Última tentativa: " + state.lastError;
-    } catch { sheetInfo.textContent = "Sem conexão com o servidor. Os envios locais continuam pendentes."; }
-  }
-  fetch("/api/settings").then(response => response.json()).then(data => {
-    if (data.settings) scriptInput.value = data.settings.googleScriptUrl || "";
+  scriptInput.value = PARTY_CONFIG.googleScriptUrl || "";
+  fetch("/api/settings").then(response => response.ok ? response.json() : null).then(data => {
+    if (data?.settings) scriptInput.value = data.settings.googleScriptUrl || "";
   }).catch(() => {});
-  document.querySelector('[data-tab="tab-sheets"]').addEventListener("click", updateSheetStatus);
-  saveScriptBtn.addEventListener("click", async () => {
-    saveScriptBtn.disabled = true;
+  document.getElementById("btn-save-script-url").addEventListener("click", async event => {
+    const button = event.currentTarget;
+    button.disabled = true;
     try {
-      const response = await fetch("/api/settings", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ googleScriptUrl: scriptInput.value.trim() })
-      });
-      const data = await response.json();
-      if (!response.ok || !data.success) throw new Error(data.message || "Não foi possível salvar no servidor.");
-      scriptStatus.textContent = "URL salva para todos os convidados.";
-      await updateSheetStatus();
+      const url = scriptInput.value.trim();
+      if (!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(url)) throw new Error("Informe a URL de implantação terminada em /exec.");
+      let server = false;
+      const response = await fetch("/api/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ googleScriptUrl: url }) });
+      if (response.status !== 404 && response.status !== 405) {
+        const answer = await response.json();
+        if (!response.ok || !answer.success) throw new Error(answer.message || "Não foi possível salvar a URL.");
+        server = true;
+      }
+      PARTY_CONFIG.googleScriptUrl = url;
+      localStorage.setItem("noah_invite_script_url", url);
+      scriptStatus.textContent = server ? "Integração salva no servidor." : "Integração salva neste navegador.";
+      await refreshAdminData();
     } catch (error) { scriptStatus.textContent = error.message; }
-    finally { saveScriptBtn.disabled = false; }
+    finally { button.disabled = false; }
   });
   document.getElementById("btn-test-script-url").addEventListener("click", async event => {
-    event.target.disabled = true;
-    scriptStatus.textContent = "Conferindo gravação e leitura...";
+    const button = event.currentTarget;
+    button.disabled = true;
     try {
-      const response = await fetch("/api/test-sheets", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ googleScriptUrl: scriptInput.value.trim() })
-      });
-      const data = await response.json();
-      if (!response.ok || !data.success) throw new Error(data.message || "Falha no teste.");
-      scriptStatus.textContent = data.message;
+      await NoahData.request("dashboard", { password: AppState.adminPassword });
+      scriptStatus.textContent = "Leitura da planilha confirmada com a senha dos pais.";
     } catch (error) { scriptStatus.textContent = error.message; }
-    finally { event.target.disabled = false; }
+    finally { button.disabled = false; }
   });
   document.getElementById("btn-sync-all-to-sheets").addEventListener("click", async event => {
-    event.target.disabled = true;
+    const button = event.currentTarget;
+    button.disabled = true;
     try {
       await NoahDelivery.flush();
       const response = await fetch("/api/sheets/sync", { method: "POST" });
-      if (!response.ok) throw new Error("O servidor não confirmou o envio. Os dados continuam guardados.");
-      await updateSheetStatus();
+      if (!response.ok && response.status !== 404 && response.status !== 405) throw new Error("O servidor não confirmou a sincronização.");
+      await refreshAdminData();
+      scriptStatus.textContent = "Nova tentativa de entrega concluída. Os registros pendentes continuam guardados.";
     } catch (error) { scriptStatus.textContent = error.message; }
-    finally { event.target.disabled = false; }
+    finally { button.disabled = false; }
   });
 }
 
-async function refreshAdminData() {
-  let rsvps = [];
+let adminRefreshRunning = false;
+async function refreshAdminData(snapshot) {
+  if (!AppState.adminAuthenticated || adminRefreshRunning) return;
+  adminRefreshRunning = true;
+  const status = document.getElementById("admin-data-status");
+  const button = document.getElementById("admin-refresh-data");
+  button.disabled = true;
+  status.textContent = "Atualizando o resumo...";
   try {
-    const res = await fetch("/api/rsvp");
-    if (res.ok) {
-      const data = await res.json();
-      rsvps = data.rsvps || [];
-    }
-  } catch (e) {
-    rsvps = JSON.parse(localStorage.getItem("noah_story_rsvps") || "[]");
-  }
+    const answer = snapshot || await NoahData.request("dashboard", { password: AppState.adminPassword });
+    const data = NoahRecords.dashboard(answer);
+    if (!AppState.adminAuthenticated) return;
+    AppState.rsvps = data.rsvps;
+    AppState.messages = data.messages;
+    AppState.dashboardSource = data.source;
+    const fields = { "stat-total-rsvps": "responses", "stat-confirmed-people": "people", "stat-adults": "adults",
+      "stat-kids": "children", "stat-badges": "badges", "stat-favors": "favors", "stat-messages": "messages", "stat-declined": "declined" };
+    for (const [id, key] of Object.entries(fields)) document.getElementById(id).textContent = data.summary[key];
+    const favors = document.getElementById("stat-favors");
+    favors.dataset.pending = String(data.summary.missingAges > 0);
+    if (data.summary.missingAges) favors.textContent = data.summary.favors ? data.summary.favors + "+" : "A confirmar";
+    const source = data.source === "sheet" ? "planilha" : "servidor do convite";
+    status.textContent = "Dados da " + source + " · atualizado às " + new Date().toLocaleTimeString("pt-BR") + ".";
+    document.getElementById("sheet-sync-status").textContent = "O resumo e os recados são consultados diretamente na " + source + ".";
+    document.getElementById("admin-summary-note").textContent = data.summary.missingAges
+      ? data.summary.missingAges + " criança(s) sem idade informada: o total de pessoas está incluído, mas as lembrancinhas dessas crianças ainda não podem ser calculadas."
+      : "Lembrancinhas: 2 por criança de 0 a 12 anos e 1 por jovem de 13 a 16 anos, entre as presenças confirmadas.";
+    renderAdminGuestsTable(document.getElementById("admin-guest-search").value.toLowerCase());
+    renderAdminVouchersTable();
+    renderAdminMessagesList();
+  } catch (error) {
+    status.textContent = "Não foi possível atualizar: " + error.message + " Os dados anteriores continuam na tela.";
+  } finally { adminRefreshRunning = false; button.disabled = false; }
+}
 
-  AppState.rsvps = rsvps;
-
-  // Atualiza métricas
-  let confirmedPeople = 0;
-  let totalAdults = 0;
-  let totalKids = 0;
-  let totalTeens = 0;
-  let totalFavors = 0;
-
-  rsvps.forEach(r => {
-    if (r.presence === "Confirmado") {
-      const a = parseInt(r.adults, 10) || 0;
-      const k = parseInt(r.children, 10) || 0;
-      totalAdults += a;
-      confirmedPeople += (a + k);
-
-      (r.childrenDetails || []).forEach(child => {
-        const age = parseInt(child.age, 10);
-        if (age >= 0 && age <= 12) {
-          totalKids++;
-          totalFavors += 2;
-        } else if (age >= 13 && age <= 16) {
-          totalTeens++;
-          totalFavors += 1;
-        }
-      });
-    }
-  });
-
-  const elTotal = document.getElementById("stat-total-rsvps");
-  const elConf = document.getElementById("stat-confirmed-people");
-  const elAdults = document.getElementById("stat-adults");
-  const elKids = document.getElementById("stat-kids");
-  const elTeens = document.getElementById("stat-teens");
-  const elFavors = document.getElementById("stat-favors");
-
-  if (elTotal) elTotal.textContent = rsvps.length;
-  if (elConf) elConf.textContent = confirmedPeople;
-  if (elAdults) elAdults.textContent = totalAdults;
-  if (elKids) elKids.textContent = totalKids;
-  if (elTeens) elTeens.textContent = totalTeens;
-  if (elFavors) elFavors.textContent = totalFavors;
-
-  renderAdminGuestsTable();
-  renderAdminVouchersTable();
-  renderAdminMessagesList();
+async function adminAction(action, values) {
+  const answer = await NoahData.request(action, { ...values, password: AppState.adminPassword });
+  await refreshAdminData();
+  return answer;
 }
 
 function renderAdminGuestsTable(query = "") {
@@ -2174,7 +2112,7 @@ function renderAdminGuestsTable(query = "") {
   });
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 14px;">Nenhum convidado encontrado.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #64748b; padding: 14px;">Nenhum convidado encontrado.</td></tr>`;
     return;
   }
 
@@ -2184,7 +2122,7 @@ function renderAdminGuestsTable(query = "") {
     const isConf = r.presence === "Confirmado";
 
     tr.innerHTML = `
-      <td><strong>${r.ticketCode || "NOAH-1"}</strong></td>
+      <td><strong>${escapeHtml(r.ticketCode || "Sem ingresso")}</strong></td>
       <td>
         <div style="font-weight: bold;">${escapeHtml(r.name)}</div>
         <div style="font-size: 0.75rem; color: #64748b;">${escapeHtml(r.phone || "")}</div>
@@ -2197,10 +2135,11 @@ function renderAdminGuestsTable(query = "") {
       <td>${r.adults || 0}</td>
       <td>${r.children || 0}</td>
       <td><span style="font-weight: bold; color: #b45309;">${favorsCount} itens</span></td>
+      <td><span class="admin-badge-status" data-earned="${r.badgeStatus === "Sim"}">${r.badgeStatus === "Sim" ? "Sim ⭐" : "Não"}</span></td>
       <td>
         <div style="display: flex; gap: 4px;">
-          <button type="button" class="btn-view-ticket-admin" style="background: #3b82f6; color: #fff; border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem;" title="Ver Ingresso">🎟️</button>
-          <button type="button" class="btn-del-rsvp-admin" style="background: #ef4444; color: #fff; border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem;" title="Excluir">&times;</button>
+          <button type="button" class="btn-view-ticket-admin" style="background: #3b82f6; color: #fff; border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem;" title="${r.ticketCode ? "Ver ingresso" : "Registro antigo sem ingresso"}" ${r.ticketCode ? "" : "disabled"}>🎟️</button>
+          <button type="button" class="btn-del-rsvp-admin" style="background: #ef4444; color: #fff; border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem;" title="Cancelar presença" ${isConf ? "" : "disabled"}>Cancelar</button>
         </div>
       </td>
     `;
@@ -2210,12 +2149,11 @@ function renderAdminGuestsTable(query = "") {
     });
 
     tr.querySelector(".btn-del-rsvp-admin").addEventListener("click", async () => {
-      if (confirm(`Tem certeza que deseja remover o convidado ${r.name}?`)) {
+      if (confirm(`Cancelar a presença de ${r.name}? O registro continuará guardado.`)) {
         try {
-          await fetch(`/api/rsvp/${r.id}`, { method: "DELETE" });
-          refreshAdminData();
+          await adminAction("cancelRsvp", { id: r.id });
         } catch (e) {
-          console.warn("Delete error:", e);
+          document.getElementById("admin-data-status").textContent = e.message;
         }
       }
     });
@@ -2245,7 +2183,7 @@ function renderAdminVouchersTable() {
   allVouchers.forEach(v => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td><code>${v.code}</code></td>
+      <td><code>${escapeHtml(v.code)}</code></td>
       <td>
         <span style="display: inline-block; padding: 2px 6px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; background: ${v.type === "red" ? "#fee2e2; color: #b91c1c" : "#fef3c7; color: #b45309"}">
           ${v.type === "red" ? "Kids (0-12)" : "Teens (13-16)"}
@@ -2270,18 +2208,12 @@ function renderAdminVouchersTable() {
     if (redeemBtn) {
       redeemBtn.addEventListener("click", async () => {
         try {
-          const res = await fetch("/api/vouchers/redeem", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ code: v.code })
-          });
-          if (res.ok) {
-            playFanfare();
-            refreshAdminData();
-          }
+          redeemBtn.disabled = true;
+          await adminAction("redeemVoucher", { code: v.code });
+          playFanfare();
         } catch (e) {
-          console.warn("Redeem error:", e);
-        }
+          document.getElementById("admin-data-status").textContent = e.message;
+        } finally { redeemBtn.disabled = false; }
       });
     }
 
@@ -2289,20 +2221,11 @@ function renderAdminVouchersTable() {
   });
 }
 
-async function renderAdminMessagesList() {
+function renderAdminMessagesList() {
   const container = document.getElementById("admin-messages-list");
   if (!container) return;
 
-  let messages = [];
-  try {
-    const res = await fetch("/api/messages?all=1");
-    if (res.ok) {
-      const data = await res.json();
-      messages = data.messages || [];
-    }
-  } catch (e) {
-    messages = JSON.parse(localStorage.getItem("noah_story_messages") || "[]");
-  }
+  const messages = AppState.messages || [];
 
   container.innerHTML = "";
   if (messages.length === 0) {
@@ -2312,23 +2235,24 @@ async function renderAdminMessagesList() {
 
   messages.forEach(m => {
     const item = document.createElement("div");
-    item.style.cssText = "background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px;";
+    item.className = "admin-message-card";
     item.innerHTML = `
       <div>
+        <p class="admin-message-recipient">✉️ Para: Pequeno Xerife Noah</p>
         <div style="font-weight: bold; font-size: 0.9rem;">${escapeHtml(m.author)}</div>
         <div style="font-size: 0.85rem; color: #475569;">"${escapeHtml(m.message)}"</div>
+        <small>${m.source === "rsvp" ? "Formulário de presença" : "Cápsula do tempo"}</small>
       </div>
-      <button type="button" class="btn-del-msg" style="background: #ef4444; color: #fff; border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem;">Excluir</button>
+      <button type="button" class="btn-del-msg">Arquivar</button>
     `;
 
     item.querySelector(".btn-del-msg").addEventListener("click", async () => {
-      if (confirm("Deseja apagar este recado?")) {
+      if (confirm("Arquivar este recado? O texto continuará guardado na planilha.")) {
         try {
-          await fetch(`/api/messages/${m.id}`, { method: "DELETE" });
-          renderAdminMessagesList();
-          renderApprovedMessages();
+          await adminAction("archiveMessage", { id: m.id });
+          void renderApprovedMessages();
         } catch (e) {
-          console.warn("Delete msg error:", e);
+          document.getElementById("admin-data-status").textContent = e.message;
         }
       }
     });
