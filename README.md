@@ -132,6 +132,7 @@ http://SEU_IP_LOCAL:3000
 - Recados são guardados antes do envio e só recebem confirmação após a gravação. Falhas ficam na fila para nova tentativa; reabrir o convite recupera também mensagens de versões anteriores guardadas naquele navegador.
 - Cancelar presença e arquivar recado preservam o conteúdo na planilha. As entregas de vouchers ficam em **Entregas de lembrancinhas** para impedir uma segunda baixa.
 - Testes: `npm test` (regras do resumo, Apps Script, fila de entrega e integração do servidor com uma planilha simulada).
+- A planilha usa verde para presença confirmada, vermelho para ausência/cancelamento e roxo para as cartas da cápsula. Colunas ampliadas e quebra de texto facilitam a leitura; os novos envios ajustam a altura das linhas ao conteúdo.
 
 ---
 

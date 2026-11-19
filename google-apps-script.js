@@ -41,9 +41,16 @@ function abaNoah(book, kind) {
   };
   var headers = columns[kind];
   sheet.getRange(1, 1, 1, headers.length).setValues([headers])
-    .setBackground("#15558d").setFontColor("#ffffff").setFontWeight("bold");
+    .setBackground(kind === "message" ? "#6d28d9" : "#15558d").setFontColor("#ffffff")
+    .setFontWeight("bold").setFontFamily("Arial").setFontSize(12).setWrap(true);
   sheet.setFrozenRows(1);
   return sheet;
+}
+
+function ajustarAlturaNoah(sheet, row, width) {
+  sheet.getRange(row, 1, 1, width).setFontFamily("Arial").setFontSize(12).setVerticalAlignment("middle");
+  sheet.autoResizeRows(row, 1);
+  if (sheet.getRowHeight(row) < 44) sheet.setRowHeight(row, 44);
 }
 
 function linhasNoah(sheet, width) {
@@ -97,10 +104,12 @@ function gravarRecadoNoah(book, data) {
   var previous = index >= 0 ? entries[index] : null;
   var issued = data.issuedAt || new Date().toISOString();
   if (!previous || (String(previous[9]) <= String(issued) && previous[7] !== "archived")) {
-    sheet.getRange(index >= 0 ? index + 2 : sheet.getLastRow() + 1, 1, 1, 10).setValues([[
+    var destination = index >= 0 ? index + 2 : sheet.getLastRow() + 1;
+    sheet.getRange(destination, 1, 1, 10).setValues([[
       id, previous ? previous[1] : issued, textoNoah(data.nome), "Pequeno Xerife Noah", textoNoah(data.mensagem),
       data.rsvpId ? "rsvp" : "capsule", String(data.rsvpId || ""), "approved", data.revision, issued
     ]]);
+    ajustarAlturaNoah(sheet, destination, 10);
   }
   SpreadsheetApp.flush();
   var row = linhasNoah(sheet, 10).find(function(item) { return String(item[0]) === id; });
@@ -171,6 +180,7 @@ function acaoNoah(book, data) {
     deliveries.getRange(deliveries.getLastRow() + 1, 1, 1, 6).setValues([[
       match.code, new Date().toISOString(), textoNoah(match.name), textoNoah(match.guest), match.qty, match.id
     ]]);
+    ajustarAlturaNoah(deliveries, deliveries.getLastRow(), 6);
     return { result: "success", message: "Lembrancinha entregue para " + match.name + " (" + match.qty + " itens)." };
   }
   throw new Error("Ação desconhecida. Atualize a implantação do Apps Script.");
@@ -192,6 +202,7 @@ function atualizarDistintivosNoah(book, registration) {
     registration[1], registration[6], registration[2], registration[13] === "Sim" ? "Sim" : "Não",
     registration[14] || "", registration[9] || "", registration[8] || "", registration[15] || ""
   ]]);
+  ajustarAlturaNoah(sheet, row, 8);
 }
 
 function prepararDistintivosNoah(book) {
@@ -254,6 +265,7 @@ function registrarDistintivoNoah(book, data) {
     completed, registration[1], code, hunterId, data.revision, new Date().toISOString(),
     data.rsvpId, registration[6], registration[9], "Sim"
   ]]);
+  ajustarAlturaNoah(sheet, row, 10);
   registration[13] = "Sim";
   registration[14] = code;
   registration[15] = completed;
@@ -323,6 +335,7 @@ function doPost(e) {
         existing ? existing[14] || "" : "", existing ? existing[15] || "" : ""
       ];
       sheet.getRange(row, 1, 1, 16).setValues([values]);
+      ajustarAlturaNoah(sheet, row, 16);
     }
     atualizarDistintivosNoah(book, sheet.getRange(row, 1, 1, 16).getValues()[0]);
     if (!stale && String(data.mensagem || "").trim()) {
@@ -341,5 +354,5 @@ function doPost(e) {
 }
 
 function doGet() {
-  return respostaNoah({ result: "active", version: 5, message: "Painel dos pais e recados para o Noah conectados à planilha." });
+  return respostaNoah({ result: "active", version: 6, message: "Painel e recados conectados à planilha, com cores e leitura ampliada." });
 }

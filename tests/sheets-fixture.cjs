@@ -5,9 +5,12 @@ const vm = require('node:vm');
 function fixture() {
   const sheets = new Map();
   class Sheet {
-    constructor() { this.rows = []; }
+    constructor() { this.rows = []; this.heights = new Map(); }
     getLastRow() { return this.rows.length; }
     setFrozenRows() { return this; }
+    autoResizeRows(row, count) { for (let i = row; i < row + count; i++) this.heights.set(i, 24); return this; }
+    getRowHeight(row) { return this.heights.get(row) || 21; }
+    setRowHeight(row, value) { this.heights.set(row, value); return this; }
     getRange(row, col, height = 1, width = 1) {
       const self = this;
       const range = {
@@ -22,7 +25,8 @@ function fixture() {
         setValue(value) { return range.setValues([[value]]); },
         getValue() { return range.getValues()[0][0]; },
         getDisplayValue() { return String(range.getValue()); },
-        setBackground() { return range; }, setFontColor() { return range; }, setFontWeight() { return range; }
+        setBackground() { return range; }, setFontColor() { return range; }, setFontWeight() { return range; },
+        setFontFamily() { return range; }, setFontSize() { return range; }, setWrap() { return range; }, setVerticalAlignment() { return range; }
       };
       return range;
     }
