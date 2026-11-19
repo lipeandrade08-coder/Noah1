@@ -1,153 +1,111 @@
 /**
- * ==========================================================================
- * CÓDIGO DO GOOGLE APPS SCRIPT - CONVITE NOAH STORY (1º ANINHO)
- * Tema: Toy Story / Noah Story - 16 de Janeiro de 2027
- * ==========================================================================
- * 
- * INSTRUÇÕES RÁPIDAS PARA ATIVAR:
- * 
- * 1. Abra o Google Planilhas (https://sheets.new) e crie uma planilha nova.
- *    Nomeie como: "Confirmações - Noah Story 1º Aninho"
- * 
- * 2. No menu superior da planilha, clique em:
- *    "Extensões" > "Apps Script"
- * 
- * 3. Apague qualquer código que estiver lá e cole todo este código abaixo.
- * 
- * 4. Clique no ícone de Salvar (💾).
- * 
- * 5. Clique no botão azul "Implantar" (canto superior direito) > "Nova implantação".
- * 
- * 6. Na engrenagem ao lado de "Selecione o tipo", escolha "App da Web".
- * 
- * 7. Preencha as configurações:
- *    - Descrição: "API Convite Noah"
- *    - Executar como: "Eu (seu email)"
- *    - Quem pode acessar: "Qualquer pessoa" (MUITO IMPORTANTE para os convidados conseguirem enviar sem fazer login!)
- * 
- * 8. Clique em "Implantar". Autorize as permissões da sua conta Google.
- * 
- * 9. Copie a "URL do app da Web" gerada (termina com `/exec`) e cole
- *    no arquivo `js/config.js` na variável `googleScriptUrl` (ou pelo painel do convite).
- * 
- * Pronto! Todas as confirmações irão direto para a sua planilha em tempo real!
- * ==========================================================================
+ * Convite Noah — publique uma nova versão da implantação após salvar.
+ * As oito primeiras colunas antigas são preservadas.
+ * Confirmações e conquistas usam IDs para que novas tentativas atualizem a mesma linha.
  */
+function respostaNoah(data) {
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function textoNoah(value) {
+  var text = String(value === undefined || value === null ? "" : value);
+  return /^[=+\-@]/.test(text) ? "'" + text : text;
+}
+
+function abaNoah(book, kind) {
+  var name = kind === "hunter" ? "Caçadores de aliens" : kind === "test" ? "Teste de conexão" : "Confirmações";
+  var sheet = book.getSheetByName(name);
+  if (!sheet && kind === "rsvp") {
+    var all = book.getSheets();
+    for (var i = 0; i < all.length; i++) {
+      if (all[i].getLastRow() && all[i].getRange(1, 2).getDisplayValue() === "Nome do Convidado") {
+        sheet = all[i];
+        break;
+      }
+    }
+  }
+  if (!sheet) sheet = book.insertSheet(name);
+  var headers = kind === "hunter"
+    ? ["Concluído em", "Caçador", "Código do distintivo", "ID", "Revisão", "Atualizado em"]
+    : kind === "test"
+    ? ["ID", "Teste em", "Revisão"]
+    : ["Data/Hora Envio", "Nome do Convidado", "Status de Presença", "Adultos", "Crianças",
+       "Nomes dos Acompanhantes", "WhatsApp / Telefone", "Recado para o Noah", "ID",
+       "Código do ingresso", "Detalhes das crianças", "Revisão", "Atualizado em"];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers])
+    .setBackground("#15558d").setFontColor("#ffffff").setFontWeight("bold");
+  sheet.setFrozenRows(1);
+  return sheet;
+}
 
 function doPost(e) {
   var lock = LockService.getScriptLock();
-  lock.tryLock(10000); // Aguarda até 10s para evitar concorrência simultânea
-
+  var acquired = false;
   try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    
-    // Se a planilha estiver vazia, cria o cabeçalho estilizado automaticamente
-    if (sheet.getLastRow() === 0) {
-      criarCabecalhoEstilizado(sheet);
-    }
-
+    acquired = lock.tryLock(20000);
+    if (!acquired) return respostaNoah({ result: "error", error: "Planilha ocupada. Tente novamente." });
     var data;
-    // Suporta envio em JSON ou formulário URL encoded
-    if (e.postData && e.postData.contents) {
-      try {
-        data = JSON.parse(e.postData.contents);
-      } catch (err) {
-        data = e.parameter;
+    try { data = JSON.parse(e.postData.contents); }
+    catch (ignored) { data = e.parameter || {}; }
+    var kind = data.kind || "rsvp";
+    if (["rsvp", "hunter", "test"].indexOf(kind) === -1) throw new Error("Tipo de registro inválido.");
+    var book = SpreadsheetApp.getActiveSpreadsheet();
+    if (!book) throw new Error("Este Apps Script precisa estar vinculado à planilha do convite.");
+    var id = String(data.recordId || data.codigoIngresso || ("legacy-" + (data.telefone || data.nome || "")));
+    if (id === "legacy-") throw new Error("Registro sem identificação.");
+    data.revision = data.revision || ("legacy-" + new Date().toISOString());
+    if (kind !== "test" && !String(data.nome || "").trim()) throw new Error("Informe o nome.");
+    var sheet = abaNoah(book, kind);
+    var idColumn = kind === "rsvp" ? 9 : kind === "hunter" ? 4 : 1;
+    var revisionColumn = kind === "rsvp" ? 12 : kind === "hunter" ? 5 : 3;
+    var timeColumn = kind === "rsvp" ? 13 : kind === "hunter" ? 6 : 2;
+    var row = sheet.getLastRow() + 1;
+    var old = sheet.getLastRow() > 1
+      ? sheet.getRange(2, 1, sheet.getLastRow() - 1, kind === "rsvp" ? 13 : kind === "hunter" ? 6 : 3).getValues() : [];
+    for (var i = 0; i < old.length; i++) {
+      var same = String(old[i][idColumn - 1]) === id;
+      if (!same && kind === "rsvp") {
+        var oldPhone = String(old[i][6]).replace(/\D/g, "");
+        var phone = String(data.telefone || "").replace(/\D/g, "");
+        same = phone ? oldPhone === phone : String(old[i][1]).trim().toLowerCase() === String(data.nome).trim().toLowerCase();
       }
-    } else {
-      data = e.parameter || {};
+      if (same) { row = i + 2; break; }
     }
-
-    var agora = new Date();
-    var dataHoraFormatada = Utilities.formatDate(agora, "America/Sao_Paulo", "dd/MM/yyyy HH:mm:ss");
-
-    var nome = data.nome || "Não informado";
-    var presenca = data.presenca || "Confirmado"; // 'Confirmado' ou 'Não comparecerá'
-    var adultos = data.adultos !== undefined ? data.adultos : 1;
-    var criancas = data.criancas !== undefined ? data.criancas : 0;
-    var acompanhantes = data.acompanhantes || "";
-    var telefone = data.telefone || "";
-    var mensagem = data.mensagem || "";
-
-    // Adiciona a linha na planilha
-    sheet.appendRow([
-      dataHoraFormatada,
-      nome,
-      presenca,
-      adultos,
-      criancas,
-      acompanhantes,
-      telefone,
-      mensagem
-    ]);
-
-    // Aplica formatação condicional sutil na linha adicionada
-    var ultimaLinha = sheet.getLastRow();
-    var celulaPresenca = sheet.getRange(ultimaLinha, 3);
-    if (presenca.indexOf("Confirmad") !== -1 || presenca.indexOf("Sim") !== -1) {
-      celulaPresenca.setBackground("#d1e7dd").setFontColor("#0f5132").setFontWeight("bold");
-    } else {
-      celulaPresenca.setBackground("#f8d7da").setFontColor("#842029").setFontWeight("bold");
+    var issued = data.issuedAt || data.concluidoEm || new Date().toISOString();
+    var existing = row <= sheet.getLastRow() ? old[row - 2] : null;
+    var stale = existing && String(existing[timeColumn - 1]) > String(issued);
+    if (!stale) {
+      var values;
+      if (kind === "test") {
+        values = [id, new Date().toISOString(), data.revision];
+      } else if (kind === "hunter") {
+        values = [data.concluidoEm || issued, textoNoah(data.nome), textoNoah(data.codigoDistintivo), id, data.revision, issued];
+      } else {
+        values = [
+          existing ? existing[0] : Utilities.formatDate(new Date(), "America/Sao_Paulo", "dd/MM/yyyy HH:mm:ss"),
+          textoNoah(data.nome), textoNoah(data.presenca), Number(data.adultos) || 0, Number(data.criancas) || 0,
+          textoNoah(data.acompanhantes), textoNoah(data.telefone), textoNoah(data.mensagem),
+          id, textoNoah(data.codigoIngresso), textoNoah(data.detalhesCriancas || "[]"), data.revision, issued
+        ];
+      }
+      sheet.getRange(row, 1, 1, values.length).setValues([values]);
     }
-
-    // Retorna resposta de sucesso
-    return ContentService
-      .createTextOutput(JSON.stringify({ 
-        result: "success", 
-        message: "Presença registrada com sucesso!",
-        row: ultimaLinha 
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
-
+    SpreadsheetApp.flush();
+    if (String(sheet.getRange(row, idColumn).getValue()) !== String(stale ? existing[idColumn - 1] : id)) throw new Error("A leitura não confirmou a gravação.");
+    if (!stale && String(sheet.getRange(row, revisionColumn).getValue()) !== String(data.revision)) {
+      throw new Error("A revisão gravada não confere.");
+    }
+    return respostaNoah({
+      result: "success", recordId: id, revision: data.revision, row: row,
+      message: kind === "test" ? "Gravação e leitura de teste confirmadas." : "Registro confirmado."
+    });
   } catch (error) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ 
-        result: "error", 
-        error: error.toString() 
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
-
+    return respostaNoah({ result: "error", error: String(error.message || error) });
   } finally {
-    lock.releaseLock();
+    if (acquired) lock.releaseLock();
   }
 }
 
-function doGet(e) {
-  // Permite testar facilmente se a URL está funcionando pelo navegador
-  return ContentService
-    .createTextOutput(JSON.stringify({
-      result: "active",
-      message: "API do Convite Toy Story do Noah está online e pronta para receber confirmações!"
-    }))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-/**
- * Cria um cabeçalho bonito no estilo Toy Story caso a planilha esteja vazia
- */
-function criarCabecalhoEstilizado(sheet) {
-  var cabecalhos = [
-    "Data/Hora Envio",
-    "Nome do Convidado",
-    "Status de Presença",
-    "Adultos",
-    "Crianças",
-    "Nomes dos Acompanhantes",
-    "WhatsApp / Telefone",
-    "Recado para o Noah"
-  ];
-
-  sheet.appendRow(cabecalhos);
-  var headerRange = sheet.getRange(1, 1, 1, cabecalhos.length);
-  
-  // Cores inspiradas no Toy Story (Azul nuvem com texto branco em negrito)
-  headerRange
-    .setBackground("#0056b3")
-    .setFontColor("#ffffff")
-    .setFontWeight("bold")
-    .setHorizontalAlignment("center")
-    .setFontSize(11);
-
-  sheet.setFrozenRows(1);
-  sheet.autoResizeColumns(1, cabecalhos.length);
+function doGet() {
+  return respostaNoah({ result: "active", version: 2, message: "Convite Noah pronto para confirmar gravações." });
 }

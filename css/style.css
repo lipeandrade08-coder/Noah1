@@ -212,6 +212,7 @@ html:has(.cinematic-intro[open], .space-game[open]) {
   position: relative;
   isolation: isolate;
   height: clamp(210px, 59vw, 330px);
+  margin-top: 16px;
 }
 
 .toy-chest-stage.opened {
@@ -589,8 +590,10 @@ html:has(.cinematic-intro[open], .space-game[open]) {
 
 .jumping-toys-layer {
   position: absolute;
-  inset: 0;
+  inset: auto 6% 48%;
+  height: 180%;
   z-index: 2;
+  overflow: hidden;
   perspective: 720px;
   perspective-origin: 50% 57%;
   visibility: hidden;
@@ -626,8 +629,8 @@ html:has(.cinematic-intro[open], .space-game[open]) {
 
 @keyframes toyLeap {
   0% {
-    left: 47%;
-    bottom: 12%;
+    left: 50%;
+    bottom: -16%;
     opacity: 0;
     transform: translate3d(-50%, 0, -125px) rotateY(var(--toy-turn)) rotateX(28deg) scale(0.2);
   }
@@ -635,7 +638,7 @@ html:has(.cinematic-intro[open], .space-game[open]) {
   59% {
     left: var(--toy-x);
     bottom: var(--toy-y);
-    transform: translate3d(-50%, -12px, 63px) rotateY(calc(var(--toy-turn) * -0.38)) rotateX(-9deg) rotateZ(var(--toy-angle, 0deg));
+    transform: translate3d(-50%, -6px, 28px) rotateY(calc(var(--toy-turn) * -0.38)) rotateX(-9deg) rotateZ(var(--toy-angle, 0deg));
   }
   79% {
     left: var(--toy-x);
@@ -646,16 +649,16 @@ html:has(.cinematic-intro[open], .space-game[open]) {
 
 @keyframes toyBob {
   0%, 100% { transform: none; }
-  50% { transform: translateY(-13px) rotate(3.5deg) scale(1.04); }
+  50% { transform: translateY(-6px) rotate(1.6deg) scale(1.02); }
 }
 
 .toy-woody {
-  --toy-width: 29%;
-  --toy-x: 15%;
-  --toy-y: 24%;
-  --toy-angle: -13deg;
+  --toy-width: 35%;
+  --toy-x: 21%;
+  --toy-y: 42%;
+  --toy-angle: -5deg;
   --toy-turn: -44deg;
-  --toy-depth: 12px;
+  --toy-depth: 8px;
   --toy-delay: 310ms;
   --toy-bob: 2.8s;
 }
@@ -665,10 +668,10 @@ html:has(.cinematic-intro[open], .space-game[open]) {
 }
 
 .toy-jessie {
-  --toy-width: 26%;
-  --toy-x: 25%;
-  --toy-y: 48%;
-  --toy-angle: -7deg;
+  --toy-width: 33%;
+  --toy-x: 50%;
+  --toy-y: 55%;
+  --toy-angle: -3deg;
   --toy-turn: 38deg;
   --toy-depth: -8px;
   --toy-delay: 390ms;
@@ -680,12 +683,12 @@ html:has(.cinematic-intro[open], .space-game[open]) {
 }
 
 .toy-buzz {
-  --toy-width: 29%;
-  --toy-x: 84%;
-  --toy-y: 29%;
-  --toy-angle: 11deg;
+  --toy-width: 35%;
+  --toy-x: 79%;
+  --toy-y: 41%;
+  --toy-angle: 5deg;
   --toy-turn: -52deg;
-  --toy-depth: 18px;
+  --toy-depth: 8px;
   --toy-delay: 220ms;
 }
 
@@ -694,12 +697,13 @@ html:has(.cinematic-intro[open], .space-game[open]) {
 }
 
 .toy-alien {
-  --toy-width: 20%;
-  --toy-x: 88%;
-  --toy-y: 15%;
-  --toy-angle: 12deg;
+  z-index: 1;
+  --toy-width: 25%;
+  --toy-x: 84%;
+  --toy-y: 25%;
+  --toy-angle: 3deg;
   --toy-turn: 47deg;
-  --toy-depth: 29px;
+  --toy-depth: 12px;
   --toy-delay: 440ms;
   --toy-bob: 2.5s;
 }
@@ -716,23 +720,12 @@ html:has(.cinematic-intro[open], .space-game[open]) {
 }
 
 .toy-family {
-  --toy-width: 38%;
-  --toy-x: 58%;
-  --toy-y: 33%;
+  --toy-width: 68%;
+  --toy-x: 49%;
+  --toy-y: 0%;
   --toy-turn: 21deg;
   --toy-delay: 430ms;
   --toy-bob: 4.2s;
-}
-
-.toy-noah {
-  --toy-width: 27%;
-  --toy-x: 35%;
-  --toy-y: 29%;
-  --toy-angle: -7deg;
-  --toy-turn: -29deg;
-  --toy-depth: 30px;
-  --toy-delay: 510ms;
-  --toy-bob: 3.4s;
 }
 
 .intro-confetti {
@@ -1526,37 +1519,179 @@ body.invitation-entered .toy-blocks-shelf .interactive-block:nth-child(5) {
   margin-top: 4px;
 }
 
-/* ALIEN ESCONDIDO #1 (ESPIANDO ATRÁS DO CARTAZ) */
-.hidden-alien-trigger {
+/* Caça aos aliens */
+.hunt-hideout {
+  position: relative;
+}
+
+.hunt-target {
   position: absolute;
+  z-index: 8;
+  top: var(--hunt-top);
+  left: var(--hunt-side);
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  padding: 8px;
+  background: none;
   cursor: pointer;
-  z-index: 20;
-  transition: transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  visibility: hidden;
+  pointer-events: none;
+  touch-action: manipulation;
 }
 
-.hidden-alien-trigger:hover {
-  transform: scale(1.25) rotate(8deg);
+.hunt-target img {
+  width: 24px;
+  height: 26px;
+  object-fit: contain;
+  opacity: 0.68;
+  transform: rotate(-17deg);
+  mask-image: linear-gradient(#000 72%, transparent);
 }
 
-.hidden-alien-1 {
-  top: -18px;
-  right: -15px;
-  width: 46px;
-  height: 46px;
+.hunt-target[data-visible="true"] {
+  visibility: visible;
+  pointer-events: auto;
 }
 
-.hidden-alien-2 {
-  bottom: 24px;
-  right: 18px;
-  width: 44px;
-  height: 44px;
+.hunt-target[data-found="true"] img {
+  opacity: 1;
+  mask-image: none;
 }
 
-.hidden-alien-3 {
+.hunt-target:focus-visible {
+  outline: 2px solid #ffcf00;
+  outline-offset: 1px;
+}
+
+.alien-voice {
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+
+.toy-alien img {
+  object-fit: contain;
+  clip-path: none;
+}
+
+.hunt-dialog {
+  position: fixed;
+  inset: 0;
+  width: min(460px, calc(100% - 24px));
+  max-width: none;
+  max-height: calc(100dvh - 24px);
+  margin: auto;
+  border: 2px solid #bed582;
+  border-radius: 25px;
+  padding: 28px 22px;
+  overflow: auto;
+  color: #e7f4df;
+  background: radial-gradient(ellipse at top, #285b45, #102c30 80%);
+  box-shadow: 0 20px 65px #0008;
+  text-align: center;
+}
+
+.hunt-dialog::backdrop {
+  background: #04191bba;
+  backdrop-filter: blur(4px);
+}
+
+html:has(.hunt-dialog[open]) {
+  overflow: hidden;
+}
+
+.hunt-dialog h2 {
+  font: 2rem / 1.1 var(--font-display);
+  color: #ffdd78;
+  margin-bottom: 14px;
+}
+
+.hunt-dialog p {
+  margin: 12px 0;
+  line-height: 1.5;
+}
+
+.hunt-dialog .hunt-small {
+  font-size: 0.84rem;
+  color: #c6d9ca;
+}
+
+.hunt-close {
+  position: absolute;
   top: 12px;
-  right: 18px;
-  width: 44px;
-  height: 44px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #9dbe9a;
+  border-radius: 50%;
+  background: #153f32;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.hunt-briefing-alien {
+  display: block;
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  margin: 0 auto 14px;
+}
+
+.hunt-badge-art {
+  display: block;
+  width: min(90%, 250px);
+  height: auto;
+  margin: 15px auto;
+}
+
+.hunt-primary, .hunt-secondary {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 999px;
+  border: 2px solid #ffde82;
+  background: #ffdd78;
+  color: #263823;
+  font: 1.08rem var(--font-display);
+  cursor: pointer;
+  margin-top: 12px;
+}
+
+.hunt-secondary {
+  background: transparent;
+  color: #ffdd78;
+  font: 0.94rem var(--font-heading);
+}
+
+.hunt-primary:disabled, .hunt-secondary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+#hunter-name-form label {
+  display: block;
+  text-align: left;
+  margin-bottom: 8px;
+}
+
+.hunter-code {
+  font-family: monospace;
+  font-size: 1.05rem;
+  color: #ffdd78;
+  overflow-wrap: anywhere;
+}
+
+#hunter-save-status, #sheet-sync-status, #rsvp-delivery-status {
+  font-size: 0.9rem;
+  margin-block: 12px;
+}
+
+#rsvp-delivery-status:empty {
+  display: none;
 }
 
 /* GRID DA FAMÍLIA TOY STORY */

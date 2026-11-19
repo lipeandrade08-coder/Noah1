@@ -1,12 +1,15 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { randomUUID } = require('crypto');
+const { markPending, toSheetPayload, postToSheets } = require('./lib/sheets');
 
-const PORT = 3000;
-const DATA_DIR = path.join(__dirname, 'data');
+const PORT = Number(process.env.PORT) || 3000;
+const DATA_DIR = process.env.NOAH_DATA_DIR || path.join(__dirname, 'data');
 const RSVPS_FILE = path.join(DATA_DIR, 'rsvps.json');
 const MESSAGES_FILE = path.join(DATA_DIR, 'messages.json');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
+const HUNTERS_FILE = path.join(DATA_DIR, 'hunters.json');
 
 // Ensure data folder and files exist
 if (!fs.existsSync(DATA_DIR)) {
@@ -21,6 +24,8 @@ if (!fs.existsSync(MESSAGES_FILE)) {
 if (!fs.existsSync(SETTINGS_FILE)) {
   fs.writeFileSync(SETTINGS_FILE, JSON.stringify({ googleScriptUrl: '' }, null, 2), 'utf-8');
 }
+
+if (!fs.existsSync(HUNTERS_FILE)) writeJsonFile(HUNTERS_FILE, []);
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -45,16 +50,31 @@ const MIME_TYPES = {
 
 function readJsonFile(filePath) {
   try {
-    const raw = fs.readFileSync(filePath, 'utf-8');
-    return JSON.parse(raw || '[]');
-  } catch (err) {
-    console.error(`Erro ao ler ${filePath}:`, err);
-    return [];
+    return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+  } catch (error) {
+    if (error.code === 'ENOENT') return [];
+    // Uma cópia inválida nunca deve apagar os registros já recebidos.
+    try { return JSON.parse(fs.readFileSync(filePath + '.bak', 'utf-8')); }
+    catch { throw new Error('Não foi possível ler os registros de ' + path.basename(filePath)); }
   }
 }
 
 function writeJsonFile(filePath, data) {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+  const temporary = filePath + '.' + randomUUID() + '.tmp';
+  try {
+    fs.writeFileSync(temporary, JSON.stringify(data, null, 2), { encoding: 'utf-8', mode: 0o600 });
+    const handle = fs.openSync(temporary, 'r');
+    try { fs.fsyncSync(handle); } finally { fs.closeSync(handle); }
+    if (fs.existsSync(filePath)) {
+      try {
+        JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        fs.copyFileSync(filePath, filePath + '.bak');
+      } catch {}
+    }
+    fs.renameSync(temporary, filePath);
+  } finally {
+    if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
+  }
 }
 
 function parseBody(req) {
@@ -126,44 +146,62 @@ function generateVouchers(ticketCode, childrenDetails = []) {
   return vouchers;
 }
 
-// Sincroniza em segundo plano com o Google Sheets via Web App
-async function syncToGoogleSheets(rsvpRecord) {
+// Os próprios registros guardam a fila, inclusive após reiniciar o servidor.
+let sheetsRunning = false;
+const sheetSources = [[RSVPS_FILE, 'rsvp'], [HUNTERS_FILE, 'hunter']];
+
+async function flushSheets(force = false) {
+  if (sheetsRunning) return;
+  const settings = readJsonFile(SETTINGS_FILE);
+  if (!settings.googleScriptUrl) return;
+  sheetsRunning = true;
   try {
-    let settings = {};
-    try {
-      settings = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8') || '{}');
-    } catch(e) {}
-
-    const scriptUrl = settings.googleScriptUrl || '';
-    if (!scriptUrl || !scriptUrl.startsWith('http')) return;
-
-    const kidsStr = (rsvpRecord.childrenDetails || []).map(k => `${k.name} (${k.age}a)`).join(', ');
-    const payload = {
-      nome: rsvpRecord.name,
-      telefone: rsvpRecord.phone || '',
-      presenca: rsvpRecord.presence || 'Confirmado',
-      adultos: rsvpRecord.adults || 1,
-      criancas: rsvpRecord.children || 0,
-      acompanhantes: `${kidsStr ? 'Crianças: ' + kidsStr + '. ' : ''}${rsvpRecord.companions || ''}`,
-      mensagem: rsvpRecord.message || '',
-      codigoIngresso: rsvpRecord.ticketCode || ''
-    };
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-
-    await fetch(scriptUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload),
-      signal: controller.signal
-    });
-    clearTimeout(timeout);
-    console.log(`[Google Sheets] ✅ Linha enviada com sucesso para ${rsvpRecord.name}`);
-  } catch (err) {
-    console.warn(`[Google Sheets] Aviso de envio:`, err.message);
-  }
+    for (const [file, kind] of sheetSources) {
+      const pending = readJsonFile(file).filter(record =>
+        !String(record.id || '').startsWith('rsvp_sample_') && record.sheetSync?.status !== 'synced' &&
+        (force || (record.sheetSync?.nextAttemptAt || 0) <= Date.now()));
+      for (const initial of pending) {
+        const records = readJsonFile(file);
+        const record = records.find(item => item.id === initial.id);
+        if (!record || record.sheetSync?.status === 'synced') continue;
+        if (!record.sheetSync) {
+          markPending(record);
+          writeJsonFile(file, records);
+        }
+        const revision = record.sheetSync.revision;
+        let error;
+        try { await postToSheets(settings.googleScriptUrl, toSheetPayload(record, kind)); }
+        catch (failure) { error = failure.message; }
+        // Um envio antigo não pode confirmar uma edição recebida durante a requisição.
+        const latest = readJsonFile(file);
+        const current = latest.find(item => item.id === record.id);
+        if (!current || current.sheetSync?.revision !== revision) continue;
+        const attempts = (current.sheetSync.attempts || 0) + 1;
+        current.sheetSync = {
+          ...current.sheetSync, attempts,
+          status: error ? 'pending' : 'synced',
+          lastError: error || '',
+          nextAttemptAt: error ? Date.now() + Math.min(900000, 15000 * 2 ** Math.min(attempts, 6)) : 0,
+          syncedAt: error ? null : new Date().toISOString()
+        };
+        writeJsonFile(file, latest);
+      }
+    }
+  } finally { sheetsRunning = false; }
 }
+
+function sheetsStatus() {
+  const entries = sheetSources.flatMap(([file]) => readJsonFile(file)).filter(record => !String(record.id || '').startsWith('rsvp_sample_'));
+  return {
+    configured: Boolean(readJsonFile(SETTINGS_FILE).googleScriptUrl),
+    pending: entries.filter(record => record.sheetSync?.status !== 'synced').length,
+    synced: entries.filter(record => record.sheetSync?.status === 'synced').length,
+    lastError: entries.find(record => record.sheetSync?.lastError)?.sheetSync.lastError || ''
+  };
+}
+
+setInterval(() => flushSheets().catch(console.error), 15000).unref();
+setTimeout(() => flushSheets().catch(console.error), 1000).unref();
 
 // Salva recadinho do convidado na Cápsula do Tempo / Mural
 function saveRsvpMessageToCapsule(rsvpRecord) {
@@ -226,7 +264,15 @@ function syncAllExistingRsvpMessages() {
 // Executa sincronização inicial no carregamento
 syncAllExistingRsvpMessages();
 
-const server = http.createServer(async (req, res) => {
+const server = http.createServer((req, res) => {
+  handleRequest(req, res).catch(error => {
+    console.error(error);
+    if (!res.headersSent) sendJson(res, 500, { success: false, message: 'Não foi possível gravar os dados. Tente novamente.' });
+    else res.end();
+  });
+});
+
+async function handleRequest(req, res) {
   const urlParts = req.url.split('?');
   const pathname = urlParts[0];
 
@@ -260,11 +306,18 @@ const server = http.createServer(async (req, res) => {
       const existingIndex = rsvps.findIndex(r => {
         const rPhone = (r.phone || '').replace(/\D/g, '');
         const rName = (r.name || '').trim().toLowerCase();
-        return (cleanPhone && rPhone === cleanPhone) || (rName === cleanName);
+        return (data.id && r.id === data.id) || (cleanPhone && rPhone === cleanPhone) || (rName === cleanName);
       });
 
+      const submittedAt = data.submittedAt || data.createdAt || new Date().toISOString();
+      const previous = rsvps[existingIndex];
+      if (previous && !data.forceNew &&
+          Date.parse(submittedAt) <= Date.parse(previous.submittedAt || previous.updatedAt || previous.createdAt)) {
+        return sendJson(res, 200, { success: true, rsvp: previous, message: 'Registro já recebido.' });
+      }
+
       const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-      const ticketCode = data.ticketCode || `NOAH-1-${randomSuffix}`;
+      const ticketCode = data.ticketCode || 'NOAH-1-' + randomUUID().slice(0, 8).toUpperCase();
 
       // Gerar vouchers de acordo com as idades das crianças
       const vouchers = generateVouchers(ticketCode, data.childrenDetails || []);
@@ -275,18 +328,23 @@ const server = http.createServer(async (req, res) => {
         name: data.name.trim(),
         phone: data.phone ? data.phone.trim() : '',
         presence: data.presence || 'Confirmado',
-        adults: parseInt(data.adults, 10) || 1,
+        adults: data.presence === 'Não comparecerá' ? 0 : Math.max(0, parseInt(data.adults, 10) || 0),
         children: parseInt(data.children, 10) || 0,
         childrenDetails: data.childrenDetails || [],
         companions: data.companions ? data.companions.trim() : '',
         message: data.message ? data.message.trim() : '',
-        createdAt: new Date().toISOString(),
+        createdAt: data.createdAt || new Date().toISOString(),
+        submittedAt,
+        updatedAt: new Date().toISOString(),
         vouchers: vouchers
       };
+
+      markPending(rsvpRecord);
 
       if (existingIndex >= 0 && !data.forceNew) {
         const oldRecord = rsvps[existingIndex];
         rsvpRecord.id = oldRecord.id;
+        rsvpRecord.createdAt = oldRecord.createdAt;
         rsvpRecord.ticketCode = oldRecord.ticketCode;
         
         const updatedVouchers = generateVouchers(oldRecord.ticketCode, data.childrenDetails || []);
@@ -298,14 +356,14 @@ const server = http.createServer(async (req, res) => {
         rsvps[existingIndex] = rsvpRecord;
         writeJsonFile(RSVPS_FILE, rsvps);
         saveRsvpMessageToCapsule(rsvpRecord);
-        syncToGoogleSheets(rsvpRecord);
+        void flushSheets().catch(console.error);
         return sendJson(res, 200, { success: true, updated: true, rsvp: rsvpRecord, message: 'Confirmação atualizada com sucesso!' });
       }
 
       rsvps.unshift(rsvpRecord);
       writeJsonFile(RSVPS_FILE, rsvps);
       saveRsvpMessageToCapsule(rsvpRecord);
-      syncToGoogleSheets(rsvpRecord);
+      void flushSheets().catch(console.error);
       return sendJson(res, 201, { success: true, created: true, rsvp: rsvpRecord, message: 'Presença confirmada com sucesso!' });
     } catch (err) {
       console.error('Erro em POST /api/rsvp:', err);
@@ -338,13 +396,16 @@ const server = http.createServer(async (req, res) => {
       ticketCode: current.ticketCode,
       updatedAt: new Date().toISOString()
     };
+    updated.submittedAt = updated.updatedAt;
 
     if (data.childrenDetails) {
       updated.vouchers = generateVouchers(current.ticketCode, data.childrenDetails);
     }
 
+    markPending(updated);
     rsvps[index] = updated;
     writeJsonFile(RSVPS_FILE, rsvps);
+    void flushSheets().catch(console.error);
     return sendJson(res, 200, { success: true, rsvp: updated, message: 'Convidado atualizado com sucesso!' });
   }
 
@@ -489,7 +550,7 @@ const server = http.createServer(async (req, res) => {
         `"${(r.name || '').replace(/"/g, '""')}"`,
         `"${(r.phone || '').replace(/"/g, '""')}"`,
         r.presence || '',
-        r.adults || 1,
+        r.adults ?? 0,
         r.children || 0,
         `"${kidsDesc.replace(/"/g, '""')}"`,
         `"${(r.companions || '').replace(/"/g, '""')}"`,
@@ -526,43 +587,50 @@ const server = http.createServer(async (req, res) => {
     if (data.googleScriptUrl !== undefined) {
       settings.googleScriptUrl = (data.googleScriptUrl || '').trim();
     }
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8');
+    if (settings.googleScriptUrl && !/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(settings.googleScriptUrl)) {
+      return sendJson(res, 400, { success: false, message: 'Informe a URL de implantação terminada em /exec.' });
+    }
+    writeJsonFile(SETTINGS_FILE, settings);
+    void flushSheets(true).catch(console.error);
     return sendJson(res, 200, { success: true, settings, message: 'Configurações salvas com sucesso!' });
   }
 
-  // 13. POST /api/test-sheets (Testar envio imediato para a planilha)
+  if (pathname === '/api/sheets/status' && req.method === 'GET') {
+    return sendJson(res, 200, { success: true, ...sheetsStatus() });
+  }
+  if (pathname === '/api/sheets/sync' && req.method === 'POST') {
+    await flushSheets(true);
+    return sendJson(res, 200, { success: true, ...sheetsStatus() });
+  }
   if (pathname === '/api/test-sheets' && req.method === 'POST') {
     const data = await parseBody(req);
-    const testUrl = (data.googleScriptUrl || '').trim();
-    if (!testUrl || !testUrl.startsWith('http')) {
-      return sendJson(res, 400, { success: false, message: 'URL do Google Apps Script inválida ou não fornecida.' });
+    const endpoint = data.googleScriptUrl || readJsonFile(SETTINGS_FILE).googleScriptUrl;
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(endpoint || '')) {
+      return sendJson(res, 400, { success: false, message: 'Informe a URL de implantação /exec.' });
     }
-
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 10000);
-      const testPayload = {
-        nome: 'Teste de Conexão - Painel dos Pais',
-        telefone: '(00) 00000-0000',
-        presenca: 'Confirmado',
-        adultos: 1,
-        criancas: 0,
-        acompanhantes: 'Teste de sincronização',
-        mensagem: 'Testando integração em tempo real com Google Sheets! 🤠🚀',
-        codigoIngresso: 'TESTE-OK'
-      };
-
-      await fetch(testUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(testPayload),
-        signal: controller.signal
+    const result = await postToSheets(endpoint, { kind: 'test', recordId: 'connection-test', revision: randomUUID() });
+    return sendJson(res, 200, { success: true, message: result.message || 'Gravação e leitura de teste confirmadas.' });
+  }
+  if (pathname === '/api/hunters' && req.method === 'POST') {
+    const data = await parseBody(req);
+    if (!/^[a-zA-Z0-9-]{8,80}$/.test(data.id || '') || !String(data.name || '').trim() ||
+        !Array.isArray(data.found) || new Set(data.found).size !== 5 ||
+        !data.found.every(value => Number.isInteger(value) && value >= 1 && value <= 5)) {
+      return sendJson(res, 400, { success: false, message: 'Complete os cinco alienígenas e informe seu nome.' });
+    }
+    const hunters = readJsonFile(HUNTERS_FILE);
+    let hunter = hunters.find(item => item.id === data.id);
+    if (!hunter) {
+      hunter = markPending({
+        id: data.id, name: String(data.name).trim().slice(0, 100),
+        code: 'ALIEN-' + randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase(),
+        completedAt: data.completedAt || new Date().toISOString()
       });
-      clearTimeout(timeout);
-      return sendJson(res, 200, { success: true, message: 'Linha de teste enviada para o Google Sheets com sucesso!' });
-    } catch (e) {
-      return sendJson(res, 500, { success: false, message: 'Erro ao testar envio para a planilha: ' + e.message });
+      hunters.push(hunter);
+      writeJsonFile(HUNTERS_FILE, hunters);
     }
+    void flushSheets().catch(console.error);
+    return sendJson(res, 200, { success: true, hunter });
   }
 
   // ==========================================
@@ -623,7 +691,7 @@ const server = http.createServer(async (req, res) => {
     });
     fs.createReadStream(filePath).pipe(res);
   });
-});
+}
 
 server.listen(PORT, () => {
   console.log(`🚀 Servidor Noah Story rodando com sucesso em http://localhost:${PORT}`);

@@ -34,7 +34,7 @@ const PARTY_CONFIG = {
   },
 
   // Integração com o Google Sheets (cole aqui a URL do seu Google Apps Script)
-  googleScriptUrl: "",
+  googleScriptUrl: "https://script.google.com/macros/s/AKfycbx_sp08d5z-Jiis6aKiJjzdFbUPm1ovyyKKI7g_vgfwbGs87sSNJQ3LIU-Me0T-jbHq/exec",
 
   // Contato dos Pais (WhatsApp com DDD)
   hostWhatsapp: "5511999999999",

@@ -30,14 +30,12 @@ Site de convite digital cinematográfico, animado e interativo, inspirado no uni
    - Botões para Google Maps, Waze, Copiar Endereço e Google Agenda.
    - **Contagem Regressiva Intergaláctica** (Dias, Horas, Minutos, Segundos).
 
-4. **👽 Minijogo da Caça aos 3 Alienígenas Escondidos:**
-   - 3 marcianos verdes da Garra escondidos pelo site:
-     1. Espiando atrás do Cartaz de Procurado no Velho Oeste.
-     2. Pilotando no painel cósmico do Buzz.
-     3. Dentro do álbum de recordações / linha do tempo.
-   - Som marciano harmônico *"Ooooh!"* ao clicar.
-   - HUD superior rastreador: `Aliens: 1/3`, `2/3`, `3/3`.
-   - Celebração triunfal ao achar os 3: modal comemorativo com confetes e a famosa fala: *"OOOOOH! VOCÊ FOI ESCOLHIDO!"*.
+4. **👽 Caça aos cinco alienígenas escondidos**
+   - Aviso surpresa após entrar no convite.
+   - Cinco esconderijos sorteados por aparelho, com aparições curtas e discretas.
+   - Voz enviada pela família em cada toque e progresso salvo no navegador.
+   - Distintivo **Caçadores de aliens** com nome e código, para baixar ou compartilhar e apresentar na festa.
+   - Conquistas registradas na aba **Caçadores de aliens** da planilha.
 
 5. **🎮 Quiz Interativo — Qual Brinquedo Você Seria?:**
    - 3 perguntas divertidas sobre personalidade e aventura.

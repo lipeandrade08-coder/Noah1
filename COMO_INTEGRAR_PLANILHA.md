@@ -1,74 +1,45 @@
-# 📋 Como Conectar o Convite do Noah com a sua Planilha Google
+# Planilha do convite do Noah
 
-Este guia passo a passo ensina como conectar o formulário de confirmação do convite à sua própria planilha do Google em menos de 2 minutos, sem custos e sem precisar de servidor.
+A URL da implantação existente está configurada em `data/settings.json` e em `js/config.js`. O código atualizado está em `google-apps-script.js`.
 
----
+## Como os registros são guardados
 
-### Passo 1: Criar a Planilha no Google Drive
+- O navegador guarda uma fila antes de enviar a resposta. Itens sem confirmação permanecem na fila e são reenviados quando a conexão volta ou o convite é reaberto nesse aparelho.
+- Com o servidor Node ativo, a resposta é gravada em disco antes da confirmação ao convidado. O servidor tenta entregar os registros à planilha em segundo plano e retoma os pendentes após reiniciar.
+- Em hospedagem estática, o navegador envia diretamente à implantação do Google e confere o ID e a revisão retornados antes de tirar o item da fila.
+- A planilha atualiza o registro identificado pelo ID ou pelo telefone. Uma nova tentativa com os mesmos dados preserva a linha, e revisões antigas não sobrescrevem as mais recentes.
+- O Apps Script aguarda o bloqueio de escrita, aplica as alterações e lê os campos de identificação antes de responder com sucesso.
 
-1. Acesse o seu Google Drive ou digite no navegador: [sheets.new](https://sheets.new)
-2. Dê um nome para a planilha, por exemplo: **`Confirmações - Noah 1 Ano`**
-3. Não precisa digitar nada nas células; o nosso script criará os cabeçalhos coloridos e organizados automaticamente na primeira resposta!
+As abas são **Confirmações**, **Caçadores de aliens** e **Teste de conexão**. Quando a planilha já possui a tabela antiga com o cabeçalho “Nome do Convidado”, essa aba é reaproveitada. As oito primeiras colunas são preservadas e os campos de identificação são acrescentados à direita.
 
----
+## Conferir o funcionamento
 
-### Passo 2: Colar o Código do Apps Script
+1. Inicie o servidor com `npm start`.
+2. Abra o Painel dos Pais e a aba **Integração Planilha**.
+3. Confira quantos registros estão confirmados e quantos aguardam envio.
+4. Use **Testar Envio na Planilha Agora** para confirmar gravação e leitura em uma linha técnica na aba de testes.
+5. Use **Enviar Todas as Confirmações Salvas** para antecipar uma nova tentativa dos registros pendentes.
 
-1. No menu superior da planilha, clique em:  
-   **Extensões** > **Apps Script**
-2. Na tela que abrir, apague o código padrão que estiver lá (`function myFunction() { ... }`).
-3. Abra o arquivo [`google-apps-script.js`](./google-apps-script.js) deste projeto, copie todo o conteúdo e cole no editor do Apps Script.
-4. Clique no ícone de salvar (💾) ou pressione `Ctrl + S`.
+O teste de conexão reutiliza a mesma linha. Os testes de desenvolvimento usam uma pasta temporária e dados fictícios.
 
----
+## Atualizar a implantação
 
-### Passo 3: Publicar como App da Web (Implantar)
+Após editar `google-apps-script.js`, copie o conteúdo para o projeto vinculado à planilha. Salve e abra **Implantar → Gerenciar implantações → Editar → Nova versão**. Atualize a implantação existente para manter a URL `/exec`.
 
-1. No canto superior direito da tela do Apps Script, clique no botão azul:  
-   **Implantar** (ou *Deploy*) > **Nova implantação** (*New deployment*).
-2. Na janela que abrir, clique no ícone de engrenagem ⚙️ (ao lado de *Selecione o tipo*) e escolha **App da Web** (*Web App*).
-3. Preencha os campos exatamente assim:
-   - **Descrição:** `API Convite Noah`
-   - **Executar como:** `Eu (seu email)`
-   - **Quem pode acessar:** `Qualquer pessoa` *(MUITO IMPORTANTE: escolha "Qualquer pessoa" para que os convidados consigam confirmar sem precisar fazer login no Google!)*
-4. Clique em **Implantar**.
-5. Se o Google solicitar permissões de segurança:
-   - Clique em **Autorizar acesso**
-   - Escolha sua conta Google
-   - Se aparecer "O Google não verificou este app", clique em **Avançado** (na parte inferior esquerda) e depois em **Acessar [Nome do Projeto] (não seguro)**
-   - Clique em **Permitir**.
-6. Copie a **URL do app da Web** gerada (ela termina com `/exec`).
+Quando trocar a URL, salve-a no Painel dos Pais para o servidor e atualize `js/config.js` na publicação estática.
 
----
+## Conquistas da caça
 
-### Passo 4: Conectar ao Convite
+A missão tem cinco aliens com esconderijos sorteados por aparelho e aparições de 3,5 segundos em ciclos de 17 segundos. O progresso fica guardado no navegador. O aviso surge após a entrada no convite.
 
-Existem duas formas fáceis de colar a URL:
+Ao concluir, o convidado informa o nome e recebe um distintivo com código. O registro vai para a aba **Caçadores de aliens**. A imagem pode ser baixada ou compartilhada e apresentada na festa. Em caso de falta de conexão, a conquista fica pendente e recebe o código quando for registrada.
 
-#### Opção A (Direto no arquivo de configuração):
-Abra o arquivo [`js/config.js`](./js/config.js) e cole a URL na variável `googleScriptUrl`:
-```javascript
-googleScriptUrl: "https://script.google.com/macros/s/SEU_ID_DO_SCRIPT/exec",
-```
+Os aliens decorativos também reproduzem a voz enviada. Os cinco botões escondidos são os que contam para a missão.
 
-#### Opção B (Pelo próprio convite na tela):
-1. Abra o site do convite (`index.html`) no seu navegador.
-2. No rodapé ou no botão de engrenagem ⚙️ "Configurações do Anfitrião", cole o link da planilha e clique em "Salvar Link".
-3. Pronto! Ele salva no seu navegador e você pode testar imediatamente.
+## Recuperação e limites operacionais
 
----
+O servidor precisa de armazenamento persistente para manter a fila e as cópias em `data/` entre reinicializações da hospedagem. A confirmação de gravação na planilha depende de internet e da disponibilidade do Google.
 
-### 🚀 Dados que serão gravados na planilha automaticamente:
-- **Data/Hora do Envio**
-- **Nome do Convidado**
-- **Status de Presença** *(Verde para Confirmado, Vermelho para Não Comparecerá)*
-- **Quantidade de Adultos**
-- **Quantidade de Crianças**
-- **Nomes dos Acompanhantes**
-- **WhatsApp / Telefone de Contato**
-- **Recado carinhoso para o Noah**
+Em hospedagem estática, um envio ainda pendente depende de reabrir o convite no mesmo navegador. Apagar os dados desse navegador remove cópias que ainda não foram entregues. A tela informa quando o envio permanece pendente.
 
----
-
-### 💡 Backup Automático no Navegador
-Mesmo se você ainda não tiver configurado o Google Sheets ou se a internet do convidado oscilar, o site possui um sistema inteligente de backup local (`localStorage`) e permite exportar a lista completa de confirmações em **Excel / CSV** a qualquer momento com apenas 1 clique!
+A rotina de bloqueio e confirmação segue a documentação oficial do Google para [Lock](https://developers.google.com/apps-script/reference/lock/lock) e [Content Service](https://developers.google.com/apps-script/guides/content).

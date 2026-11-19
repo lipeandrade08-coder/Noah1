@@ -385,29 +385,10 @@ function playBuzzLaser() {
   osc.stop(ctx.currentTime + 0.35);
 }
 
-// Som marciano harmônico dos Alienígenas ("Ooooh!")
+// Voz dos alienígenas também nas descobertas e na comemoração do minijogo.
 function playAlienOoooh() {
   if (!AppState.soundEnabled) return;
-  const ctx = getAudioContext();
-  if (!ctx) return;
-
-  const freqs = [329.63, 493.88, 659.25]; // Acorde E maior místico
-  freqs.forEach((f, idx) => {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(f, ctx.currentTime);
-    osc.frequency.linearRampToValueAtTime(f * 1.08, ctx.currentTime + 0.6);
-
-    gain.gain.setValueAtTime(0.08, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.7);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start(ctx.currentTime + (idx * 0.04));
-    osc.stop(ctx.currentTime + 0.75);
-  });
+  playCharacterSound("alien");
 }
 
 // ==========================================
@@ -544,86 +525,6 @@ function triggerConfetti(particleCount = 60, spread = 70) {
 }
 
 // ==========================================
-// 4. MINIJOGO: CAÇA AOS ALIENÍGENAS ESCONDIDOS 👽
-// ==========================================
-function initAlienHuntMinigame() {
-  const alien1 = document.getElementById("alien-secret-1");
-  const alien2 = document.getElementById("alien-secret-2");
-  const alien3 = document.getElementById("alien-secret-3");
-
-  const registerAlienClick = (num, el) => {
-    if (!el) return;
-    el.addEventListener("click", () => {
-      if (AppState.aliensFound.has(num)) {
-        playAlienOoooh();
-        showNotification("👽 Alienígena: 'A Garra já nos escolheu!'");
-        return;
-      }
-
-      AppState.aliensFound.add(num);
-      playAlienOoooh();
-      triggerConfetti(35, 45);
-
-      // Atualiza visual do alien encontrado
-      el.style.transform = "scale(1.4) rotate(15deg)";
-      setTimeout(() => { el.style.transform = "scale(1)"; }, 400);
-
-      // Atualiza o HUD
-      updateAlienHud();
-
-      showNotification(`🎉 VOCÊ ENCONTROU UM ALIENÍGENA! 👽 (${AppState.aliensFound.size}/3)`);
-
-      // Se achou os 3
-      if (AppState.aliensFound.size === 3) {
-        setTimeout(celebrateAllAliensFound, 700);
-      }
-    });
-  };
-
-  registerAlienClick(1, alien1);
-  registerAlienClick(2, alien2);
-  registerAlienClick(3, alien3);
-
-  // Botão fechar modal de vitória dos aliens
-  const winModal = document.getElementById("alien-win-modal");
-  const winCloseBtn = document.getElementById("alien-win-close-btn");
-  const winOkBtn = document.getElementById("btn-alien-win-ok");
-
-  const closeWinModal = () => {
-    if (winModal) winModal.classList.remove("open");
-  };
-  if (winCloseBtn) winCloseBtn.addEventListener("click", closeWinModal);
-  if (winOkBtn) winOkBtn.addEventListener("click", closeWinModal);
-}
-
-function updateAlienHud() {
-  const countText = document.getElementById("aliens-counter-text");
-  if (countText) countText.textContent = AppState.aliensFound.size;
-
-  [1, 2, 3].forEach(i => {
-    const dot = document.getElementById(`alien-dot-${i}`);
-    if (dot) {
-      if (AppState.aliensFound.has(i)) {
-        dot.classList.add("found");
-      } else {
-        dot.classList.remove("found");
-      }
-    }
-  });
-}
-
-function celebrateAllAliensFound() {
-  playFanfare();
-  playAlienOoooh();
-  triggerConfetti(120, 100);
-
-  const winModal = document.getElementById("alien-win-modal");
-  if (winModal) {
-    winModal.classList.add("open");
-  }
-}
-
-// ==========================================
 // 5. BLOCOS DE BRINQUEDO MUSICAIS (N - O - A - H - 1)
 // ==========================================
 function initInteractiveToyBlocks() {
@@ -677,14 +578,20 @@ let currentCharacterAudio = null;
 
 function stopAllCharacterSounds() {
   if (currentBufferSource) {
-    try { currentBufferSource.stop(); } catch (e) {}
+    const source = currentBufferSource;
+    const onEnded = source.onended;
+    source.onended = null;
+    try { source.stop(); } catch (e) {}
+    onEnded?.();
     currentBufferSource = null;
   }
   if (currentCharacterAudio) {
+    const audio = currentCharacterAudio;
     try {
-      currentCharacterAudio.pause();
-      currentCharacterAudio.currentTime = 0;
+      audio.pause();
+      audio.currentTime = 0;
     } catch (e) {}
+    audio.onended?.();
     currentCharacterAudio = null;
   }
 }
@@ -1050,7 +957,7 @@ function initQuizToyStory() {
     alien: {
       name: "Alienígena da Garra! 👽",
       desc: "Você é leal, misterioso e sabe reconhecer quando algo verdadeiramente mágico acontece!",
-      img: "assets/images/aliens-toy-story.jpg"
+      img: "assets/images/alien-wave.webp"
     }
   };
 
@@ -1349,6 +1256,17 @@ function initRsvpForm() {
   const presenceRadios = document.querySelectorAll('input[name="presence"]');
   const attendeesContainer = document.getElementById("attendees-container");
 
+  document.addEventListener("noah:delivered", event => {
+    if (event.detail.kind !== "rsvp") return;
+    const state = document.getElementById("rsvp-delivery-status");
+    state.textContent = "Sua resposta foi recebida. Obrigado!";
+    state.dataset.pending = "false";
+    const ticket = document.getElementById("ticket-modal");
+    if (ticket.classList.contains("open") && document.getElementById("ticket-guest-name").textContent === event.detail.record.name) {
+      displayDigitalTicket(event.detail.record);
+    }
+  });
+
   // Alterna exibição se "Não poderei ir" for marcado
   presenceRadios.forEach(radio => {
     radio.addEventListener("change", () => {
@@ -1460,7 +1378,7 @@ function initRsvpForm() {
       const childRows = rowsList.querySelectorAll(".child-row-item");
       childRows.forEach((row, i) => {
         const cName = row.querySelector(".child-name-input").value.trim() || `Criança ${i + 1}`;
-        const cAge = parseInt(row.querySelector(".child-age-select").value, 10) || 4;
+        const cAge = parseInt(row.querySelector(".child-age-select").value, 10) || 0;
         childrenDetails.push({ name: cName, age: cAge });
       });
 
@@ -1480,84 +1398,52 @@ function initRsvpForm() {
       submitText.textContent = "GRAVANDO MISSÃO...";
 
       try {
-        // Enviar para API local se disponível
-        let savedRsvp = null;
-        try {
-          const apiRes = await fetch("/api/rsvp", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-          if (apiRes.ok) {
-            const apiData = await apiRes.json();
-            savedRsvp = apiData.rsvp;
+        const randomSuffix = NoahDelivery.createId().slice(0, 8).toUpperCase();
+        const ticketCode = `NOAH-1-${randomSuffix}`;
+        const localVouchers = [];
+        let seq = 1;
+
+        payload.childrenDetails.forEach(c => {
+          const age = parseInt(c.age, 10);
+          if (age >= 0 && age <= 12) {
+            localVouchers.push({
+              code: `VOUCH-RED-${randomSuffix}-${seq++}`,
+              type: "red",
+              label: "Voucher Vermelho (Kids 0-12)",
+              childName: `${c.name} (${age} anos)`,
+              qty: 2,
+              redeemed: false
+            });
+          } else if (age >= 13 && age <= 16) {
+            localVouchers.push({
+              code: `VOUCH-GOLD-${randomSuffix}-${seq++}`,
+              type: "gold",
+              label: "Voucher Dourado (Teens 13-16)",
+              childName: `${c.name} (${age} anos)`,
+              qty: 1,
+              redeemed: false
+            });
           }
-        } catch (apiErr) {
-          console.warn("API server inacessível, salvando localmente:", apiErr);
-        }
+        });
 
-        // Se a API não respondeu, simula vouchers e salva no localStorage
-        if (!savedRsvp) {
-          const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-          const ticketCode = `NOAH-1-${randomSuffix}`;
-          const localVouchers = [];
-          let seq = 1;
+        let savedRsvp = {
+          id: NoahDelivery.createId(),
+          ticketCode: ticketCode,
+          ...payload,
+          vouchers: localVouchers
+        };
 
-          payload.childrenDetails.forEach(c => {
-            const age = parseInt(c.age, 10);
-            if (age >= 0 && age <= 12) {
-              localVouchers.push({
-                code: `VOUCH-RED-${randomSuffix}-${seq++}`,
-                type: "red",
-                label: "Voucher Vermelho (Kids 0-12)",
-                childName: `${c.name} (${age} anos)`,
-                qty: 2,
-                redeemed: false
-              });
-            } else if (age >= 13 && age <= 16) {
-              localVouchers.push({
-                code: `VOUCH-GOLD-${randomSuffix}-${seq++}`,
-                type: "gold",
-                label: "Voucher Dourado (Teens 13-16)",
-                childName: `${c.name} (${age} anos)`,
-                qty: 1,
-                redeemed: false
-              });
-            }
-          });
-
-          savedRsvp = {
-            id: `rsvp_${Date.now()}`,
-            ticketCode: ticketCode,
-            ...payload,
-            vouchers: localVouchers
-          };
-        }
-
-        // Salva cópia no localStorage
+        NoahDelivery.enqueue("rsvp", savedRsvp);
         saveRsvpLocally(savedRsvp);
-
-        // Se houver Google Apps Script configurado, envia também
-        if (typeof PARTY_CONFIG !== "undefined" && PARTY_CONFIG.googleScriptUrl && PARTY_CONFIG.googleScriptUrl.startsWith("http")) {
-          sendToGoogleSheets(savedRsvp);
-        }
-
-        // Se enviou recado no RSVP, guarda também na Cápsula do Tempo para o Pequeno Xerife
-        if (payload.message && payload.message.trim()) {
-          const capsuleFromRsvp = {
-            author: payload.name,
-            message: payload.message.trim(),
-            theme: "woody",
-            autoApprove: true
-          };
-          fetch("/api/messages", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(capsuleFromRsvp)
-          }).then(() => {
-            renderApprovedMessages();
-          }).catch(() => {});
-        }
+        await NoahDelivery.flush();
+        const savedLocal = JSON.parse(localStorage.getItem("noah_story_rsvps") || "[]");
+        savedRsvp = savedLocal.find(record => record.id === savedRsvp.id || record.phone === savedRsvp.phone) || savedRsvp;
+        const waiting = NoahDelivery.pending("rsvp", savedRsvp.id);
+        const deliveryStatus = document.getElementById("rsvp-delivery-status");
+        deliveryStatus.textContent = waiting
+          ? "Sua resposta está guardada neste aparelho e aguarda conexão. Mantenha o convite aberto para concluir o envio."
+          : "Sua resposta foi recebida. O envio à planilha continua automaticamente se houver instabilidade.";
+        deliveryStatus.dataset.pending = waiting;
 
         // Celebração & Modal do Ingresso
         playFanfare();
@@ -1589,7 +1475,7 @@ function initRsvpForm() {
 function saveRsvpLocally(rsvp) {
   try {
     let local = JSON.parse(localStorage.getItem("noah_story_rsvps") || "[]");
-    const idx = local.findIndex(r => r.ticketCode === rsvp.ticketCode || (r.phone && r.phone === rsvp.phone));
+    const idx = local.findIndex(r => r.id === rsvp.id || r.ticketCode === rsvp.ticketCode || (r.phone && r.phone.replace(/\D/g, "") === (rsvp.phone || "").replace(/\D/g, "")));
     if (idx >= 0) {
       local[idx] = rsvp;
     } else {
@@ -1598,29 +1484,6 @@ function saveRsvpLocally(rsvp) {
     localStorage.setItem("noah_story_rsvps", JSON.stringify(local));
   } catch (e) {
     console.warn("Erro ao salvar local:", e);
-  }
-}
-
-// Envia dados para o Google Sheets em segundo plano
-function sendToGoogleSheets(rsvp) {
-  try {
-    const kidsStr = (rsvp.childrenDetails || []).map(k => `${k.name} (${k.age}a)`).join(", ");
-    const formData = new FormData();
-    formData.append("nome", rsvp.name);
-    formData.append("telefone", rsvp.phone);
-    formData.append("presenca", rsvp.presence);
-    formData.append("adultos", rsvp.adults);
-    formData.append("criancas", rsvp.children);
-    formData.append("acompanhantes", `${kidsStr ? "Crianças: " + kidsStr + ". " : ""}${rsvp.companions || ""}`);
-    formData.append("mensagem", rsvp.message || "");
-
-    fetch(PARTY_CONFIG.googleScriptUrl, {
-      method: "POST",
-      mode: "no-cors",
-      body: formData
-    }).catch(e => console.warn("Google Sheets sync:", e));
-  } catch (err) {
-    console.warn("Falha no Google Sheets sync:", err);
   }
 }
 
@@ -1637,6 +1500,12 @@ function displayDigitalTicket(rsvp) {
   const vouchersContainer = document.getElementById("ticket-vouchers-container");
 
   if (!modal) return;
+
+  const pending = NoahDelivery.pending("rsvp", rsvp.id);
+  document.getElementById("ticket-delivery-state").textContent = pending
+    ? "Aguardando conexão para registrar seu ingresso. Seus dados estão guardados neste aparelho."
+    : "Ingresso registrado.";
+  document.getElementById("btn-download-ticket-png").disabled = pending;
 
   if (codeEl) codeEl.textContent = rsvp.ticketCode || "NOAH-1-0000";
   if (nameEl) nameEl.textContent = rsvp.name;
@@ -1992,21 +1861,63 @@ function initAdminDashboard() {
     });
   }
 
-  // Salvar Script URL do Google Sheets
   const saveScriptBtn = document.getElementById("btn-save-script-url");
   const scriptInput = document.getElementById("admin-script-url-input");
   const scriptStatus = document.getElementById("admin-sheet-save-status");
-
-  if (saveScriptBtn && scriptInput) {
-    saveScriptBtn.addEventListener("click", () => {
-      const val = scriptInput.value.trim();
-      if (val) {
-        localStorage.setItem("noah_invite_script_url", val);
-        if (typeof PARTY_CONFIG !== "undefined") PARTY_CONFIG.googleScriptUrl = val;
-        if (scriptStatus) scriptStatus.textContent = "✅ Link salvo com sucesso no navegador!";
-      }
-    });
+  const sheetInfo = document.getElementById("sheet-sync-status");
+  async function updateSheetStatus() {
+    try {
+      const response = await fetch("/api/sheets/status");
+      const state = await response.json();
+      if (!response.ok || !state.success) throw new Error("Servidor indisponível");
+      sheetInfo.textContent = state.configured
+        ? `${state.synced} registros confirmados na planilha · ${state.pending} aguardando envio.`
+        : `${state.pending} registros guardados. Configure a URL da planilha.`;
+      if (state.lastError) sheetInfo.textContent += " Última tentativa: " + state.lastError;
+    } catch { sheetInfo.textContent = "Sem conexão com o servidor. Os envios locais continuam pendentes."; }
   }
+  fetch("/api/settings").then(response => response.json()).then(data => {
+    if (data.settings) scriptInput.value = data.settings.googleScriptUrl || "";
+  }).catch(() => {});
+  document.querySelector('[data-tab="tab-sheets"]').addEventListener("click", updateSheetStatus);
+  saveScriptBtn.addEventListener("click", async () => {
+    saveScriptBtn.disabled = true;
+    try {
+      const response = await fetch("/api/settings", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ googleScriptUrl: scriptInput.value.trim() })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.message || "Não foi possível salvar no servidor.");
+      scriptStatus.textContent = "URL salva para todos os convidados.";
+      await updateSheetStatus();
+    } catch (error) { scriptStatus.textContent = error.message; }
+    finally { saveScriptBtn.disabled = false; }
+  });
+  document.getElementById("btn-test-script-url").addEventListener("click", async event => {
+    event.target.disabled = true;
+    scriptStatus.textContent = "Conferindo gravação e leitura...";
+    try {
+      const response = await fetch("/api/test-sheets", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ googleScriptUrl: scriptInput.value.trim() })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.message || "Falha no teste.");
+      scriptStatus.textContent = data.message;
+    } catch (error) { scriptStatus.textContent = error.message; }
+    finally { event.target.disabled = false; }
+  });
+  document.getElementById("btn-sync-all-to-sheets").addEventListener("click", async event => {
+    event.target.disabled = true;
+    try {
+      await NoahDelivery.flush();
+      const response = await fetch("/api/sheets/sync", { method: "POST" });
+      if (!response.ok) throw new Error("O servidor não confirmou o envio. Os dados continuam guardados.");
+      await updateSheetStatus();
+    } catch (error) { scriptStatus.textContent = error.message; }
+    finally { event.target.disabled = false; }
+  });
 }
 
 async function refreshAdminData() {

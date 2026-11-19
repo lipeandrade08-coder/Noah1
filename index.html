@@ -15,7 +15,7 @@
   <!-- Favicon com Foguete Espacial -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
 
-  <link rel="preload" href="assets/images/logo-noah-story-1.webp" as="image" fetchpriority="high">
+  <link rel="preload" href="assets/images/logo-noah-toys-box.webp" as="image" fetchpriority="high">
   <link rel="preload" href="js/intro.js" as="script">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;family=Lilita+One&amp;family=Outfit:wght@400;500;600;700;800;900&amp;family=Bungee&amp;display=swap"
@@ -51,21 +51,20 @@
         <div class="chest-glow" aria-hidden="true"></div>
         <div class="box-mystery-sparks" aria-hidden="true"><span>⭐</span><span>✨</span><span>❗</span><span>⭐</span><span>✨</span></div>
         <div class="cardboard-box cardboard-foreground">
+          <div class="jumping-toys-layer" id="jumping-toys-layer" aria-hidden="true">
+            <div class="jumping-toy toy-woody"><img src="assets/images/woody-1.jpg" alt="Woody"></div>
+            <div class="jumping-toy toy-jessie"><img src="assets/images/jessie-toy-story.jpg" alt="Jessie"></div>
+            <div class="jumping-toy toy-buzz"><img src="assets/images/buzz-toy-story.jpg" alt="Buzz Lightyear"></div>
+            <div class="jumping-toy toy-alien"><img src="assets/images/alien-wave.webp" alt="Marciano de Toy Story"></div>
+            <div class="jumping-toy toy-family"><img src="assets/images/familia-abertura.webp" alt="A família do Noah fantasiada de Toy Story"></div>
+          </div>
           <div class="cardboard-side" aria-hidden="true"></div>
           <div class="cardboard-front">
-            <img src="assets/images/logo-noah-story-1.webp" alt="Noah Story 1" class="cardboard-logo" fetchpriority="high">
+            <img src="assets/images/logo-noah-toys-box.webp" alt="Noah’s Toys" class="cardboard-logo" fetchpriority="high">
           </div>
           <button type="button" class="chest-trigger" id="btn-open-chest" aria-label="Abrir a caixa Noah Story 1" aria-controls="intro-revealed-panel" autofocus>
             <span class="btn-open-chest">Toque para abrir</span>
           </button>
-        </div>
-        <div class="jumping-toys-layer" id="jumping-toys-layer" aria-hidden="true">
-          <div class="jumping-toy toy-woody"><img src="assets/images/woody-1.jpg" alt="Woody"></div>
-          <div class="jumping-toy toy-jessie"><img src="assets/images/jessie-toy-story.jpg" alt="Jessie"></div>
-          <div class="jumping-toy toy-buzz"><img src="assets/images/buzz-toy-story.jpg" alt="Buzz Lightyear"></div>
-          <div class="jumping-toy toy-alien"><img src="assets/images/aliens-toy-story.jpg" alt="Marciano de Toy Story"></div>
-          <div class="jumping-toy toy-family"><img src="assets/images/familia-abertura.webp" alt="A família do Noah fantasiada de Toy Story"></div>
-          <div class="jumping-toy toy-noah"><img src="assets/images/noah-xerife.webp" alt="Noah com seu chapéu de xerife"></div>
         </div>
       </div>
 
@@ -163,14 +162,11 @@
         <span id="sound-icon">🔊</span> <span id="sound-label">Sons: ON</span>
       </button>
 
-      <!-- HUD Contador de Aliens Escondidos (Minijogo) -->
-      <div class="alien-hud-pill" id="alien-hud-tracker" title="Encontre os 3 alienígenas escondidos pelo site!">
-        <span>👽</span>
-        <span>Aliens: <strong id="aliens-counter-text">0</strong>/3</span>
-        <span class="alien-dot" id="alien-dot-1">🟢</span>
-        <span class="alien-dot" id="alien-dot-2">🟢</span>
-        <span class="alien-dot" id="alien-dot-3">🟢</span>
-      </div>
+      <button type="button" class="alien-hud-pill" id="alien-hud-tracker" aria-haspopup="dialog" aria-controls="hunt-briefing">
+        <span aria-hidden="true">👽</span>
+        <span>Caça <strong id="aliens-counter-text">0</strong>/5</span>
+      </button>
+    </div>
     </div>
 
     <div class="top-bar-right">
@@ -262,11 +258,6 @@
 
         <!-- CARTAZ AUTÊNTICO DE PROCURADO (WANTED) -->
         <div class="wanted-poster-container">
-          
-          <!-- ALIEN ESCONDIDO #1 (ESPIANDO ATRÁS DO CARTAZ) -->
-          <div class="hidden-alien-trigger hidden-alien-1" id="alien-secret-1" title="Opa! O que tem aqui?">
-            <img src="assets/images/characters/alien.svg" alt="Alienígena Escondido" style="width: 100%; height: 100%;">
-          </div>
 
           <div class="wanted-header-text">WANTED</div>
           <div class="wanted-photo-frame">
@@ -386,11 +377,6 @@
 
         <!-- PAINEL HOLOGRÁFICO DA MISSÃO (DATA, HORA, LOCAL) -->
         <div class="space-mission-details" id="space-mission-details" tabindex="-1">
-          
-          <!-- ALIEN ESCONDIDO #2 (PILOTANDO NO PAINEL CÓSMICO) -->
-          <div class="hidden-alien-trigger hidden-alien-2" id="alien-secret-2" title="Opa! Um passageiro espacial!">
-            <img src="assets/images/characters/alien.svg" alt="Alienígena Espacial" style="width: 100%; height: 100%;">
-          </div>
 
           <div class="mission-grid-2col">
             
@@ -617,11 +603,6 @@
       <!-- 9. LINHA DO TEMPO: 365 DIAS DE AVENTURA 📸 -->
       <!-- ========================================== -->
       <section class="timeline-section" id="timeline-section" aria-label="Linha do Tempo dos 365 Dias do Noah">
-        
-        <!-- ALIEN ESCONDIDO #3 (ESPIANDO NA LINHA DO TEMPO) -->
-        <div class="hidden-alien-trigger hidden-alien-3" id="alien-secret-3" title="Um pequeno alienígena no álbum!">
-          <img src="assets/images/characters/alien.svg" alt="Alienígena no Álbum" style="width: 100%; height: 100%;">
-        </div>
 
         <div class="timeline-header">
           <div class="timeline-badge">📸 ÁLBUM DE RECORDAÇÕES • 365 DIAS</div>
@@ -889,7 +870,7 @@
 
           <div class="character-card" data-character="alien" role="button" tabindex="0" title="Toque para ouvir a voz do Alien!">
             <div class="character-avatar-wrapper" style="border-color: #3b82f6;">
-              <img src="assets/images/aliens-toy-story.jpg" alt="Alien" class="character-img">
+              <img src="assets/images/alien-wave.webp" alt="Alien" class="character-img">
             </div>
             <span class="character-name">Alien</span>
             <span class="character-role">Pizza Planet</span>
@@ -942,6 +923,7 @@
           </p>
         </div>
 
+        <p id="rsvp-delivery-status" role="status"></p>
         <form id="rsvp-form" novalidate>
           
           <!-- Escolha: Sim ou Não -->
@@ -1128,9 +1110,9 @@
     <!-- ========================================== -->
     <footer class="footer-section">
       <div class="footer-aliens-row">
-        <img src="assets/images/characters/alien.svg" alt="Alien 1" class="footer-alien-img">
-        <img src="assets/images/characters/alien.svg" alt="Alien 2" class="footer-alien-img" style="transform: translateY(-6px) scale(1.15);">
-        <img src="assets/images/characters/alien.svg" alt="Alien 3" class="footer-alien-img">
+        <img src="assets/images/alien-face.webp" alt="Alien 1" class="footer-alien-img">
+        <img src="assets/images/alien-face.webp" alt="Alien 2" class="footer-alien-img" style="transform: translateY(-6px) scale(1.15);">
+        <img src="assets/images/alien-face.webp" alt="Alien 3" class="footer-alien-img">
       </div>
       <p class="footer-quote">"Você é o nosso brinquedo favorito!" ❤️</p>
       <p class="footer-note">Com muito amor, Família do Noah • Noah Story 1º Aninho • 16 de Janeiro de 2027</p>
@@ -1151,8 +1133,9 @@
           MISSÃO ACEITA, PARCEIRO! 🤠🚀
         </h3>
         <p style="font-size: 0.92rem; color: #475569;">
-          Sua presença foi confirmada! O Pequeno Xerife Noah está muito feliz e esperando por você! Guarde o seu bilhete de embarque oficial:
+          O Pequeno Xerife Noah está esperando por você! Guarde o seu bilhete de embarque quando o registro for concluído.
         </p>
+        <p id="ticket-delivery-state" role="status"></p>
       </div>
 
       <!-- ÁREA IMPRIMÍVEL DO INGRESSO DIGITAL (BAIXÁVEL EM PNG) -->
@@ -1208,24 +1191,35 @@
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- 16. MODAL DA CONQUISTA DOS 3 ALIENÍGENAS   -->
-  <!-- ========================================== -->
-  <div class="modal-backdrop" id="alien-win-modal" role="dialog" aria-modal="true" aria-labelledby="alien-win-title">
-    <div class="modal-card alien-win-modal-card">
-      <button type="button" class="modal-close-x" id="alien-win-close-btn" style="color: #ffffff; background: rgba(255,255,255,0.2);">&times;</button>
-      <img src="assets/images/characters/alien.svg" alt="Alienígenas Vitoriosos" class="alien-win-img">
-      <h3 style="font-family: var(--font-display); font-size: 2rem; color: #facc15;" id="alien-win-title">
-        OOOOOH! VOCÊ FOI ESCOLHIDO! 👽
-      </h3>
-      <p style="font-size: 1.1rem; color: #d1fae5; margin: 10px auto 20px auto; max-width: 440px;">
-        Parabéns! Você encontrou os 3 alienígenas da Garra escondidos pelo site e completou a missão secreta do Noah Story!
-      </p>
-      <button type="button" class="btn-pill btn-calendar" id="btn-alien-win-ok" style="font-size: 1.05rem; padding: 12px 28px;">
-        ✨ A GARRA É NOSSO MESTRE! ✨
-      </button>
+  <dialog class="hunt-dialog" id="hunt-briefing" aria-labelledby="hunt-briefing-title">
+    <form method="dialog"><button class="hunt-close" aria-label="Fechar aviso">×</button></form>
+    <img src="assets/images/alien-wave.webp" class="hunt-briefing-alien" alt="Alienígena acenando">
+    <h2 id="hunt-briefing-title">Uma missão secreta apareceu!</h2>
+    <p>Cinco aliens se infiltraram nos detalhes do convite. Eles são discretos, aparecem por poucos instantes e podem estar em lugares diferentes para cada convidado.</p>
+    <p>Encontre os cinco para conquistar seu distintivo de <strong>Caçadores de aliens</strong>. Salve e apresente na festa do Noah para receber uma surpresa!</p>
+    <p class="hunt-small">Os aliens da abertura, da turma de brinquedos e do rodapé falam com você. A caça vale para os cinco escondidos pelo convite. Seu progresso fica salvo neste aparelho.</p>
+    <button type="button" class="hunt-primary" id="hunt-start">Aceitar a missão</button>
+  </dialog>
+
+  <dialog class="hunt-dialog" id="alien-win-modal" aria-labelledby="alien-win-title">
+    <form method="dialog"><button class="hunt-close" aria-label="Fechar conquista">×</button></form>
+    <h2 id="alien-win-title">Você encontrou os cinco!</h2>
+    <p>Seu lugar entre os <strong>Caçadores de aliens</strong> está conquistado.</p>
+    <img src="assets/images/alien-hunter-badge.webp" alt="Distintivo dourado de caçador de aliens" class="hunt-badge-art">
+    <form id="hunter-name-form">
+      <label for="hunter-name">Nome no distintivo</label>
+      <input id="hunter-name" class="form-input" maxlength="60" required autocomplete="name">
+      <button type="submit" class="hunt-primary" id="hunter-generate">Gerar meu distintivo</button>
+    </form>
+    <div id="hunter-earned" hidden>
+      <p id="hunter-owner"></p>
+      <p id="hunter-code" class="hunter-code"></p>
+      <button type="button" class="hunt-primary" id="hunter-download">Salvar distintivo</button>
+      <button type="button" class="hunt-secondary" id="hunter-share">Compartilhar distintivo</button>
     </div>
-  </div>
+    <p id="hunter-save-status" role="status"></p>
+    <p>Apresente o distintivo no dia <strong>16 de janeiro de 2027</strong>, na festa do Noah, para uma surpresa.</p>
+  </dialog>
 
   <!-- ========================================== -->
   <!-- 17. MODAL DO PAINEL DOS PAIS (FILIPE & YASMIN) -->
@@ -1393,6 +1387,7 @@
               </button>
             </div>
             
+            <p id="sheet-sync-status" role="status"></p>
             <div id="admin-sheet-save-status" style="margin-top: 10px; font-size: 0.88rem; font-weight: bold;"></div>
           </div>
         </div>
@@ -1410,6 +1405,9 @@
   <script defer src="js/vendor/html2canvas.min.js"></script>
 
   <script defer src="js/config.js"></script>
+  <script defer src="js/sheet-payload.js"></script>
+  <script defer src="js/delivery.js"></script>
+  <script defer src="js/hunt.js"></script>
   <script defer src="js/app.js"></script>
 
 </body>
