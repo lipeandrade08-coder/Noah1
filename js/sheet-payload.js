@@ -3,6 +3,7 @@ function NoahSheetPayload(record, kind, revision = record.sheetSync?.revision) {
     return {
       kind, recordId: record.id, revision,
       nome: record.name, codigoDistintivo: record.code, concluidoEm: record.completedAt,
+      rsvpId: record.rsvpId, codigoIngresso: record.ticketCode, encontrados: record.found,
       issuedAt: record.updatedAt || record.completedAt
     };
   }

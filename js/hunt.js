@@ -15,6 +15,8 @@ function initAlienHuntMinigame() {
   ];
   let state;
   let badge;
+  let registration;
+  let requestingBadge = false;
   try {
     state = JSON.parse(localStorage.getItem(stateKey) || "null");
     badge = JSON.parse(localStorage.getItem(badgeKey) || "null");
@@ -40,9 +42,27 @@ function initAlienHuntMinigame() {
     document.getElementById("aliens-counter-text").textContent = state.found.length;
     hud.setAttribute("aria-label", state.found.length === 5 ? "Abrir meu distintivo" : `Caça aos aliens, ${state.found.length} de 5. Abrir aviso.`);
   }
+  function registeredGuest() {
+    try {
+      const records = JSON.parse(localStorage.getItem("noah_story_rsvps") || "[]").filter(record =>
+        record.id && record.ticketCode && record.name && record.phone &&
+        !record.id.startsWith("rsvp_sample_") && !NoahDelivery.pending("rsvp", record.id) &&
+        (record.deliveryConfirmedAt || record.sheetSync));
+      records.sort((a, b) => Date.parse(b.submittedAt || b.updatedAt || b.createdAt) - Date.parse(a.submittedAt || a.updatedAt || a.createdAt));
+      return records.find(record => record.id === (state.rsvpId || badge?.rsvpId)) || records[0];
+    } catch { return null; }
+  }
+  registration = registeredGuest();
+
+  function badgeReady() {
+    return Boolean(registration && badge?.code && badge.rsvpId === registration.id &&
+      badge.ticketCode === registration.ticketCode && badge.sheetSync?.status === "synced");
+  }
+
   function showVictory() {
     renderBadge();
     if (!victory.open) victory.showModal();
+    if (registration && !badgeReady()) void requestBadge();
   }
 
   const targets = state.places.map((place, index) => {
@@ -140,49 +160,79 @@ function initAlienHuntMinigame() {
   });
 
   function renderBadge() {
-    document.getElementById("hunter-name-form").hidden = Boolean(badge);
-    document.getElementById("hunter-earned").hidden = !badge;
-    if (!badge) {
-      try {
-        const rsvps = JSON.parse(localStorage.getItem("noah_story_rsvps") || "[]");
-        document.getElementById("hunter-name").value = rsvps[0]?.name || "";
-      } catch {}
+    const ready = badgeReady();
+    document.getElementById("hunter-form-gate").hidden = Boolean(registration);
+    document.getElementById("hunter-earned").hidden = !ready;
+    document.getElementById("hunter-badge-art").hidden = !ready;
+    document.getElementById("hunter-download").disabled = !ready;
+    document.getElementById("hunter-share").disabled = !ready;
+    if (!registration) {
+      status.textContent = "A caça está concluída e salva. Preencha o formulário para liberar seu distintivo.";
+      return;
+    }
+    if (!ready) {
+      status.textContent = "Seu formulário foi recebido. A conquista aguarda confirmação na planilha para liberar o distintivo.";
       return;
     }
     document.getElementById("hunter-owner").textContent = badge.name;
-    document.getElementById("hunter-code").textContent = badge.code || "Registro pendente";
-    status.textContent = badge.code
-      ? "Distintivo registrado. Salve uma cópia para apresentar na festa."
-      : "Sua conquista está guardada neste aparelho. Conecte-se para receber o código do distintivo.";
-    document.getElementById("hunter-download").disabled = !badge.code;
-    document.getElementById("hunter-share").disabled = !badge.code;
+    document.getElementById("hunter-code").textContent = badge.code;
+    status.textContent = "Distintivo registrado como Sim na planilha. Salve uma cópia para apresentar na festa.";
   }
 
-  document.getElementById("hunter-name-form").addEventListener("submit", async event => {
-    event.preventDefault();
-    if (state.found.length !== 5) return;
-    const name = document.getElementById("hunter-name").value.trim();
-    if (!name) return;
-    const button = document.getElementById("hunter-generate");
-    button.disabled = true;
+  async function requestBadge() {
+    if (!registration || state.found.length !== 5 || requestingBadge || badgeReady()) return;
+    requestingBadge = true;
     try {
-      const claim = { id: state.id, name, found: state.found, completedAt: state.completedAt };
+      const claim = {
+        id: state.id, name: registration.name, rsvpId: registration.id,
+        ticketCode: registration.ticketCode, found: state.found, completedAt: state.completedAt
+      };
+      state.rsvpId = registration.id;
+      persist();
       NoahDelivery.enqueue("hunter", claim);
       badge = { ...claim, code: null };
       localStorage.setItem(badgeKey, JSON.stringify(badge));
       renderBadge();
       await NoahDelivery.flush();
+      // Um formulário ainda em entrega pode ter iniciado a rodada anterior da fila.
+      if (NoahDelivery.pending("hunter", state.id)) await NoahDelivery.flush();
     } catch {
-      status.textContent = "Não foi possível guardar a conquista. Mantenha esta tela aberta e tente novamente.";
-    } finally { button.disabled = false; }
+      status.textContent = "A conquista aguarda envio. Mantenha o convite aberto ou reabra neste aparelho para tentar novamente.";
+    } finally { requestingBadge = false; }
+  }
+
+  document.getElementById("hunter-go-form").addEventListener("click", () => {
+    victory.close();
+    const section = document.getElementById("rsvp-section");
+    section.scrollIntoView({ block: "start" });
+    document.getElementById("guest-name").focus({ preventScroll: true });
   });
-  document.addEventListener("noah:delivered", event => {
-    if (event.detail.kind !== "hunter" || event.detail.record.id !== state.id) return;
-    badge = event.detail.record;
-    renderBadge();
+  document.getElementById("hunter-ticket").addEventListener("click", () => {
+    if (!registration) return;
+    victory.close();
+    displayDigitalTicket(registration);
   });
 
+  document.addEventListener("noah:delivered", event => {
+    if (event.detail.kind === "rsvp") {
+      registration = registeredGuest();
+      renderBadge();
+      if (state.found.length === 5) void requestBadge();
+      return;
+    }
+    if (event.detail.kind !== "hunter" || event.detail.record.rsvpId !== registration?.id ||
+        event.detail.record.ticketCode !== registration.ticketCode) return;
+    badge = event.detail.record;
+    renderBadge();
+    if (state.found.length === 5 && badgeReady()) {
+      document.getElementById("ticket-modal").classList.remove("open");
+      if (!victory.open) victory.showModal();
+    }
+  });
+  if (state.found.length === 5 && registration && !badgeReady()) void requestBadge();
+
   async function badgeFile() {
+    if (!badgeReady()) throw new Error("Conclua o formulário para liberar o distintivo.");
     const image = new Image();
     image.src = "assets/images/alien-hunter-badge.webp";
     await image.decode();

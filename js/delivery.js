@@ -48,6 +48,12 @@ const NoahDelivery = (() => {
     if (!googleResponse.ok || result.result !== "success" || result.recordId !== record.id || result.revision !== item.revision) {
       throw new Error(result.error || "A planilha não confirmou o registro.");
     }
+    if (item.kind === "hunter") {
+      if (!result.rsvpId || result.rsvpId !== record.rsvpId || !result.code) {
+        throw new Error("A planilha não confirmou o vínculo com o formulário.");
+      }
+      record.code = result.code;
+    }
     record.sheetSync = { status: "synced", revision: item.revision };
     return { success: true, rsvp: record, hunter: record };
   }
@@ -59,7 +65,12 @@ const NoahDelivery = (() => {
         try {
           const answer = await deliver(item);
           const record = item.kind === "hunter" ? answer.hunter : answer.rsvp;
-          if (!record || (record.id !== item.record.id && item.kind === "hunter")) throw new Error("Confirmação incompleta");
+          if (!record) throw new Error("Confirmação incompleta");
+          if (item.kind === "hunter" && (record.rsvpId !== item.record.rsvpId ||
+              record.ticketCode !== item.record.ticketCode || record.sheetSync?.status !== "synced")) {
+            throw new Error("O distintivo aguarda o formulário e a gravação na planilha.");
+          }
+          if (item.kind === "rsvp") record.deliveryConfirmedAt = new Date().toISOString();
           const current = read();
           if (!current.some(entry => entry.revision === item.revision)) continue;
           if (item.kind === "rsvp") saveRsvpLocally(record);

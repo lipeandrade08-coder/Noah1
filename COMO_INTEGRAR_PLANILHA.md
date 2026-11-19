@@ -10,7 +10,9 @@ A URL da implantação existente está configurada em `data/settings.json` e em 
 - A planilha atualiza o registro identificado pelo ID ou pelo telefone. Uma nova tentativa com os mesmos dados preserva a linha, e revisões antigas não sobrescrevem as mais recentes.
 - O Apps Script aguarda o bloqueio de escrita, aplica as alterações e lê os campos de identificação antes de responder com sucesso.
 
-As abas são **Confirmações**, **Caçadores de aliens** e **Teste de conexão**. Quando a planilha já possui a tabela antiga com o cabeçalho “Nome do Convidado”, essa aba é reaproveitada. As oito primeiras colunas são preservadas e os campos de identificação são acrescentados à direita.
+As abas são **Confirmações**, **Caçadores de aliens**, **Distintivos** e **Teste de conexão**. Quando a planilha já possui a tabela antiga com o cabeçalho “Nome do Convidado”, essa aba é reaproveitada. As colunas antigas são preservadas e os novos campos são acrescentados à direita.
+
+A aba **Distintivos** mostra nome, telefone, presença, **Distintivo — Sim/Não**, código do distintivo, ingresso e data da conquista. A lista de confirmações também possui a coluna **Distintivo**. Um teste de conexão inicializa esse controle para os registros existentes.
 
 ## Conferir o funcionamento
 
@@ -32,7 +34,11 @@ Quando trocar a URL, salve-a no Painel dos Pais para o servidor e atualize `js/c
 
 A missão tem cinco aliens com esconderijos sorteados por aparelho e aparições de 3,5 segundos em ciclos de 17 segundos. O progresso fica guardado no navegador. O aviso surge após a entrada no convite.
 
-Ao concluir, o convidado informa o nome e recebe um distintivo com código. O registro vai para a aba **Caçadores de aliens**. A imagem pode ser baixada ou compartilhada e apresentada na festa. Em caso de falta de conexão, a conquista fica pendente e recebe o código quando for registrada.
+Ao encontrar os cinco, o convidado precisa concluir o formulário de presença. O distintivo usa o nome desse formulário. Quem já enviou o formulário pode receber o distintivo assim que completar a caça.
+
+O servidor e o Apps Script conferem o vínculo com a confirmação e o ingresso. O download só é liberado após a planilha registrar **Sim**. Uma confirmação que ainda não concluiu a caça aparece como **Não**. Reenvios e edições do formulário preservam o código da conquista.
+
+O registro também vai para a aba **Caçadores de aliens**. A imagem pode ser baixada ou compartilhada e apresentada na festa. Em caso de falta de conexão, a conquista fica pendente e é retomada quando a gravação puder ser confirmada.
 
 Os aliens decorativos também reproduzem a voz enviada. Os cinco botões escondidos são os que contam para a missão.
 

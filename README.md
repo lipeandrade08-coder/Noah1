@@ -34,8 +34,8 @@ Site de convite digital cinematográfico, animado e interativo, inspirado no uni
    - Aviso surpresa após entrar no convite.
    - Cinco esconderijos sorteados por aparelho, com aparições curtas e discretas.
    - Voz enviada pela família em cada toque e progresso salvo no navegador.
-   - Distintivo **Caçadores de aliens** com nome e código, para baixar ou compartilhar e apresentar na festa.
-   - Conquistas registradas na aba **Caçadores de aliens** da planilha.
+   - Distintivo **Caçadores de aliens** liberado após o formulário de presença e o registro da conquista, com nome e código para baixar ou compartilhar.
+   - Controle **Sim/Não** na aba **Distintivos** e na lista de confirmações da planilha.
 
 5. **🎮 Quiz Interativo — Qual Brinquedo Você Seria?:**
    - 3 perguntas divertidas sobre personalidade e aventura.

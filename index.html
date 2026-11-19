@@ -309,7 +309,7 @@
 
         <!-- CARD ESPECIAL DO CHURRASCO AMERICANO -->
         <div class="bbq-special-card">
-          <div class="bbq-badge">🥩 NOVIDADE DA FESTA • CHURRASCO AMERICANO 🤠</div>
+          <div class="bbq-badge">📣 AVISOS DA FESTA</div>
           <h3 class="bbq-title">Churrasco Americano do Xerife Noah!</h3>
           <p class="bbq-rule">
             Regra da Festa: Cada pessoa/família leva apenas 500g de carne por pessoa!
@@ -1074,33 +1074,63 @@
       <!-- ========================================== -->
       <!-- 13. DICAS PARA A FESTA & GUIA DE TAMANHOS  -->
       <!-- ========================================== -->
-      <section class="gift-guide-section" aria-label="Dicas carinhosas e tamanhos de roupinhas">
+      <section class="gift-guide-section" aria-label="Lista de presentes e trajes dos convidados">
         <h2 style="font-family: var(--font-display); font-size: 1.6rem; color: #b45309; text-align: center;">
-          🎁 DICAS PARA A FESTA DO XERIFE NOAH
+          🎁 LISTA DE PRESENTES
         </h2>
         <p style="text-align: center; color: #64748b; font-size: 0.95rem; margin-top: 4px;">
           Sua presença é o maior presente de todos! Se quiser mimar o aniversariante, aqui estão as sugestões:
         </p>
 
         <div class="gift-items-grid">
-          <div class="gift-item-card">
-            <div class="gift-item-icon">👕</div>
-            <div class="gift-item-title">Roupinhas & Calçado</div>
-            <div class="gift-item-val" id="tip-clothingsize">Tamanho: 1 a 2 anos | Calçado: 20/21</div>
-          </div>
+          <article class="gift-item-card">
+            <div class="gift-item-icon" aria-hidden="true">👕</div>
+            <h3 class="gift-item-title">Roupas</h3>
+            <p class="gift-item-val" id="tip-clothingsize">Tamanhos de 1 a 2 anos</p>
+            <ul class="gift-suggestions">
+              <li>Pijama</li>
+              <li>Body manga curta (G)</li>
+              <li>Conjuntos de calor</li>
+              <li>Roupa de praia com proteção UV</li>
+            </ul>
+          </article>
 
-          <div class="gift-item-card">
-            <div class="gift-item-icon">👶</div>
-            <div class="gift-item-title">Fraldas</div>
-            <div class="gift-item-val" id="tip-diapersize">Tamanho G ou XG (qualquer marca)</div>
-          </div>
+          <article class="gift-item-card">
+            <div class="gift-item-icon" aria-hidden="true">👟</div>
+            <h3 class="gift-item-title">Calçados</h3>
+            <p class="gift-item-val" id="tip-shoesize">Numeração 20/21</p>
+            <ul class="gift-suggestions">
+              <li>Tênis</li>
+              <li>Sandálias</li>
+              <li>Chinelo</li>
+            </ul>
+          </article>
 
-          <div class="gift-item-card">
-            <div class="gift-item-icon">🎈</div>
-            <div class="gift-item-title">Traje dos Convidados</div>
-            <div class="gift-item-val" id="tip-dresscode">Venha com roupas confortáveis para brincar e curtir o churrasco!</div>
-          </div>
+          <article class="gift-item-card">
+            <div class="gift-item-icon" aria-hidden="true">🧸</div>
+            <h3 class="gift-item-title">Brinquedos</h3>
+            <p class="gift-item-val">Interativos e coloridos</p>
+            <ul class="gift-suggestions">
+              <li>Brinquedos educativos</li>
+              <li>Brinquedos de montar</li>
+              <li>Pelúcias</li>
+              <li>Carrinhos</li>
+            </ul>
+          </article>
+
+          <article class="gift-item-card">
+            <div class="gift-item-icon" aria-hidden="true">👶</div>
+            <h3 class="gift-item-title">Fraldas</h3>
+            <p class="gift-item-val" id="tip-diapersize">Tamanho G ou XG (qualquer marca)</p>
+          </article>
         </div>
+
+        <article class="guest-outfit-card">
+          <div class="gift-item-icon" aria-hidden="true">🩴</div>
+          <h3 class="gift-item-title">Trajes dos convidados</h3>
+          <p class="gift-item-val" id="tip-dresscode">Venham com uma roupa confortável.</p>
+          <p class="guest-pool-note">Levem traje de banho para as crianças. A piscina estará disponível depois do almoço.</p>
+        </article>
       </section>
 
     </main>
@@ -1196,7 +1226,7 @@
     <img src="assets/images/alien-wave.webp" class="hunt-briefing-alien" alt="Alienígena acenando">
     <h2 id="hunt-briefing-title">Uma missão secreta apareceu!</h2>
     <p>Cinco aliens se infiltraram nos detalhes do convite. Eles são discretos, aparecem por poucos instantes e podem estar em lugares diferentes para cada convidado.</p>
-    <p>Encontre os cinco para conquistar seu distintivo de <strong>Caçadores de aliens</strong>. Salve e apresente na festa do Noah para receber uma surpresa!</p>
+    <p>Encontre os cinco e conclua o formulário de presença para liberar seu distintivo de <strong>Caçadores de aliens</strong>. Salve e apresente na festa do Noah para receber uma surpresa!</p>
     <p class="hunt-small">Os aliens da abertura, da turma de brinquedos e do rodapé falam com você. A caça vale para os cinco escondidos pelo convite. Seu progresso fica salvo neste aparelho.</p>
     <button type="button" class="hunt-primary" id="hunt-start">Aceitar a missão</button>
   </dialog>
@@ -1204,18 +1234,18 @@
   <dialog class="hunt-dialog" id="alien-win-modal" aria-labelledby="alien-win-title">
     <form method="dialog"><button class="hunt-close" aria-label="Fechar conquista">×</button></form>
     <h2 id="alien-win-title">Você encontrou os cinco!</h2>
-    <p>Seu lugar entre os <strong>Caçadores de aliens</strong> está conquistado.</p>
-    <img src="assets/images/alien-hunter-badge.webp" alt="Distintivo dourado de caçador de aliens" class="hunt-badge-art">
-    <form id="hunter-name-form">
-      <label for="hunter-name">Nome no distintivo</label>
-      <input id="hunter-name" class="form-input" maxlength="60" required autocomplete="name">
-      <button type="submit" class="hunt-primary" id="hunter-generate">Gerar meu distintivo</button>
-    </form>
+    <p>Você completou a caça! Para liberar seu distintivo de <strong>Caçadores de aliens</strong>, conclua o formulário de presença.</p>
+    <div id="hunter-form-gate">
+      <p>O distintivo será emitido com o nome informado no formulário, depois que o registro for confirmado.</p>
+      <button type="button" class="hunt-primary" id="hunter-go-form">Preencher formulário de presença</button>
+    </div>
+    <img src="assets/images/alien-hunter-badge.webp" alt="Distintivo dourado de caçador de aliens" class="hunt-badge-art" id="hunter-badge-art" hidden>
     <div id="hunter-earned" hidden>
       <p id="hunter-owner"></p>
       <p id="hunter-code" class="hunter-code"></p>
       <button type="button" class="hunt-primary" id="hunter-download">Salvar distintivo</button>
       <button type="button" class="hunt-secondary" id="hunter-share">Compartilhar distintivo</button>
+      <button type="button" class="hunt-secondary" id="hunter-ticket">Ver meu ingresso</button>
     </div>
     <p id="hunter-save-status" role="status"></p>
     <p>Apresente o distintivo no dia <strong>16 de janeiro de 2027</strong>, na festa do Noah, para uma surpresa.</p>

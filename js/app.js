@@ -97,6 +97,7 @@ function initPartyConfig() {
   const locAddrEl = document.getElementById("location-address-text");
   const tipDressEl = document.getElementById("tip-dresscode");
   const tipClothEl = document.getElementById("tip-clothingsize");
+  const tipShoeEl = document.getElementById("tip-shoesize");
   const tipDiaperEl = document.getElementById("tip-diapersize");
 
   if (datePrimaryEl) datePrimaryEl.textContent = PARTY_CONFIG.dateFormatted;
@@ -108,6 +109,7 @@ function initPartyConfig() {
   }
   if (tipDressEl && PARTY_CONFIG.tips) tipDressEl.textContent = PARTY_CONFIG.tips.dressCode;
   if (tipClothEl && PARTY_CONFIG.tips) tipClothEl.textContent = PARTY_CONFIG.tips.clothingSize;
+  if (tipShoeEl && PARTY_CONFIG.tips?.shoeSize) tipShoeEl.textContent = PARTY_CONFIG.tips.shoeSize;
   if (tipDiaperEl && PARTY_CONFIG.tips) tipDiaperEl.textContent = PARTY_CONFIG.tips.diaperSize;
 
   // Botões de Maps e Waze

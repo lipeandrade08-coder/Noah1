@@ -170,12 +170,17 @@ async function flushSheets(force = false) {
         }
         const revision = record.sheetSync.revision;
         let error;
-        try { await postToSheets(settings.googleScriptUrl, toSheetPayload(record, kind)); }
+        let receipt;
+        try { receipt = await postToSheets(settings.googleScriptUrl, toSheetPayload(record, kind)); }
         catch (failure) { error = failure.message; }
         // Um envio antigo não pode confirmar uma edição recebida durante a requisição.
         const latest = readJsonFile(file);
         const current = latest.find(item => item.id === record.id);
         if (!current || current.sheetSync?.revision !== revision) continue;
+        if (!error && kind === 'hunter') {
+          current.code = receipt.code || current.code;
+          current.rsvpId = receipt.rsvpId || current.rsvpId;
+        }
         const attempts = (current.sheetSync.attempts || 0) + 1;
         current.sheetSync = {
           ...current.sheetSync, attempts,
@@ -618,19 +623,36 @@ async function handleRequest(req, res) {
         !data.found.every(value => Number.isInteger(value) && value >= 1 && value <= 5)) {
       return sendJson(res, 400, { success: false, message: 'Complete os cinco alienígenas e informe seu nome.' });
     }
+    const registration = readJsonFile(RSVPS_FILE).find(record =>
+      record.id === data.rsvpId && record.ticketCode === data.ticketCode && record.name && record.phone);
+    if (!registration) {
+      return sendJson(res, 409, { success: false, message: 'Conclua o formulário de presença para liberar seu distintivo.' });
+    }
     const hunters = readJsonFile(HUNTERS_FILE);
-    let hunter = hunters.find(item => item.id === data.id);
+    let hunter = hunters.find(item => item.rsvpId === registration.id || item.id === data.id);
+    if (hunter?.rsvpId && hunter.rsvpId !== registration.id) {
+      return sendJson(res, 409, { success: false, message: 'Esta conquista já está vinculada a outro formulário.' });
+    }
     if (!hunter) {
-      hunter = markPending({
-        id: data.id, name: String(data.name).trim().slice(0, 100),
-        code: 'ALIEN-' + randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase(),
-        completedAt: data.completedAt || new Date().toISOString()
-      });
+      hunter = { id: data.id, code: 'ALIEN-' + randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase() };
       hunters.push(hunter);
+    }
+    if (hunter.rsvpId !== registration.id || hunter.ticketCode !== registration.ticketCode || hunter.name !== registration.name) {
+      Object.assign(hunter, {
+        name: registration.name, rsvpId: registration.id, phone: registration.phone,
+        ticketCode: registration.ticketCode, found: [1, 2, 3, 4, 5],
+        completedAt: hunter.completedAt || data.completedAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      markPending(hunter);
       writeJsonFile(HUNTERS_FILE, hunters);
     }
-    void flushSheets().catch(console.error);
-    return sendJson(res, 200, { success: true, hunter });
+    await flushSheets(true);
+    const saved = readJsonFile(HUNTERS_FILE).find(item => item.id === hunter.id);
+    if (saved.sheetSync?.status !== 'synced') {
+      return sendJson(res, 503, { success: false, message: 'A conquista está guardada e aguarda confirmação da planilha.' });
+    }
+    return sendJson(res, 200, { success: true, hunter: saved });
   }
 
   // ==========================================
