@@ -14,7 +14,7 @@ function textoNoah(value) {
 
 function abaNoah(book, kind) {
   var names = { rsvp: "Confirmações", hunter: "Caçadores de aliens", badge: "Distintivos", test: "Teste de conexão",
-    message: "Recados para o Noah", delivery: "Entregas de lembrancinhas" };
+    message: "Recados para o Noah", delivery: "Entregas de lembrancinhas", voucher: "Vouchers" };
   var sheet = book.getSheetByName(names[kind]);
   if (!sheet && kind === "rsvp") {
     var all = book.getSheets();
@@ -37,7 +37,8 @@ function abaNoah(book, kind) {
       "Código do distintivo", "Código do ingresso", "ID da confirmação", "Data da conquista"],
     test: ["ID", "Teste em", "Revisão"],
     message: ["ID", "Enviado em", "De", "Para", "Mensagem", "Origem", "ID da confirmação", "Status", "Revisão", "Atualizado em"],
-    delivery: ["Código do voucher", "Entregue em", "Criança", "Responsável", "Quantidade", "ID da confirmação"]
+    delivery: ["Código do voucher", "Entregue em", "Criança", "Responsável", "Quantidade", "ID da confirmação", "Idade", "Tipo de voucher"],
+    voucher: ["Código do voucher", "Criança / pré-adolescente", "Idade", "Tipo de voucher", "Responsável", "Quantidade", "Status", "Entregue em", "ID da confirmação", "Código do ingresso"]
   };
   var headers = columns[kind];
   sheet.getRange(1, 1, 1, headers.length).setValues([headers])
@@ -119,6 +120,7 @@ function gravarRecadoNoah(book, data) {
 
 function painelNoah(book) {
   var registrations = confirmacoesNoah(book);
+  sincronizarVouchersNoah(book, registrations);
   return { result: "success", source: "sheet", updatedAt: new Date().toISOString(), rsvps: registrations,
     messages: recadosNoah(book, registrations), deliveries: linhasNoah(abaNoah(book, "delivery"), 6).map(function(row) {
       return { code: String(row[0]), redeemed: true, redeemedAt: dataISOnoah(row[1]) };
@@ -158,6 +160,7 @@ function acaoNoah(book, data) {
     sheet.getRange(index + 2, 3).setValue("Cancelado");
     sheet.getRange(index + 2, 13).setValue(new Date().toISOString());
     atualizarDistintivosNoah(book, sheet.getRange(index + 2, 1, 1, 16).getValues()[0]);
+    sincronizarVouchersNoah(book);
     return { result: "success", message: "Presença cancelada. O registro continua guardado na planilha." };
   }
   if (data.action === "redeemVoucher") {
@@ -168,22 +171,60 @@ function acaoNoah(book, data) {
       record.childrenDetails.forEach(function(child) {
         if (child.age === "" || child.age === null || child.age === undefined) return;
         var age = Number(child.age);
-        if (!Number.isInteger(age) || age < 0 || age > 16 || !record.ticketCode) return;
+        if (!Number.isInteger(age) || age < 0 || age > 17 || !record.ticketCode) return;
         var type = age <= 12 ? "RED" : "GOLD";
         var code = "VOUCH-" + type + "-" + record.ticketCode.replace("NOAH-1-", "") + "-" + sequence++;
-        if (code === data.code) match = { code: code, name: child.name || "Criança", guest: record.name, qty: age <= 12 ? 2 : 1, id: record.id };
+        if (code === data.code) match = { code: code, name: child.name || "Criança", age: age,
+          category: age <= 12 ? "Criança" : "Pré-adolescente", guest: record.name, qty: age <= 12 ? 2 : 1, id: record.id };
       });
     });
     if (!match) throw new Error("Voucher não encontrado entre as presenças confirmadas.");
     var deliveries = abaNoah(book, "delivery");
     if (linhasNoah(deliveries, 6).some(function(row) { return String(row[0]) === match.code; })) throw new Error("Este voucher já foi entregue.");
-    deliveries.getRange(deliveries.getLastRow() + 1, 1, 1, 6).setValues([[
-      match.code, new Date().toISOString(), textoNoah(match.name), textoNoah(match.guest), match.qty, match.id
+    deliveries.getRange(deliveries.getLastRow() + 1, 1, 1, 8).setValues([[
+      match.code, new Date().toISOString(), textoNoah(match.name), textoNoah(match.guest), match.qty, match.id, match.age, match.category
     ]]);
-    ajustarAlturaNoah(deliveries, deliveries.getLastRow(), 6);
+    deliveries.getRange(deliveries.getLastRow(), 1, 1, 8).setBackground(match.age <= 12 ? "#fce7f3" : "#dbeafe");
+    ajustarAlturaNoah(deliveries, deliveries.getLastRow(), 8);
+    sincronizarVouchersNoah(book);
     return { result: "success", message: "Lembrancinha entregue para " + match.name + " (" + match.qty + " itens)." };
   }
   throw new Error("Ação desconhecida. Atualize a implantação do Apps Script.");
+}
+
+// Uma linha por beneficiário permite separar as cores dentro da mesma família.
+// Os códigos RED/GOLD existentes permanecem válidos e as entregas nunca são apagadas.
+function sincronizarVouchersNoah(book, registrations) {
+  registrations = registrations || confirmacoesNoah(book);
+  var sheet = abaNoah(book, "voucher");
+  var previous = linhasNoah(sheet, 10);
+  var deliveries = linhasNoah(abaNoah(book, "delivery"), 8);
+  var active = {};
+  registrations.forEach(function(record) {
+    if (record.presence !== "Confirmado" || !record.ticketCode) return;
+    var sequence = 1;
+    record.childrenDetails.forEach(function(child) {
+      if (child.age === "" || child.age === null || child.age === undefined) return;
+      var age = Number(child.age);
+      if (!Number.isInteger(age) || age < 0 || age > 17) return;
+      var code = "VOUCH-" + (age <= 12 ? "RED" : "GOLD") + "-" + record.ticketCode.replace("NOAH-1-", "") + "-" + sequence++;
+      active[code] = true;
+      var delivery = deliveries.find(function(row) { return String(row[0]) === code; });
+      var values = [code, textoNoah(child.name || "Criança"), age, age <= 12 ? "Criança" : "Pré-adolescente",
+        textoNoah(record.name), age <= 12 ? 2 : 1, delivery ? "Entregue" : "Disponível",
+        delivery ? dataISOnoah(delivery[1]) : "", record.id, record.ticketCode];
+      var index = previous.findIndex(function(row) { return String(row[0]) === code; });
+      var destination = index < 0 ? sheet.getLastRow() + 1 : index + 2;
+      if (index < 0 || JSON.stringify(previous[index]) !== JSON.stringify(values)) {
+        sheet.getRange(destination, 1, 1, 10).setValues([values]).setWrap(true)
+          .setBackground(age <= 12 ? "#fce7f3" : "#dbeafe").setFontColor(age <= 12 ? "#831843" : "#1e3a8a");
+        ajustarAlturaNoah(sheet, destination, 10);
+      }
+    });
+  });
+  previous.forEach(function(row, index) {
+    if (row[0] && !active[String(row[0])] && row[6] !== "Cancelado") sheet.getRange(index + 2, 7).setValue("Cancelado");
+  });
 }
 
 function atualizarDistintivosNoah(book, registration) {
@@ -302,6 +343,7 @@ function doPost(e) {
     if (kind === "hunter") return registrarDistintivoNoah(book, data);
     if (kind === "test") {
       prepararDistintivosNoah(book);
+      sincronizarVouchersNoah(book);
       var test = abaNoah(book, "test");
       test.getRange(2, 1, 1, 3).setValues([[id, new Date().toISOString(), data.revision]]);
       SpreadsheetApp.flush();
@@ -326,6 +368,13 @@ function doPost(e) {
     var existing = row <= sheet.getLastRow() ? old[row - 2] : null;
     var stale = existing && String(existing[12]) > String(issued);
     if (!stale) {
+      if (data.presenca === "Confirmado") {
+        var children;
+        try { children = JSON.parse(data.detalhesCriancas || "[]"); } catch (ignored) { throw new Error("Informe as idades das crianças e pré-adolescentes."); }
+        if (!Array.isArray(children) || children.length !== Number(data.criancas || 0) || children.some(function(child) {
+          return child.age === "" || child.age === null || child.age === undefined || !Number.isInteger(Number(child.age)) || Number(child.age) < 0 || Number(child.age) > 17;
+        })) throw new Error("Informe a idade de cada criança ou pré-adolescente, de 0 a 17 anos.");
+      }
       var values = [
         existing ? existing[0] : Utilities.formatDate(new Date(), "America/Sao_Paulo", "dd/MM/yyyy HH:mm:ss"),
         textoNoah(data.nome), textoNoah(data.presenca), Number(data.adultos) || 0, Number(data.criancas) || 0,
@@ -338,6 +387,7 @@ function doPost(e) {
       ajustarAlturaNoah(sheet, row, 16);
     }
     atualizarDistintivosNoah(book, sheet.getRange(row, 1, 1, 16).getValues()[0]);
+    sincronizarVouchersNoah(book);
     if (!stale && String(data.mensagem || "").trim()) {
       gravarRecadoNoah(book, { recordId: "rsvp-" + id, rsvpId: id, nome: data.nome,
         mensagem: data.mensagem, revision: data.revision, issuedAt: issued });
@@ -354,5 +404,5 @@ function doPost(e) {
 }
 
 function doGet() {
-  return respostaNoah({ result: "active", version: 6, message: "Painel e recados conectados à planilha, com cores e leitura ampliada." });
+  return respostaNoah({ result: "active", version: 7, message: "Vouchers: crianças de 0 a 12 anos em rosa e pré-adolescentes de 13 a 17 anos em azul." });
 }

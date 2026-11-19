@@ -111,41 +111,7 @@ function sendJson(res, statusCode, payload) {
 }
 
 function generateVouchers(ticketCode, childrenDetails = []) {
-  const vouchers = [];
-  let seq = 1;
-
-  childrenDetails.forEach((child) => {
-    const age = parseInt(child.age, 10);
-    const childName = child.name ? child.name.trim() : 'Criança';
-
-    if (!isNaN(age)) {
-      if (age >= 0 && age <= 12) {
-        // Crianças 0 a 12 anos: 2 lembrancinhas
-        vouchers.push({
-          code: `VOUCH-RED-${ticketCode.replace('NOAH-1-', '')}-${seq++}`,
-          type: 'red',
-          label: 'Voucher Vermelho (Kids 0-12)',
-          childName: `${childName} (${age} anos)`,
-          qty: 2,
-          redeemed: false,
-          redeemedAt: null
-        });
-      } else if (age >= 13 && age <= 16) {
-        // Adolescentes 13 a 16 anos: 1 lembrancinha
-        vouchers.push({
-          code: `VOUCH-GOLD-${ticketCode.replace('NOAH-1-', '')}-${seq++}`,
-          type: 'gold',
-          label: 'Voucher Dourado (Teens 13-16)',
-          childName: `${childName} (${age} anos)`,
-          qty: 1,
-          redeemed: false,
-          redeemedAt: null
-        });
-      }
-    }
-  });
-
-  return vouchers;
+  return NoahRecords.vouchers({ ticketCode, childrenDetails, presence: 'Confirmado' });
 }
 
 // Os próprios registros guardam a fila, inclusive após reiniciar o servidor.
@@ -340,7 +306,8 @@ async function handleRequest(req, res) {
       writeJsonFile(MESSAGES_FILE, stored);
       return sendJson(res, 200, { success: true, message: 'Recado arquivado.' });
     }
-    const record = rsvps.find(item => item.presence === 'Confirmado' && (item.vouchers || []).some(voucher => voucher.code === data.code));
+    const record = rsvps.find(item => NoahRecords.vouchers(item).some(voucher => voucher.code === data.code));
+    if (record) record.vouchers = NoahRecords.vouchers(record);
     const voucher = record?.vouchers.find(item => item.code === data.code);
     if (!voucher || voucher.redeemed) return sendJson(res, 400, { success: false, message: voucher ? 'Este voucher já foi entregue.' : 'Voucher não encontrado.' });
     voucher.redeemed = true;
@@ -355,6 +322,11 @@ async function handleRequest(req, res) {
       const data = await parseBody(req);
       if (!data.name || !data.name.trim()) {
         return sendJson(res, 400, { success: false, message: 'O nome do convidado é obrigatório.' });
+      }
+      if ((data.presence || 'Confirmado') === 'Confirmado' &&
+          (!Array.isArray(data.childrenDetails || []) || (data.childrenDetails || []).length !== Number(data.children || 0) ||
+          (data.childrenDetails || []).some(child => child.age === '' || child.age == null || !Number.isInteger(Number(child.age)) || Number(child.age) < 0 || Number(child.age) > 17))) {
+        return sendJson(res, 400, { success: false, message: 'Informe a idade de cada criança ou pré-adolescente, de 0 a 17 anos.' });
       }
 
       const rsvps = readJsonFile(RSVPS_FILE);

@@ -6,11 +6,13 @@ const NoahRecords = (() => {
     return (record.childrenDetails || []).flatMap(child => {
       if (child.age === "" || child.age === null || child.age === undefined) return [];
       const age = Number(child.age);
-      if (!Number.isInteger(age) || age < 0 || age > 16) return [];
-      const type = age <= 12 ? "red" : "gold";
-      const code = `VOUCH-${type.toUpperCase()}-${record.ticketCode.replace("NOAH-1-", "")}-${sequence++}`;
+      if (!Number.isInteger(age) || age < 0 || age > 17) return [];
+      const type = age <= 12 ? "pink" : "blue";
+      // Preserve os códigos já emitidos e as baixas registradas antes da troca de cores.
+      const code = `VOUCH-${age <= 12 ? "RED" : "GOLD"}-${record.ticketCode.replace("NOAH-1-", "")}-${sequence++}`;
       const saved = deliveries.find(item => item.code === code) || (record.vouchers || []).find(item => item.code === code);
-      return [{ code, type, childName: `${child.name || "Criança"} (${age} anos)`, qty: type === "red" ? 2 : 1,
+      return [{ code, type, age, label: age <= 12 ? "Criança (0 a 12 anos)" : "Pré-adolescente (13 a 17 anos)",
+        childName: `${child.name || "Criança"} (${age} anos)`, qty: age <= 12 ? 2 : 1,
         redeemed: Boolean(saved?.redeemed), redeemedAt: saved?.redeemedAt || null }];
     });
   }
@@ -38,10 +40,10 @@ const NoahRecords = (() => {
       for (const child of record.childrenDetails) {
         if (child.age === "" || child.age === null || child.age === undefined) continue;
         const age = Number(child.age);
-        if (!Number.isInteger(age) || age < 0) continue;
+        if (!Number.isInteger(age) || age < 0 || age > 17) continue;
         known++;
         if (age <= 12) { summary.kids++; summary.favors += 2; }
-        else if (age <= 16) { summary.teens++; summary.favors++; }
+        else { summary.teens++; summary.favors++; }
       }
       summary.missingAges += Math.max(0, children - known);
     }

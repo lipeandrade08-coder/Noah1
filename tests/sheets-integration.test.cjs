@@ -62,3 +62,23 @@ test('distintivo continua exigindo formulário e fica visível no painel', () =>
   assert.equal(data.summary.badges, 1);
   assert.equal(data.rsvps[0].badgeStatus, 'Sim');
 });
+
+test('planilha separa vouchers por idade, exige escolha e mantém histórico de entregas', () => {
+  const f = fixture();
+  const data = { ...registration, criancas: 4, detalhesCriancas: JSON.stringify([0, 12, 13, 17].map(age => ({ name: 'Idade ' + age, age }))) };
+  assert.equal(f.post({ ...data, detalhesCriancas: JSON.stringify([{ age: '' }]) }).result, 'error');
+  assert.equal(f.post(data).result, 'success');
+  let rows = f.sheets.get('Vouchers').rows;
+  assert.deepEqual(rows.slice(1).map(row => [row[2], row[3], row[5], row[6]]),
+    [[0, 'Criança', 2, 'Disponível'], [12, 'Criança', 2, 'Disponível'], [13, 'Pré-adolescente', 1, 'Disponível'], [17, 'Pré-adolescente', 1, 'Disponível']]);
+  const action = { action: 'redeemVoucher', password: 'noah2027', code: 'VOUCH-GOLD-TEST1234-4' };
+  assert.equal(f.post(action).result, 'success');
+  assert.equal(f.post(action).result, 'error');
+  assert.equal(rows[4][6], 'Entregue');
+  assert.deepEqual(f.sheets.get('Entregas de lembrancinhas').rows[1].slice(6), [17, 'Pré-adolescente']);
+  f.post({ action: 'dashboard', password: 'noah2027' });
+  assert.equal(rows.length, 5);
+  assert.equal(f.post({ action: 'cancelRsvp', password: 'noah2027', id: registration.recordId }).result, 'success');
+  assert.ok(rows.slice(1).every(row => row[6] === 'Cancelado'));
+  assert.equal(f.sheets.get('Entregas de lembrancinhas').rows.length, 2);
+});

@@ -4235,17 +4235,29 @@ html:has(.hunt-dialog[open]) {
   font-size: 0.85rem;
 }
 
-.voucher-item-red {
-  background: #ef4444;
-  color: #ffffff;
-  border: 2px solid #b91c1c;
+.voucher-item-pink {
+  background: #fce7f3;
+  color: #831843;
+  border: 2px solid #ec4899;
 }
 
-.voucher-item-gold {
-  background: #f59e0b;
-  color: #ffffff;
-  border: 2px solid #b45309;
+.voucher-item-blue {
+  background: #dbeafe;
+  color: #1e3a8a;
+  border: 2px solid #3b82f6;
 }
+
+.child-field-label { display: flex; flex-direction: column; gap: 6px; min-width: 0; font-size: 0.875rem; font-weight: 600; }
+.child-field-label:first-child { flex: 1.3; }
+.child-field-label:nth-child(2) { flex: 1; }
+.child-field-label .form-input, .child-field-label .form-select { width: 100%; min-width: 0; }
+.voucher-legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.voucher-category { display: inline-block; padding: 5px 9px; border: 1px solid; border-radius: 8px; font-size: 0.875rem; font-weight: 700; }
+.voucher-category-pink { background: #fce7f3; color: #831843; border-color: #ec4899; }
+.voucher-category-blue { background: #dbeafe; color: #1e3a8a; border-color: #3b82f6; }
+.admin-voucher-row.voucher-row-pink td { background: #fdf2f8; }
+.admin-voucher-row.voucher-row-blue td { background: #eff6ff; }
+@media (max-width: 480px) { .child-field-label { flex-basis: 100% !important; } }
 
 /* PAINEL ADMINISTRATIVO (ÁREA DOS PAIS) */
 .admin-modal-card {

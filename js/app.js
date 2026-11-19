@@ -1455,6 +1455,7 @@ function initRsvpForm() {
       } else {
         if (attendeesContainer) attendeesContainer.style.display = "block";
       }
+      rowsList.querySelectorAll("input, select").forEach(field => { field.disabled = radio.value === "Não comparecerá"; });
     });
   });
 
@@ -1481,31 +1482,20 @@ function initRsvpForm() {
     childrenSelect.addEventListener("change", syncChildrenRows);
   }
 
-  const addChildRow = (index = 1, defaultName = "", defaultAge = "4") => {
+  const addChildRow = (index = 1, defaultName = "", defaultAge = "") => {
     const row = document.createElement("div");
     row.className = "child-row-item";
     row.innerHTML = `
-      <input type="text" class="form-input child-name-input" placeholder="Nome da Criança ${index}" value="${defaultName}">
-      <select class="form-select child-age-select">
-        <option value="0" ${defaultAge == 0 ? "selected" : ""}>Bebê (&lt; 1 ano)</option>
-        <option value="1" ${defaultAge == 1 ? "selected" : ""}>1 ano</option>
-        <option value="2" ${defaultAge == 2 ? "selected" : ""}>2 anos</option>
-        <option value="3" ${defaultAge == 3 ? "selected" : ""}>3 anos</option>
-        <option value="4" ${defaultAge == 4 ? "selected" : ""}>4 anos</option>
-        <option value="5" ${defaultAge == 5 ? "selected" : ""}>5 anos</option>
-        <option value="6" ${defaultAge == 6 ? "selected" : ""}>6 anos</option>
-        <option value="7" ${defaultAge == 7 ? "selected" : ""}>7 anos</option>
-        <option value="8" ${defaultAge == 8 ? "selected" : ""}>8 anos</option>
-        <option value="9" ${defaultAge == 9 ? "selected" : ""}>9 anos</option>
-        <option value="10" ${defaultAge == 10 ? "selected" : ""}>10 anos</option>
-        <option value="11" ${defaultAge == 11 ? "selected" : ""}>11 anos</option>
-        <option value="12" ${defaultAge == 12 ? "selected" : ""}>12 anos</option>
-        <option value="13" ${defaultAge == 13 ? "selected" : ""}>13 anos (Teen)</option>
-        <option value="14" ${defaultAge == 14 ? "selected" : ""}>14 anos (Teen)</option>
-        <option value="15" ${defaultAge == 15 ? "selected" : ""}>15 anos (Teen)</option>
-        <option value="16" ${defaultAge == 16 ? "selected" : ""}>16 anos (Teen)</option>
-      </select>
-      <button type="button" class="btn-remove-child-row" title="Remover">&times;</button>
+      <label class="child-field-label">Nome da criança ou adolescente ${index}
+        <input type="text" class="form-input child-name-input" placeholder="Nome" value="${escapeHtml(defaultName)}" required maxlength="160">
+      </label>
+      <label class="child-field-label">Idade (anos completos)
+        <select class="form-select child-age-select" required>
+          <option value="" ${defaultAge === "" ? "selected" : ""}>Selecione a idade</option>
+          ${Array.from({ length: 18 }, (_, age) => `<option value="${age}" ${String(defaultAge) === String(age) ? "selected" : ""}>${age === 0 ? "Menos de 1 ano" : age + (age === 1 ? " ano" : " anos")}</option>`).join("")}
+        </select>
+      </label>
+      <button type="button" class="btn-remove-child-row" title="Remover criança ou adolescente">&times;</button>
     `;
 
     row.querySelector(".btn-remove-child-row").addEventListener("click", () => {
@@ -1558,11 +1548,17 @@ function initRsvpForm() {
       // Coleta detalhes das crianças
       const childrenDetails = [];
       const childRows = rowsList.querySelectorAll(".child-row-item");
-      childRows.forEach((row, i) => {
-        const cName = row.querySelector(".child-name-input").value.trim() || `Criança ${i + 1}`;
-        const cAge = parseInt(row.querySelector(".child-age-select").value, 10) || 0;
-        childrenDetails.push({ name: cName, age: cAge });
-      });
+      if (presence === "Confirmado") {
+        for (const row of childRows) {
+          const ageInput = row.querySelector(".child-age-select");
+          const childName = row.querySelector(".child-name-input");
+          if (!childName.value.trim() || ageInput.value === "" || !Number.isInteger(Number(ageInput.value)) || Number(ageInput.value) < 0 || Number(ageInput.value) > 17) {
+            (childName.value.trim() ? ageInput : childName).reportValidity();
+            return;
+          }
+          childrenDetails.push({ name: childName.value.trim(), age: Number(ageInput.value) });
+        }
+      }
 
       const payload = {
         name: nameInput.value.trim(),
@@ -1582,31 +1578,7 @@ function initRsvpForm() {
       try {
         const randomSuffix = NoahDelivery.createId().slice(0, 8).toUpperCase();
         const ticketCode = `NOAH-1-${randomSuffix}`;
-        const localVouchers = [];
-        let seq = 1;
-
-        payload.childrenDetails.forEach(c => {
-          const age = parseInt(c.age, 10);
-          if (age >= 0 && age <= 12) {
-            localVouchers.push({
-              code: `VOUCH-RED-${randomSuffix}-${seq++}`,
-              type: "red",
-              label: "Voucher Vermelho (Kids 0-12)",
-              childName: `${c.name} (${age} anos)`,
-              qty: 2,
-              redeemed: false
-            });
-          } else if (age >= 13 && age <= 16) {
-            localVouchers.push({
-              code: `VOUCH-GOLD-${randomSuffix}-${seq++}`,
-              type: "gold",
-              label: "Voucher Dourado (Teens 13-16)",
-              childName: `${c.name} (${age} anos)`,
-              qty: 1,
-              redeemed: false
-            });
-          }
-        });
+        const localVouchers = NoahRecords.vouchers({ ...payload, ticketCode });
 
         let savedRsvp = {
           id: NoahDelivery.createId(),
@@ -1716,6 +1688,8 @@ function displayDigitalTicket(rsvp) {
     }
   }
 
+  // Recalcula também ingressos antigos sem perder as baixas existentes.
+  rsvp = { ...rsvp, vouchers: NoahRecords.vouchers(rsvp) };
   // Renderiza Vouchers de Lembrancinhas
   if (vouchersList) {
     vouchersList.innerHTML = "";
@@ -1723,11 +1697,11 @@ function displayDigitalTicket(rsvp) {
       if (vouchersContainer) vouchersContainer.style.display = "block";
       rsvp.vouchers.forEach(v => {
         const item = document.createElement("div");
-        item.className = `voucher-item-pill ${v.type === "red" ? "voucher-item-red" : "voucher-item-gold"}`;
+        item.className = `voucher-item-pill ${v.type === "pink" ? "voucher-item-pink" : "voucher-item-blue"}`;
         item.innerHTML = `
           <div>
-            <span>${v.type === "red" ? "🔴" : "🟡"} ${v.childName || "Criança"}</span>
-            <div style="font-size: 0.72rem; opacity: 0.9;">${v.code} • ${v.qty} lembrancinha(s)</div>
+            <span>${escapeHtml(v.childName || "Criança")}<br><small>${escapeHtml(v.label)}</small></span>
+            <div style="font-size: 0.875rem; opacity: 0.9;">${v.code} • ${v.qty} lembrancinha(s)</div>
           </div>
           <span style="font-size: 0.75rem; background: rgba(0,0,0,0.25); padding: 2px 8px; border-radius: 999px;">
             ${v.redeemed ? "ENTREGUE" : "VÁLIDO"}
@@ -2082,11 +2056,11 @@ async function refreshAdminData(snapshot) {
     favors.dataset.pending = String(data.summary.missingAges > 0);
     if (data.summary.missingAges) favors.textContent = data.summary.favors ? data.summary.favors + "+" : "A confirmar";
     const source = data.source === "sheet" ? "planilha" : "servidor do convite";
-    status.textContent = "Dados da " + source + " · atualizado às " + new Date().toLocaleTimeString("pt-BR") + ".";
-    document.getElementById("sheet-sync-status").textContent = "O resumo e os recados são consultados diretamente na " + source + ".";
+    status.textContent = "Dados " + (data.source === "sheet" ? "da " : "do ") + source + " · atualizado às " + new Date().toLocaleTimeString("pt-BR") + ".";
+    document.getElementById("sheet-sync-status").textContent = "O resumo e os recados são consultados diretamente " + (data.source === "sheet" ? "na " : "no ") + source + ".";
     document.getElementById("admin-summary-note").textContent = data.summary.missingAges
       ? data.summary.missingAges + " criança(s) sem idade informada: o total de pessoas está incluído, mas as lembrancinhas dessas crianças ainda não podem ser calculadas."
-      : "Lembrancinhas: 2 por criança de 0 a 12 anos e 1 por jovem de 13 a 16 anos, entre as presenças confirmadas.";
+      : "Lembrancinhas: 2 por criança de 0 a 12 anos e 1 por pré-adolescente de 13 a 17 anos, entre as presenças confirmadas.";
     renderAdminGuestsTable(document.getElementById("admin-guest-search").value.toLowerCase());
     renderAdminVouchersTable();
     renderAdminMessagesList();
@@ -2182,12 +2156,11 @@ function renderAdminVouchersTable() {
 
   allVouchers.forEach(v => {
     const tr = document.createElement("tr");
+    tr.className = `admin-voucher-row voucher-row-${v.type}`;
     tr.innerHTML = `
       <td><code>${escapeHtml(v.code)}</code></td>
       <td>
-        <span style="display: inline-block; padding: 2px 6px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; background: ${v.type === "red" ? "#fee2e2; color: #b91c1c" : "#fef3c7; color: #b45309"}">
-          ${v.type === "red" ? "Kids (0-12)" : "Teens (13-16)"}
-        </span>
+        <span class="voucher-category voucher-category-${v.type}">${escapeHtml(v.label)}</span>
       </td>
       <td>
         <div style="font-weight: 600;">${escapeHtml(v.childName || "")}</div>

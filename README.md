@@ -72,8 +72,8 @@ Site de convite digital cinematográfico, animado e interativo, inspirado no uni
      - Nome do responsável e quantidade de convidados.
      - **QR Code exclusivo gerado em tempo real**.
      - **Vouchers de Lembrancinhas com identificação única**:
-       * Crianças de 0 a 12 anos: **Voucher Vermelho (2 lembrancinhas)**
-       * Adolescentes de 13 a 16 anos: **Voucher Dourado (1 lembrancinha)**
+       * Crianças de 0 a 12 anos: **Voucher Rosa (2 lembrancinhas)**
+       * Pré-adolescentes de 13 a 17 anos: **Voucher Azul (1 lembrancinha)**
      - Botão para **Baixar o Ingresso em Imagem (PNG)** com alta resolução ou compartilhar no WhatsApp!
 
 10. **💌 Mural de Recados para o Futuro (Cápsula do Tempo):**
@@ -83,7 +83,7 @@ Site de convite digital cinematográfico, animado e interativo, inspirado no uni
 
 11. **⚙️ Painel dos Pais (Área Administrativa Privada):**
     - Acesso protegido por PIN/senha: **`noah2027`**.
-    - **Dashboard em Tempo Real**: Total de respostas, pessoas confirmadas, adultos, crianças (0-12), teens (13-16) e lembrancinhas previstas.
+    - **Dashboard em Tempo Real**: Total de respostas, pessoas confirmadas, adultos, crianças (0-12), pré-adolescentes (13-17) e lembrancinhas previstas.
     - **Gerenciamento de Convidados**: busca em tempo real, ver ingresso/QR Code de qualquer convidado, excluir confirmações.
     - **Validador de Lembrancinhas na Festa**: validação de vouchers por código com baixa instantânea e bloqueio contra uso duplicado.
     - **Moderação do Mural**: aprovar ou excluir recados.
@@ -137,3 +137,5 @@ http://SEU_IP_LOCAL:3000
 ---
 
 Com amor, Família do Noah • Noah Story 1º Aninho! 🤠🚀
+
+- O formulário exige nome e idade (0–17) de cada criança ou pré-adolescente, sem idade pré-selecionada. A aba **Vouchers** registra uma linha por beneficiário: rosa para 0–12 e azul para 13–17, com responsável, quantidade e entrega. As mesmas cores aparecem no ingresso e no painel dos pais. Códigos de vouchers anteriores e baixas já realizadas são preservados.

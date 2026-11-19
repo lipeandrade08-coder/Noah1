@@ -20,6 +20,18 @@ test('idade vazia não vira bebê nem gera voucher', () => {
   assert.throws(() => records.dashboard({ rsvps: [] }), /incompletos/);
 });
 
+test('faixas dos vouchers incluem 0 e 12 em rosa, 13 e 17 em azul, sem alterar códigos emitidos', () => {
+  const record = { presence: 'Confirmado', ticketCode: 'NOAH-1-FAIXAS',
+    childrenDetails: [0, 12, 13, 17, 18, '', -1, 2.5].map(age => ({ name: 'Convidado', age })) };
+  const items = records.vouchers(record, [{ code: 'VOUCH-GOLD-FAIXAS-4', redeemed: true }]);
+  assert.deepEqual(items.map(v => [v.age, v.type, v.qty]), [[0, 'pink', 2], [12, 'pink', 2], [13, 'blue', 1], [17, 'blue', 1]]);
+  assert.equal(items[3].redeemed, true);
+  const summary = records.dashboard({ rsvps: [{ ...record, adults: 1, children: 4 }], messages: [] }).summary;
+  assert.equal(summary.kids, 2);
+  assert.equal(summary.teens, 2);
+  assert.equal(summary.favors, 6);
+});
+
 test('recados do formulário e da cápsula se unem sem repetir ou reabrir arquivados', () => {
   const rsvps = [{ id: 'rsvp-a', name: 'Família', message: 'Para o Noah', createdAt: '2026-11-19' }];
   assert.equal(records.messages(rsvps, []).length, 1);

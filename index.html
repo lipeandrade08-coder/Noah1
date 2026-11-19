@@ -984,7 +984,7 @@
 
               <!-- Quantidade de Crianças -->
               <div class="form-group">
-                <label for="guest-children" class="form-label">Crianças & Adolescentes</label>
+                <label for="guest-children" class="form-label">Crianças e pré-adolescentes (0 a 17 anos)</label>
                 <select id="guest-children" name="children" class="form-select">
                   <option value="0">Nenhuma criança</option>
                   <option value="1">1 Criança/Jovem</option>
@@ -998,13 +998,14 @@
             <!-- ÁREA DE CONTROLE DE CRIANÇAS & LEMBRANCINHAS AUTOMÁTICAS -->
             <div class="children-dynamic-box" id="children-dynamic-box" style="display: none;">
               <div class="children-box-header">
-                <span class="children-box-title">🎁 Nomes e Idades das Crianças (Para Lembrancinhas)</span>
+                <span class="children-box-title">🎁 Nome e idade de cada criança ou pré-adolescente</span>
                 <button type="button" class="btn-add-child-row" id="btn-add-child-row">
-                  + Adicionar Criança
+                  + Adicionar criança ou adolescente
                 </button>
               </div>
               <p style="font-size: 0.8rem; color: #854d0e; margin-bottom: 8px;">
-                💡 <em>0 a 12 anos: 2 lembrancinhas • 13 a 16 anos: 1 lembrancinha</em>
+                Informe a idade de cada um para emitir o voucher correto.
+                <span class="voucher-legend"><span class="voucher-category voucher-category-pink">Criança · 0 a 12 anos · 2 lembrancinhas</span><span class="voucher-category voucher-category-blue">Pré-adolescente · 13 a 17 anos · 1 lembrancinha</span></span>
               </p>
               <div id="children-rows-list">
                 <!-- Linhas inseridas dinamicamente via JS -->
@@ -1379,6 +1380,7 @@
           <h4 style="font-family: var(--font-heading); font-size: 1rem; color: #334155; margin-bottom: 8px;">
             Histórico de Todos os Vouchers Emitidos:
           </h4>
+          <div class="voucher-legend"><span class="voucher-category voucher-category-pink">Criança · 0 a 12 anos</span><span class="voucher-category voucher-category-blue">Pré-adolescente · 13 a 17 anos</span></div>
           <div class="admin-table-scroll admin-vouchers-scroll" tabindex="0" role="region" aria-label="Lista de lembrancinhas. Deslize para ver todas as colunas.">
             <table class="responses-table">
               <thead>
