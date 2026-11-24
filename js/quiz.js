@@ -59,14 +59,6 @@ function initQuizToyStory() {
   let answers = [];
   let step = 0;
   const path = image => 'assets/images/' + image;
-  for (const [id, character] of Object.entries(characters)) {
-    const figure = document.createElement('figure');
-    const image = document.createElement('img');
-    image.src = path(character.image); image.alt = character.name; image.loading = 'lazy'; image.width = 72; image.height = 72;
-    const portrait = document.createElement('div'); portrait.className = 'quiz-cast-portrait'; portrait.dataset.character = id; portrait.append(image);
-    const caption = document.createElement('figcaption'); caption.textContent = character.name;
-    figure.append(portrait, caption); document.getElementById('quiz-cast').append(figure);
-  }
   function focus(element) { element.focus({ preventScroll: true }); element.scrollIntoView({ block: 'nearest', behavior: 'auto' }); }
   function render(moveFocus = false) {
     const finished = step === questions.length;
@@ -88,6 +80,8 @@ function initQuizToyStory() {
       if (moveFocus) { playFanfare(); triggerConfetti(60, 75); focus(title); }
       return;
     }
+    document.getElementById('quiz-result-img').removeAttribute('src');
+    document.getElementById('quiz-result-img').alt = '';
     heading.textContent = questions[step].text;
     counter.textContent = `Pergunta ${step + 1} de ${questions.length} · Escolha o que mais combina com você`;
     back.hidden = step === 0;
