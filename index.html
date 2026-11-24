@@ -472,78 +472,30 @@
         <div class="quiz-header">
           <div class="quiz-badge">🎮 QUIZ INTERATIVO</div>
           <h2 class="quiz-title">DESCUBRA QUAL BRINQUEDO VOCÊ SERIA!</h2>
-          <div class="quiz-progress-bar-container">
+          <div class="quiz-progress-bar-container" id="quiz-progress" role="progressbar" aria-label="Perguntas respondidas" aria-valuemin="0" aria-valuemax="14" aria-valuenow="0">
             <div class="quiz-progress-bar" id="quiz-progress-bar"></div>
           </div>
         </div>
 
-        <!-- Pergunta 1 -->
-        <div class="quiz-step active" id="quiz-step-1">
-          <p class="quiz-question-text">Pergunta 1 de 3: Quando você chega em uma festa, você...</p>
-          <div class="quiz-options-grid">
-            <button type="button" class="quiz-option-btn" data-toy="woody">
-              <span>🤠</span> Reúne todos os amigos e lidera a turma
-            </button>
-            <button type="button" class="quiz-option-btn" data-toy="buzz">
-              <span>🚀</span> Sai explorando tudo até o infinito
-            </button>
-            <button type="button" class="quiz-option-btn" data-toy="jessie">
-              <span>💃</span> Já começa a dançar e gritar iupi-i-o
-            </button>
-            <button type="button" class="quiz-option-btn" data-toy="rex">
-              <span>🦖</span> Fica tímido no começo, mas adora brincar
-            </button>
-          </div>
+        <p class="quiz-intro">14 perguntas para descobrir seu jeito de brincar! Responda do seu jeito e encontre seu parceiro na turma do Noah.</p>
+        <div class="quiz-cast" id="quiz-cast" aria-label="Os 14 personagens do quiz"></div>
+        <div id="quiz-question-panel">
+          <p class="quiz-question-text" id="quiz-question" tabindex="-1"></p>
+          <p class="quiz-step-count" id="quiz-step-count" role="status"></p>
+          <div class="quiz-options-grid" id="quiz-options" role="group" aria-labelledby="quiz-question"></div>
+          <button type="button" class="quiz-back-btn" id="quiz-back" hidden>Voltar à pergunta anterior</button>
         </div>
-
-        <!-- Pergunta 2 -->
-        <div class="quiz-step" id="quiz-step-2">
-          <p class="quiz-question-text">Pergunta 2 de 3: Qual seria a sua maior aventura dos sonhos?</p>
-          <div class="quiz-options-grid">
-            <button type="button" class="quiz-option-btn" data-toy="woody">
-              <span>🛡️</span> Proteger meus melhores amigos sempre
-            </button>
-            <button type="button" class="quiz-option-btn" data-toy="buzz">
-              <span>🌌</span> Explorar outra galáxia desconhecida
-            </button>
-            <button type="button" class="quiz-option-btn" data-toy="jessie">
-              <span>🐎</span> Participar de um rodeio super animado
-            </button>
-            <button type="button" class="quiz-option-btn" data-toy="alien">
-              <span>🛸</span> Ser escolhido pela Garra mágica
-            </button>
+        <div class="quiz-result-card" id="quiz-result-card" hidden>
+          <p class="quiz-result-eyebrow">Seu parceiro na turma do Noah é…</p>
+          <div class="quiz-result-portrait"><img src="assets/images/woody-1.jpg" alt="" class="quiz-result-character-img" id="quiz-result-img"></div>
+          <h3 class="quiz-result-title" id="quiz-result-title" tabindex="-1"></h3>
+          <p class="quiz-result-desc" id="quiz-result-desc"></p>
+          <div class="quiz-traits" id="quiz-traits"></div>
+          <p class="quiz-party-role" id="quiz-party-role"></p>
+          <div class="quiz-result-actions">
+            <a href="#" class="btn-share-whatsapp" id="btn-share-quiz-whatsapp" target="_blank" rel="noopener noreferrer">📲 Compartilhar no WhatsApp</a>
+            <button type="button" class="quiz-restart-btn" id="quiz-restart">Refazer o quiz</button>
           </div>
-        </div>
-
-        <!-- Pergunta 3 -->
-        <div class="quiz-step" id="quiz-step-3">
-          <p class="quiz-question-text">Pergunta 3 de 3: Escolha seu superpoder especial:</p>
-          <div class="quiz-options-grid">
-            <button type="button" class="quiz-option-btn" data-toy="woody">
-              <span>⭐</span> Liderança e lealdade infinita
-            </button>
-            <button type="button" class="quiz-option-btn" data-toy="buzz">
-              <span>✨</span> Voar alto e disparar raio laser
-            </button>
-            <button type="button" class="quiz-option-btn" data-toy="jessie">
-              <span>⚡</span> Velocidade e energia sem fim
-            </button>
-            <button type="button" class="quiz-option-btn" data-toy="rex">
-              <span>🎉</span> Fazer todo mundo rir com diversão
-            </button>
-          </div>
-        </div>
-
-        <!-- Resultado Final do Quiz -->
-        <div class="quiz-result-card" id="quiz-result-card">
-          <img src="assets/images/woody-1.jpg" alt="Resultado Quiz" class="quiz-result-character-img" id="quiz-result-img">
-          <h3 class="quiz-result-title" id="quiz-result-title">Você seria o Woody!</h3>
-          <p class="quiz-result-desc" id="quiz-result-desc">
-            Leal, corajoso e protetor! Você é o amigo que todo mundo quer ter por perto!
-          </p>
-          <a href="#" class="btn-share-whatsapp" id="btn-share-quiz-whatsapp" target="_blank" rel="noopener noreferrer">
-            <span>📲</span> Compartilhar no WhatsApp
-          </a>
         </div>
 
       </section>
@@ -1475,6 +1427,7 @@
   <script defer src="js/delivery.js?v=20261119-live"></script>
   <script defer src="js/hunt.js?v=20261119-live"></script>
   <script defer src="js/flight-engine.js?v=20261119-live"></script>
+  <script defer src="js/quiz.js"></script>
   <script defer src="js/app.js?v=20261119-live"></script>
   <script defer src="js/updates.js"></script>
 
