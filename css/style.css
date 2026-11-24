@@ -5150,3 +5150,6 @@ html:has(.hunt-dialog[open]) {
 @keyframes flightRescue { 0%, 100% { transform: translateY(0) rotate(-20deg); } 50% { transform: translateY(-14px) rotate(8deg); } }
 @media (max-width: 480px) { .admin-voucher-heading { display: block; } .admin-voucher-heading .voucher-category { margin-top: 10px; } .admin-voucher-footer .btn-redeem-row { width: 100%; margin: 0; } .emergency-modal-card { padding: 20px 14px; width: 100%; } }
 @media (prefers-reduced-motion: reduce) { .flight-outcome, .flight-outcome-art span, body.emergency-screen-shake .page-wrapper, .emergency-overlay * { animation: none !important; transition: none !important; } }
+
+.invite-update-notice { position: fixed; z-index: 9999; bottom: max(12px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 24px); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px 16px; padding: 14px 18px; border: 2px solid #facc15; border-radius: 16px; background: #173b72; color: #fff; box-shadow: 0 6px 20px #0004; font-size: 1rem; text-align: center; }
+.invite-update-notice button { border: 0; border-radius: 10px; padding: 12px 16px; min-height: 44px; background: #facc15; color: #172554; font: inherit; font-weight: 700; cursor: pointer; }
