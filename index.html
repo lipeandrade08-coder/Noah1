@@ -45,6 +45,10 @@
 
     <div class="intro-content">
       <h1 class="intro-title">Uma surpresa para você!</h1>
+      <p class="intro-audio-notice" id="intro-audio-notice">
+        <span class="intro-audio-icon" aria-hidden="true">🔊</span>
+        <span><strong>Aumente o volume do celular!</strong><span>Ouça a música e as vozes dos personagens.</span></span>
+      </p>
 
       <div class="toy-chest-stage" id="toy-chest-stage">
         <div class="cardboard-box cardboard-back" aria-hidden="true">
@@ -67,7 +71,7 @@
           <div class="cardboard-front">
             <img src="assets/images/logo-noah-toys-box.webp" alt="Noah’s Toys" class="cardboard-logo" fetchpriority="high">
           </div>
-          <button type="button" class="chest-trigger" id="btn-open-chest" aria-label="Abrir a caixa Noah Story 1" aria-controls="intro-revealed-panel" autofocus>
+          <button type="button" class="chest-trigger" id="btn-open-chest" aria-label="Abrir a caixa Noah Story 1" aria-controls="intro-revealed-panel" aria-describedby="intro-audio-notice" autofocus>
             <span class="btn-open-chest">Toque para abrir</span>
           </button>
         </div>

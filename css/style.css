@@ -196,6 +196,29 @@ html:has(.cinematic-intro[open], .space-game[open], .emergency-overlay[open], .m
   text-shadow: 0 3px #20558a, 0 0 18px rgba(255, 225, 103, 0.8), 0 7px 24px #16437799;
 }
 
+.intro-audio-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 16px auto 0;
+  padding: 12px 18px;
+  border: 1px solid #ffe58a;
+  border-radius: 18px;
+  background: #124c7ee8;
+  box-shadow: 0 4px 16px #16437740;
+  color: #fff;
+  text-align: left;
+  font: 400 .875rem/1.4 var(--font-body);
+}
+
+.intro-audio-notice strong,
+.intro-audio-notice > span > span { display: block; }
+.intro-audio-notice strong { margin-bottom: 2px; color: #ffe58a; font-size: 1rem; }
+.intro-audio-icon { flex: 0 0 auto; font-size: 1.75rem; }
+
 @keyframes introTitleDrop {
   0% { opacity: 0; transform: translateY(-28px) scale(0.86); }
   70% { opacity: 1; transform: translateY(4px) scale(1.03); }
@@ -591,8 +614,8 @@ html:has(.cinematic-intro[open], .space-game[open], .emergency-overlay[open], .m
 
 .jumping-toys-layer {
   position: absolute;
-  inset: auto 6% 48%;
-  height: 180%;
+  inset: auto 0 40%;
+  height: 190%;
   z-index: 2;
   overflow: hidden;
   perspective: 720px;
@@ -654,10 +677,10 @@ html:has(.cinematic-intro[open], .space-game[open], .emergency-overlay[open], .m
 }
 
 .toy-woody {
-  --toy-width: 35%;
+  --toy-width: 46%;
   --toy-x: 21%;
-  --toy-y: 42%;
-  --toy-angle: -5deg;
+  --toy-y: 43%;
+  --toy-angle: -3deg;
   --toy-turn: -44deg;
   --toy-depth: 8px;
   --toy-delay: 310ms;
@@ -669,10 +692,10 @@ html:has(.cinematic-intro[open], .space-game[open], .emergency-overlay[open], .m
 }
 
 .toy-jessie {
-  --toy-width: 33%;
+  --toy-width: 42%;
   --toy-x: 50%;
-  --toy-y: 55%;
-  --toy-angle: -3deg;
+  --toy-y: 48%;
+  --toy-angle: -2deg;
   --toy-turn: 38deg;
   --toy-depth: -8px;
   --toy-delay: 390ms;
@@ -684,10 +707,10 @@ html:has(.cinematic-intro[open], .space-game[open], .emergency-overlay[open], .m
 }
 
 .toy-buzz {
-  --toy-width: 35%;
+  --toy-width: 46%;
   --toy-x: 79%;
-  --toy-y: 41%;
-  --toy-angle: 5deg;
+  --toy-y: 43%;
+  --toy-angle: 3deg;
   --toy-turn: -52deg;
   --toy-depth: 8px;
   --toy-delay: 220ms;
@@ -699,10 +722,10 @@ html:has(.cinematic-intro[open], .space-game[open], .emergency-overlay[open], .m
 
 .toy-alien {
   z-index: 1;
-  --toy-width: 25%;
-  --toy-x: 84%;
-  --toy-y: 25%;
-  --toy-angle: 3deg;
+  --toy-width: 31%;
+  --toy-x: 83%;
+  --toy-y: 17%;
+  --toy-angle: 2deg;
   --toy-turn: 47deg;
   --toy-depth: 12px;
   --toy-delay: 440ms;
@@ -721,9 +744,9 @@ html:has(.cinematic-intro[open], .space-game[open], .emergency-overlay[open], .m
 }
 
 .toy-family {
-  --toy-width: 68%;
-  --toy-x: 49%;
-  --toy-y: 0%;
+  --toy-width: 88%;
+  --toy-x: 50%;
+  --toy-y: -6%;
   --toy-turn: 21deg;
   --toy-delay: 430ms;
   --toy-bob: 4.2s;
