@@ -3,7 +3,7 @@
  * As primeiras treze colunas antigas são preservadas.
  * O distintivo exige uma confirmação de presença já gravada.
  */
-var NOAH_CAMPAIGN = "noah-live-20261119-01";
+var NOAH_CAMPAIGN = "noah-live-20261123-01";
 function respostaNoah(data) {
   return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
 }
@@ -408,5 +408,5 @@ function doPost(e) {
 }
 
 function doGet() {
-  return respostaNoah({ result: "active", version: 8, campaignId: NOAH_CAMPAIGN, message: "Convite em uso oficial. Confirmações, distintivos, recados e vouchers conectados à planilha." });
+  return respostaNoah({ result: "active", version: 9, campaignId: NOAH_CAMPAIGN, message: "Convite em uso oficial. Confirmações, distintivos, recados e vouchers conectados à planilha." });
 }

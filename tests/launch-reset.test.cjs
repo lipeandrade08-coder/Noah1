@@ -21,7 +21,7 @@ test('abertura oficial limpa o progresso de teste uma vez e preserva novos envio
   assert.equal(storage.has('noah_delivery_queue_v2'), false);
   assert.equal(storage.has('noah_story_rsvps'), false);
   assert.equal(storage.get('preferencia-de-outro-app'), 'preservar');
-  assert.equal(storage.get('noah_campaign_id'), 'noah-live-20261119-01');
+  assert.equal(storage.get('noah_campaign_id'), 'noah-live-20261123-01');
   storage.set('noah_story_rsvps', '[{"id":"convidado-oficial"}]');
   storage.set('noah_alien_hunt_v2', '{"found":[1]}');
   load();

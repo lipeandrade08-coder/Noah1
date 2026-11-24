@@ -10,7 +10,7 @@
   const themeAudio = document.getElementById("theme-audio");
   const confettiLayer = document.getElementById("intro-confetti");
   const boxOpening = stage.querySelector(".cardboard-opening");
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const reducedMotion = window.NoahMotion;
   let revealTimer;
   let confettiTimer;
   let closeTimer;
@@ -160,7 +160,9 @@
   });
   intro.showModal();
 
-  if (!reducedMotion.matches) {
+  function startClosedSparks() {
+    stopClosedSparks();
+    if (reducedMotion.matches) return;
     sparkTimer = setTimeout(() => {
       if (stage.classList.contains("opened") || !intro.open || intro.classList.contains("is-closing")) return;
       if (!document.hidden) launchConfetti(0.16);
@@ -173,4 +175,11 @@
       }, 1750);
     }, 1170);
   }
+  reducedMotion.addEventListener("change", () => {
+    stopClosedSparks();
+    if (reducedMotion.matches) confettiLayer.replaceChildren();
+    else if (stage.classList.contains("opened") && intro.open) launchConfetti(0.65);
+    else startClosedSparks();
+  });
+  startClosedSparks();
 })();

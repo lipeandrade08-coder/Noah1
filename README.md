@@ -6,9 +6,9 @@ Site de convite digital cinematográfico, animado e interativo, inspirado no uni
 
 ## 🌟 Destaques da Experiência
 
-1. **🎬 Abertura Cinematográfica no Quarto do Andy:**
+1. **🎬 Abertura Cinematográfica no Quarto do Noah:**
    - Parede de nuvens e piso de madeira 3D em perspectiva.
-   - Caixa de Brinquedos 3D do Andy/Noah com tampa animada.
+   - Caixa de Brinquedos 3D do Noah com tampa animada.
    - Brinquedos e estrelas saltam em órbita com feixes de luz mágica e confetes.
    - Revelação solene da logo oficial **NOAH STORY 1** e frase de convocação: *"Há um novo xerife na cidade!"*.
    - Botão para pular abertura caso o convidado queira ir direto ao ponto.
@@ -51,7 +51,7 @@ Site de convite digital cinematográfico, animado e interativo, inspirado no uni
    - **Sirene contínua de emergência** com modulação LFO sem interrupções, e o **Rex surge correndo em pânico pela tela** com áudio real e balão de fala!
    - Painel com contagem regressiva de 7 segundos e opção de desativação manual que finaliza com chuva de confetes.
 
-7. **📸 Linha do Tempo: 365 Dias de Uma Grande Aventura (14 Momentos Reais):**
+7. **📸 Linha do Tempo: 365 Dias de Uma Grande Aventura (15 Momentos Reais):**
    - Álbum de fotografias instantâneas estilo Polaroid com fita adesiva amarela e estrelinhas.
    - **14 fotos reais** da história do Noah em ordem cronológica (A Descoberta, Chá Revelação do Príncipe, Barriga da Mamãe, Dia do Nascimento, Primeiros 15 Dias e Mesversários do 1º ao 9º Mês).
    - Carrossel horizontal deslizável por toque (*touch-friendly*) com botões de navegação lateral (`❮` e `❯`).
@@ -141,15 +141,17 @@ Com amor, Família do Noah • Noah Story 1º Aninho! 🤠🚀
 - O formulário exige nome e idade (0–17) de cada criança ou pré-adolescente, sem idade pré-selecionada. A aba **Vouchers** registra uma linha por beneficiário: rosa para 0–12 e azul para 13–17, com responsável, quantidade e entrega. As mesmas cores aparecem no ingresso e no painel dos pais. Códigos de vouchers anteriores e baixas já realizadas são preservados.
 
 
-Ativação oficial em 19/11/2026:
+Entrega revisada em 23/11/2026:
 - Planilha e arquivos de dados foram zerados após backup. As abas, os cabeçalhos e as regras de cor foram preservados.
-- A campanha `noah-live-20261119-01` limpa o progresso de teste de cada aparelho na primeira visita à versão nova. Envios antigos sem essa identificação são recusados pelo servidor e pelo Apps Script.
+- A campanha `noah-live-20261123-01` limpa o progresso de teste de cada aparelho na primeira visita à versão nova. Envios antigos sem essa identificação são recusados pelo servidor e pelo Apps Script.
 - A fila só considera a confirmação de presença entregue após a confirmação identificada da planilha. Uma falha de conexão mantém a resposta guardada para nova tentativa.
 - A lista de vouchers do painel usa cartões responsivos e acompanha a rolagem do painel, sem uma segunda rolagem vertical.
 - O botão vermelho abre um diálogo preso à tela. O jogo exige 10 estrelas, com voo ampliado e telas de vitória e resgate; a preferência de movimento reduzido continua respeitada.
 - Crédito no rodapé: 2type · @2typeofc.
 - O backup completo da planilha está guardado no Google Drive do responsável. O link é entregue separadamente e não faz parte do código público.
-- Backup local dos dados: `data/backups/pre-ativacao-20261119/` (fora do Git e da rota pública).
+- Backup local dos dados: `data/backups/pre-entrega-20261123/` (fora do Git e da rota pública).
 - A publicação do HTML, CSS e JS deve usar os arquivos desta versão juntos, incluindo a configuração de campanha. Uma versão pública antiga será recusada pela integração até ser atualizada.
 
 Publicação na Vercel: `npm run build` gera `dist/` com apenas HTML, CSS, JavaScript e assets do convite. O arquivo `vercel.json` aponta a publicação para esse diretório. Na hospedagem estática, o navegador usa diretamente o Apps Script; o painel consulta a mesma planilha.
+
+Animações: o convite acompanha a preferência de movimento do aparelho. O botão **Ativar animações** na abertura e na barra superior permite ligar os efeitos também no iPad; a escolha é guardada no navegador. O álbum inclui a foto de 10 meses.

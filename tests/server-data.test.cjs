@@ -21,7 +21,7 @@ test('servidor usa a planilha como origem e recupera recados sem duplicação ap
   });
   await new Promise(resolve => upstream.listen(0, '127.0.0.1', resolve));
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'noah-data-test-'));
-  const campaignId = 'noah-live-20261119-01';
+  const campaignId = 'noah-live-20261123-01';
   await fs.writeFile(path.join(directory, 'settings.json'), JSON.stringify({ campaignId, googleScriptUrl: 'http://127.0.0.1:' + upstream.address().port }));
   const portProbe = http.createServer();
   await new Promise(resolve => portProbe.listen(0, '127.0.0.1', resolve));

@@ -5,7 +5,7 @@ function initAlienHuntMinigame() {
   const victory = document.getElementById("alien-win-modal");
   const hud = document.getElementById("alien-hud-tracker");
   const status = document.getElementById("hunter-save-status");
-  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  const reducedMotion = window.NoahMotion;
   const groups = [
     [".western-header", ".wanted-poster-container", ".family-full-adventure-card"],
     [".space-header", ".space-countdown-container", ".space-mission-details"],

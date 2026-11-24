@@ -17,6 +17,7 @@
 
   <link rel="preload" href="assets/images/logo-noah-toys-box.webp" as="image" fetchpriority="high">
   <link rel="preload" href="js/intro.js?v=20261119-live" as="script">
+  <script src="js/motion.js?v=20261123-live"></script>
   <link rel="stylesheet" href="css/style.css?v=20261119-live">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;family=Lilita+One&amp;family=Outfit:wght@400;500;600;700;800;900&amp;family=Bungee&amp;display=swap"
         media="print" onload="this.media='all'">
@@ -24,14 +25,18 @@
 <body>
 
   <!-- ========================================== -->
-  <!-- 1. ABERTURA CINEMATOGRÁFICA (QUARTO DO ANDY) -->
+  <!-- 1. ABERTURA CINEMATOGRÁFICA (QUARTO DO NOAH) -->
   <!-- ========================================== -->
   <dialog class="cinematic-intro" id="cinematic-intro" aria-label="Abertura do convite Noah Story 1">
 
-    <!-- Camada de nuvens do Andy e piso em perspectiva 3D -->
+    <!-- Camada de nuvens do Noah e piso em perspectiva 3D -->
     <div class="intro-clouds-layer" aria-hidden="true"></div>
     <div class="intro-floor-perspective" aria-hidden="true"></div>
     <div class="intro-confetti" id="intro-confetti" aria-hidden="true"></div>
+
+    <button type="button" class="motion-toggle-btn intro-motion-toggle" data-motion-toggle aria-pressed="false">
+      <span aria-hidden="true">✨</span> <span data-motion-label>Ativar animações</span>
+    </button>
 
     <!-- Botão de Acessibilidade para Pular Abertura -->
     <button type="button" class="btn-skip-intro" id="btn-skip-intro" aria-label="Pular introdução e ir direto ao convite">
@@ -160,6 +165,10 @@
       <!-- Controle de Som e Trilha Sonora -->
       <button type="button" class="sound-toggle-btn active" id="sound-toggle-btn" aria-label="Ativar ou desativar efeitos sonoros e música">
         <span id="sound-icon">🔊</span> <span id="sound-label">Sons: ON</span>
+      </button>
+
+      <button type="button" class="motion-toggle-btn" data-motion-toggle aria-pressed="false">
+        <span aria-hidden="true">✨</span> <span data-motion-label>Ativar animações</span>
       </button>
 
       <button type="button" class="alien-hud-pill" id="alien-hud-tracker" aria-haspopup="dialog" aria-controls="hunt-briefing">
@@ -543,7 +552,7 @@
           <div class="forbidden-warning-tag">🚨 ZONA DE PERIGO EXTREMO 🚨</div>
           <h2 class="forbidden-title">ATENÇÃO! NÃO APERTE ESTE BOTÃO!</h2>
           <p style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 20px;">
-            Este botão aciona os protocolos secretos da caixa de brinquedos do Andy... Você foi avisado!
+            Este botão aciona os protocolos secretos da caixa de brinquedos do Noah... Você foi avisado!
           </p>
 
           <button type="button" class="big-red-button" id="btn-forbidden" aria-label="Não aperte este botão!">
@@ -556,7 +565,7 @@
 
       <!-- Rex que corre em pânico pela tela quando o botão proibido é acionado -->
       <div class="rex-panic-runner-wrapper" id="rex-panic-runner-wrapper" aria-hidden="true">
-        <div class="rex-speech-bubble" id="rex-speech-bubble">AAAAAAH! O ANDY TÁ VINDO! 🦖</div>
+        <div class="rex-speech-bubble" id="rex-speech-bubble">AAAAAAH! O NOAH TÁ VINDO! 🦖</div>
         <img src="assets/images/characters/rex.svg" alt="Rex Assustado" class="rex-panic-runner" id="rex-panic-runner">
       </div>
 
@@ -570,8 +579,8 @@
         <!-- Faixas de Perigo / Fita de Isolamento Superior e Inferior -->
         <div class="emergency-hazard-tape emergency-tape-top">
           <div class="hazard-tape-marquee">
-            <span>🚨 ALERTA MÁXIMO • PROTOCOLO TOY STORY • O ANDY ESTÁ VINDO! • TODOS OS BRINQUEDOS EM SEUS LUGARES! • ALERTA MÁXIMO • 🚨</span>
-            <span>🚨 ALERTA MÁXIMO • PROTOCOLO TOY STORY • O ANDY ESTÁ VINDO! • TODOS OS BRINQUEDOS EM SEUS LUGARES! • ALERTA MÁXIMO • 🚨</span>
+            <span>🚨 ALERTA MÁXIMO • PROTOCOLO TOY STORY • O NOAH ESTÁ VINDO! • TODOS OS BRINQUEDOS EM SEUS LUGARES! • ALERTA MÁXIMO • 🚨</span>
+            <span>🚨 ALERTA MÁXIMO • PROTOCOLO TOY STORY • O NOAH ESTÁ VINDO! • TODOS OS BRINQUEDOS EM SEUS LUGARES! • ALERTA MÁXIMO • 🚨</span>
           </div>
         </div>
 
@@ -592,7 +601,7 @@
         <div class="emergency-modal-card">
           <div class="emergency-icon-pulse">🚨</div>
           <h2 class="emergency-headline" id="emergency-headline">ALERTA VERMELHO DE EMERGÊNCIA!</h2>
-          <div class="emergency-subheadline">O ANDY ESTÁ SUBINDO AS ESCADAS!</div>
+          <div class="emergency-subheadline">O NOAH ESTÁ CHEGANDO!</div>
           <p class="emergency-body-text">
             Você apertou o botão proibido da caixa de brinquedos! Todos os brinquedos devem congelar e ficar em suas posições agora mesmo!
           </p>
@@ -625,7 +634,7 @@
             <span>❮</span>
           </button>
           <div class="album-hint-badge">
-            <span>👆</span> Deslize ou use as setas para ver os 14 momentos • Toque na foto para ampliar!
+            <span>👆</span> Deslize ou use as setas para ver os 15 momentos • Toque na foto para ampliar!
           </div>
           <button type="button" class="album-nav-arrow album-arrow-next" id="album-next-btn" aria-label="Próxima foto">
             <span>❯</span>
@@ -744,7 +753,7 @@
           </article>
 
           <!-- Foto 10 -->
-          <article class="polaroid-card" data-index="9" data-tag="🎈 5º MÊS" data-title="5 Meses de Aventura" data-desc="Cada dia mais esperto, expressivo e interagindo com todas as cores do quarto do Andy!" data-full="assets/images/album/10-5meses.jpg">
+          <article class="polaroid-card" data-index="9" data-tag="🎈 5º MÊS" data-title="5 Meses de Aventura" data-desc="Cada dia mais esperto, expressivo e interagindo com todas as cores do quarto do Noah!" data-full="assets/images/album/10-5meses.jpg">
             <div class="polaroid-tape"></div>
             <div class="polaroid-photo-frame">
               <img src="assets/images/album/10-5meses.jpg" alt="5 meses do Noah" class="polaroid-photo-img" loading="lazy">
@@ -803,6 +812,18 @@
             <p class="polaroid-desc">Ficando de pé, comemorando cada conquista e pronto para o primeiro aninho que se aproxima!</p>
           </article>
 
+          <!-- Foto 15 -->
+          <article class="polaroid-card" data-index="14" data-tag="🎈 10º MÊS" data-title="10 Meses de Aventuras" data-desc="Nosso pequeno herói completou 10 meses! Cercado de amor e com a família ao lado, Noah é o protagonista de cada nova aventura." data-full="assets/images/album/15-10meses.jpg">
+            <div class="polaroid-tape"></div>
+            <div class="polaroid-photo-frame">
+              <img src="assets/images/album/15-10meses.jpg" alt="Noah com a família na comemoração dos seus 10 meses" class="polaroid-photo-img" loading="lazy">
+              <div class="polaroid-zoom-hint" title="Toque para ampliar">🔍</div>
+            </div>
+            <span class="polaroid-caption-tag">🎈 10º MÊS</span>
+            <h3 class="polaroid-title">10 Meses de Aventuras</h3>
+            <p class="polaroid-desc">Nosso pequeno herói, com a família ao lado e muito amor para viver novas aventuras!</p>
+          </article>
+
         </div>
       </section>
 
@@ -823,7 +844,7 @@
             <span class="lightbox-tag-pill" id="lightbox-tag-pill"></span>
             <h3 class="lightbox-title-text" id="lightbox-title-text"></h3>
             <p class="lightbox-desc-text" id="lightbox-desc-text"></p>
-            <div class="lightbox-counter-badge" id="lightbox-counter-badge">1 / 14</div>
+            <div class="lightbox-counter-badge" id="lightbox-counter-badge">1 / 15</div>
           </div>
         </div>
       </div>

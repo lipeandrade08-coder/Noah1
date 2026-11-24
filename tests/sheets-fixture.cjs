@@ -41,6 +41,6 @@ function fixture() {
     Utilities: { getUuid: () => require('node:crypto').randomUUID(), formatDate: () => '19/11/2026 12:00:00' }
   });
   vm.runInContext(fs.readFileSync(path.join(__dirname, '../google-apps-script.js'), 'utf8'), context);
-  return { sheets, context, post: data => JSON.parse(context.doPost({ postData: { contents: JSON.stringify({ campaignId: 'noah-live-20261119-01', ...data }) } }).text) };
+  return { sheets, context, post: data => JSON.parse(context.doPost({ postData: { contents: JSON.stringify({ campaignId: 'noah-live-20261123-01', ...data }) } }).text) };
 }
 module.exports = fixture;

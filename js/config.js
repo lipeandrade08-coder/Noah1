@@ -6,7 +6,7 @@
 
 const PARTY_CONFIG = {
   // Identifica a abertura oficial e invalida o progresso e as filas da fase de testes.
-  campaignId: "noah-live-20261119-01",
+  campaignId: "noah-live-20261123-01",
   // Informações do Aniversariante
   childName: "Noah",
   ageNumber: "1",

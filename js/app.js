@@ -563,6 +563,7 @@ function stopBackgroundMelody() {
 
 // Disparador de Confetes
 function triggerConfetti(particleCount = 60, spread = 70) {
+  if (window.NoahMotion.matches) return;
   if (typeof confetti === "function") {
     try {
       confetti({
@@ -790,7 +791,7 @@ function initSpaceMissionRocket() {
   const replay = document.getElementById("flight-replay");
   const coordinates = document.getElementById("flight-coordinates");
   const missionDetails = document.getElementById("space-mission-details");
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const reducedMotion = window.NoahMotion;
   const fixedStep = 1 / 120;
   let game;
   let sprites = [];
@@ -1229,7 +1230,7 @@ function initForbiddenButton() {
     // 2. Para sirene de alarme imediatamente
     stopEmergencySirenAudio();
 
-    // 3. Restaura música de fundo do Andy se estava ligada
+    // 3. Restaura música de fundo do Noah se estava ligada
     const bgAudio = getThemeAudio();
     if (bgAudio && AppState.soundEnabled && bgAudio.paused) {
       bgAudio.play().catch(() => {});
@@ -1238,8 +1239,8 @@ function initForbiddenButton() {
     // 4. Feedback no balão de mensagem
     if (toast) {
       toast.textContent = wasManual
-        ? "✅ UFA! Alarme desativado! O Andy desistiu de subir... Todos os brinquedos continuam seguros! 🤠"
-        : "🎉 PROTOCOLO ESTABILIZADO! Falso alarme: o Andy foi brincar lá fora! Você tem a coragem de um verdadeiro patrulheiro espacial! 🚀";
+        ? "✅ UFA! Alarme desativado! O Noah foi brincar... Todos os brinquedos continuam seguros! 🤠"
+        : "🎉 PROTOCOLO ESTABILIZADO! Falso alarme: o Noah foi brincar lá fora! Você tem a coragem de um verdadeiro patrulheiro espacial! 🚀";
       toast.style.animation = "none";
       toast.offsetHeight;
       toast.style.animation = "fadeInZoom 0.4s ease";

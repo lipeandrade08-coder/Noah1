@@ -98,7 +98,7 @@ body.emergency-screen-shake .page-wrapper { animation: emergencyScreenTremble 0.
 }
 
 /* ==========================================================================
-   1. ABERTURA NO QUARTO DO ANDY
+   1. ABERTURA NO QUARTO DO NOAH
    ========================================================================== */
 html:has(.cinematic-intro[open], .space-game[open], .emergency-overlay[open], .modal-backdrop.open, .album-lightbox-modal.active) {
   overflow: hidden;
@@ -5093,17 +5093,19 @@ html:has(.hunt-dialog[open]) {
 /* ==========================================================================
    17. ACESSIBILIDADE & PREFERS-REDUCED-MOTION
    ========================================================================== */
+html[data-motion="reduced"] *, html[data-motion="reduced"] *::before, html[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+html[data-motion="reduced"] .cinematic-intro * { animation: none !important; transition: none !important; }
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  html:not([data-motion]) *, html:not([data-motion]) *::before, html:not([data-motion]) *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-
-  .cinematic-intro * {
-    animation: none !important;
-    transition: none !important;
   }
 }
 
@@ -5149,7 +5151,16 @@ html:has(.hunt-dialog[open]) {
 @keyframes flightSparkle { from { transform: scale(.5) rotate(0); opacity: .4; } to { transform: scale(1.2) rotate(40deg); opacity: 1; } }
 @keyframes flightRescue { 0%, 100% { transform: translateY(0) rotate(-20deg); } 50% { transform: translateY(-14px) rotate(8deg); } }
 @media (max-width: 480px) { .admin-voucher-heading { display: block; } .admin-voucher-heading .voucher-category { margin-top: 10px; } .admin-voucher-footer .btn-redeem-row { width: 100%; margin: 0; } .emergency-modal-card { padding: 20px 14px; width: 100%; } }
-@media (prefers-reduced-motion: reduce) { .flight-outcome, .flight-outcome-art span, body.emergency-screen-shake .page-wrapper, .emergency-overlay * { animation: none !important; transition: none !important; } }
+html[data-motion="reduced"] .flight-outcome, html[data-motion="reduced"] .flight-outcome-art span, html[data-motion="reduced"] body.emergency-screen-shake .page-wrapper, html[data-motion="reduced"] .emergency-overlay * { animation: none !important; transition: none !important; }
 
 .invite-update-notice { position: fixed; z-index: 9999; bottom: max(12px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 24px); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px 16px; padding: 14px 18px; border: 2px solid #facc15; border-radius: 16px; background: #173b72; color: #fff; box-shadow: 0 6px 20px #0004; font-size: 1rem; text-align: center; }
 .invite-update-notice button { border: 0; border-radius: 10px; padding: 12px 16px; min-height: 44px; background: #facc15; color: #172554; font: inherit; font-weight: 700; cursor: pointer; }
+
+/* Controle de movimento disponível também quando o iPad reduz os efeitos. */
+.motion-toggle-btn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 44px; min-height: 44px; padding: 7px 11px; border: 2px solid #a78bfa; border-radius: 999px; background: #f5f3ff; color: #5b21b6; font: 600 .85rem var(--font-heading); cursor: pointer; }
+.motion-toggle-btn[aria-pressed="true"] { border-color: #22c55e; color: #166534; background: #dcfce7; }
+.motion-toggle-btn:focus-visible { outline: 3px solid #facc15; outline-offset: 3px; }
+.intro-motion-toggle { position: absolute; top: max(16px, env(safe-area-inset-top)); left: clamp(14px, 4vw, 32px); z-index: 5; max-width: calc(50% - 20px); color: #fff; background: #15558d; border: 1px solid #fff9; }
+.intro-motion-toggle[aria-pressed="true"] { color: #fff; background: #166534; border-color: #bbf7d0; }
+@media (max-width: 600px) { .top-action-bar [data-motion-label] { display: none; } }
+@media (max-width: 380px) { .intro-motion-toggle { font-size: .75rem; padding: 7px 9px; } .btn-skip-intro { font-size: .75rem; min-height: 44px; padding-inline: 9px; } }
